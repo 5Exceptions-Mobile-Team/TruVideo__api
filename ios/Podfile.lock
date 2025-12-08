@@ -1,0 +1,161 @@
+PODS:
+  - AWSCognitoIdentityProvider (2.41.0):
+    - AWSCognitoIdentityProviderASF (= 2.41.0)
+    - AWSCore (= 2.41.0)
+  - AWSCognitoIdentityProviderASF (2.41.0):
+    - AWSCore (= 2.41.0)
+  - AWSCore (2.41.0)
+  - AWSS3 (2.41.0):
+    - AWSCore (= 2.41.0)
+  - DKImagePickerController/Core (4.3.9):
+    - DKImagePickerController/ImageDataManager
+    - DKImagePickerController/Resource
+  - DKImagePickerController/ImageDataManager (4.3.9)
+  - DKImagePickerController/PhotoGallery (4.3.9):
+    - DKImagePickerController/Core
+    - DKPhotoGallery
+  - DKImagePickerController/Resource (4.3.9)
+  - DKPhotoGallery (0.0.19):
+    - DKPhotoGallery/Core (= 0.0.19)
+    - DKPhotoGallery/Model (= 0.0.19)
+    - DKPhotoGallery/Preview (= 0.0.19)
+    - DKPhotoGallery/Resource (= 0.0.19)
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Core (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Preview
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Model (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Preview (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Resource
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Resource (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - file_picker (0.0.1):
+    - DKImagePickerController/PhotoGallery
+    - Flutter
+  - Flutter (1.0.0)
+  - flutter_file_info (0.0.1):
+    - Flutter
+  - fluttertoast (0.0.2):
+    - Flutter
+  - libwebp (1.5.0):
+    - libwebp/demux (= 1.5.0)
+    - libwebp/mux (= 1.5.0)
+    - libwebp/sharpyuv (= 1.5.0)
+    - libwebp/webp (= 1.5.0)
+  - libwebp/demux (1.5.0):
+    - libwebp/webp
+  - libwebp/mux (1.5.0):
+    - libwebp/demux
+  - libwebp/sharpyuv (1.5.0)
+  - libwebp/webp (1.5.0):
+    - libwebp/sharpyuv
+  - media_info (0.6.1):
+    - Flutter
+  - open_filex (0.0.2):
+    - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - SDWebImage (5.21.3):
+    - SDWebImage/Core (= 5.21.3)
+  - SDWebImage/Core (5.21.3)
+  - SwiftyGif (5.4.5)
+  - truvideo-sdk-camera (78.1.1)
+  - truvideo-sdk-core (78.1.1):
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSS3
+  - truvideo_camera_sdk (0.0.1):
+    - Flutter
+    - truvideo-sdk-camera
+  - truvideo_core_sdk (0.0.1):
+    - Flutter
+    - truvideo-sdk-core
+  - video_thumbnail (0.0.1):
+    - Flutter
+    - libwebp
+
+DEPENDENCIES:
+  - file_picker (from `.symlinks/plugins/file_picker/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_file_info (from `.symlinks/plugins/flutter_file_info/ios`)
+  - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
+  - media_info (from `.symlinks/plugins/media_info/ios`)
+  - open_filex (from `.symlinks/plugins/open_filex/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - truvideo_camera_sdk (from `.symlinks/plugins/truvideo_camera_sdk/ios`)
+  - truvideo_core_sdk (from `.symlinks/plugins/truvideo_core_sdk/ios`)
+  - video_thumbnail (from `.symlinks/plugins/video_thumbnail/ios`)
+
+SPEC REPOS:
+  trunk:
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSS3
+    - DKImagePickerController
+    - DKPhotoGallery
+    - libwebp
+    - SDWebImage
+    - SwiftyGif
+    - truvideo-sdk-camera
+    - truvideo-sdk-core
+
+EXTERNAL SOURCES:
+  file_picker:
+    :path: ".symlinks/plugins/file_picker/ios"
+  Flutter:
+    :path: Flutter
+  flutter_file_info:
+    :path: ".symlinks/plugins/flutter_file_info/ios"
+  fluttertoast:
+    :path: ".symlinks/plugins/fluttertoast/ios"
+  media_info:
+    :path: ".symlinks/plugins/media_info/ios"
+  open_filex:
+    :path: ".symlinks/plugins/open_filex/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  truvideo_camera_sdk:
+    :path: ".symlinks/plugins/truvideo_camera_sdk/ios"
+  truvideo_core_sdk:
+    :path: ".symlinks/plugins/truvideo_core_sdk/ios"
+  video_thumbnail:
+    :path: ".symlinks/plugins/video_thumbnail/ios"
+
+SPEC CHECKSUMS:
+  AWSCognitoIdentityProvider: b7e2471bec75137ce392b9a8c60f3cee465c61bd
+  AWSCognitoIdentityProviderASF: d26fedd80485c2f0f308741e02c4a9093921ad22
+  AWSCore: ee7594bda3132cde8666328bf9a09d8770c1c100
+  AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
+  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
+  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
+  file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_file_info: 3fedfca1e5937afd6db6dfab1137fbe7db5e6bb8
+  fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
+  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  media_info: 3ab107ca996f19da4e60c7eee2e56d06a6c35b32
+  open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
+  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
+  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
+  truvideo-sdk-camera: c1c764bf117e160b475bb541433fa94ca9b0d379
+  truvideo-sdk-core: 7f82939ec90dbb7d5a11b059e21a0167051965fc
+  truvideo_camera_sdk: 6e09e2698c4a52b59bf6e138145c916006e4a762
+  truvideo_core_sdk: 1efa45e0871d8aacc22b6f892200010d6d690810
+  video_thumbnail: b637e0ad5f588ca9945f6e2c927f73a69a661140
+
+PODFILE CHECKSUM: 1857a7cdb7dfafe45f2b0e9a9af44644190f7506
+
+COCOAPODS: 1.16.2
