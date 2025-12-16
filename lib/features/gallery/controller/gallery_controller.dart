@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'package:audio_info/audio_info.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +13,8 @@ import 'package:image_size_getter/image_size_getter.dart';
 import 'package:intl/intl.dart';
 import 'package:media_info/media_info.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:truvideo_camera_sdk/ar_camera_configuration.dart';
 import 'package:truvideo_camera_sdk/camera_configuration.dart';
 import 'package:truvideo_camera_sdk/camera_mode.dart';
 import 'package:truvideo_camera_sdk/truvideo_camera_sdk.dart';
@@ -27,6 +24,7 @@ import 'package:path/path.dart' as mPath;
 
 import '../../common/widgets/error_widget.dart';
 import '../widgets/loading_file_widget.dart';
+import '../../media_upload/views/media_upload_screen.dart';
 
 enum CameraModeEnum {
   videoAndImage,
@@ -328,7 +326,8 @@ class GalleryController extends GetxController {
       }
     } else {
       try {
-        await OpenFilex.open(path);
+        // Navigate to Media Upload Screen as per new requirement
+        Get.to(() => MediaUploadScreen(path: path));
       } catch (e) {
         print('Error while opening the file: $e');
       }

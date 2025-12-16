@@ -64,7 +64,7 @@ dependencies:
   flutter_slidable:
   device_info_plus:
   permission_handler:
-  audio_info:
+  url_launcher:
 
 dev_dependencies:
   flutter_test:

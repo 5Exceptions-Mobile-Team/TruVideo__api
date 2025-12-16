@@ -48,6 +48,11 @@ class AuthController extends GetxController {
   Rx<CredentialsModel?> backOfficeCredentials = Rx<CredentialsModel?>(null);
   Rx<CredentialsModel?> mobileCredentials = Rx<CredentialsModel?>(null);
 
+  // Store back office authentication response
+  Rx<Map<String, dynamic>?> backOfficeAuthResponse = Rx<Map<String, dynamic>?>(
+    null,
+  );
+
   @override
   void onInit() {
     boApiKeyController = TextEditingController();
@@ -159,12 +164,18 @@ class AuthController extends GetxController {
 
       if (res != null && res['accessToken'] != null) {
         String token = res['accessToken'];
+        // Store the full response for JSON display
+        backOfficeAuthResponse.value = res as Map<String, dynamic>?;
         homeController.setBackOfficeSuccess(token);
         homeController.checkAuthStatus();
+      } else {
+        backOfficeAuthResponse.value = null;
       }
       boLoading.value = false;
     } catch (e) {
       boLoading.value = false;
+      // Clear response on error
+      backOfficeAuthResponse.value = null;
       debugPrint('Authentication failed: $e');
       Get.dialog(
         ErrorDialog(

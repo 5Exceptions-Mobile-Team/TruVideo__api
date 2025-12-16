@@ -68,8 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: 'Gallery Button',
                         child: FeatureCard(
                           onTap: () {
-                            if (homeController.mobileAuthenticated.value &&
-                                homeController.isAuthExpired.value == false) {
+                            if (homeController.isFullyAuthenticated.value) {
                               Get.to(() => GalleryScreen(onSelect: (_) {}));
                             } else {
                               showDialog(
@@ -88,6 +87,40 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 15),
+                Obx(
+                  () => Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 5,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Testing/QA Mode',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Switch(
+                            value: homeController.testingMode.value,
+                            onChanged: (value) {
+                              homeController.testingMode.value = value;
+                              homeController.storage.write(
+                                HomeController.TESTING_MODE_KEY,
+                                value,
+                              );
+                            },
+                            activeThumbColor: Pallet.secondaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 15),
                 Text(
@@ -109,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 identifier: 'auth_status',
                                 label: 'Is Authenticated',
                                 child: Text(
-                                  homeController.mobileAuthenticated.value
+                                  homeController.isFullyAuthenticated.value
                                       .toString(),
                                 ),
                               ),

@@ -7,6 +7,8 @@ PODS:
   - AWSCore (2.41.0)
   - AWSS3 (2.41.0):
     - AWSCore (= 2.41.0)
+  - device_info_plus (0.0.1):
+    - Flutter
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -65,6 +67,8 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - permission_handler_apple (9.3.0):
+    - Flutter
   - SDWebImage (5.21.3):
     - SDWebImage/Core (= 5.21.3)
   - SDWebImage/Core (5.21.3)
@@ -86,6 +90,7 @@ PODS:
     - libwebp
 
 DEPENDENCIES:
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_file_info (from `.symlinks/plugins/flutter_file_info/ios`)
@@ -93,6 +98,7 @@ DEPENDENCIES:
   - media_info (from `.symlinks/plugins/media_info/ios`)
   - open_filex (from `.symlinks/plugins/open_filex/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - truvideo_camera_sdk (from `.symlinks/plugins/truvideo_camera_sdk/ios`)
   - truvideo_core_sdk (from `.symlinks/plugins/truvideo_core_sdk/ios`)
   - video_thumbnail (from `.symlinks/plugins/video_thumbnail/ios`)
@@ -112,6 +118,8 @@ SPEC REPOS:
     - truvideo-sdk-core
 
 EXTERNAL SOURCES:
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
@@ -126,6 +134,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/open_filex/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
   truvideo_camera_sdk:
     :path: ".symlinks/plugins/truvideo_camera_sdk/ios"
   truvideo_core_sdk:
@@ -138,6 +148,7 @@ SPEC CHECKSUMS:
   AWSCognitoIdentityProviderASF: d26fedd80485c2f0f308741e02c4a9093921ad22
   AWSCore: ee7594bda3132cde8666328bf9a09d8770c1c100
   AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
@@ -148,6 +159,7 @@ SPEC CHECKSUMS:
   media_info: 3ab107ca996f19da4e60c7eee2e56d06a6c35b32
   open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   truvideo-sdk-camera: c1c764bf117e160b475bb541433fa94ca9b0d379

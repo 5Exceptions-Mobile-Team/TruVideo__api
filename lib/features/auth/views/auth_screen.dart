@@ -8,6 +8,7 @@ import 'package:media_upload_sample_app/features/auth/widgets/payload_card.dart'
 import 'package:media_upload_sample_app/features/auth/widgets/signature_card.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_app_bar.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/enhanced_json_viewer_widget.dart';
 import 'credentials_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -78,6 +79,19 @@ class _AuthScreenState extends State<AuthScreen> {
                             AuthenticateCard(title: 'Authenticate'),
                           ],
                         ),
+                  Obx(() {
+                    // Only show JSON response if testing mode is enabled
+                    if (!authController.homeController.testingMode.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return authController.backOfficeAuthResponse.value != null
+                        ? EnhancedJsonViewerWidget(
+                            jsonData:
+                                authController.backOfficeAuthResponse.value,
+                            title: 'Back Office Auth Response',
+                          )
+                        : const SizedBox.shrink();
+                  }),
                 ],
               ),
             ),

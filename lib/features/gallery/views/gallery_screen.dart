@@ -136,7 +136,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ],
               )
             : DefaultTabController(
-                length: 5,
+                length: 3,
                 child: Column(
                   children: [
                     TabBar(
