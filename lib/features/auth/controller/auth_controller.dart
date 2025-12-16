@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/core/services/api_service.dart';
+import 'package:media_upload_sample_app/core/services/connectivity_service.dart';
 import 'package:media_upload_sample_app/core/services/local_database_service.dart';
 import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:media_upload_sample_app/features/auth/models/credentials_model.dart';
@@ -136,6 +137,15 @@ class AuthController extends GetxController {
       Utils.showToast('API Key and Secret Key both are required');
       return;
     }
+    if (!await ConnectivityService().hasConnection()) {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Internet Error',
+          subTitle: 'Make sure you have stable internet connection',
+        ),
+      );
+      return;
+    }
 
     try {
       boLoading.value = true;
@@ -229,6 +239,15 @@ class AuthController extends GetxController {
       Utils.showToast(
         'API Key, Payload and Signature are required to authenticate',
         length: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+    if (!await ConnectivityService().hasConnection()) {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Internet Error',
+          subTitle: 'Make sure you have stable internet connection',
+        ),
       );
       return;
     }

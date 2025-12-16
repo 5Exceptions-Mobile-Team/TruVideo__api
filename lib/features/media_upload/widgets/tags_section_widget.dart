@@ -28,28 +28,36 @@ class TagsSectionWidget extends StatelessWidget {
             Row(
               spacing: 10,
               children: [
-                GestureDetector(
-                  onTap: controller.addTagRow,
-                  child: Container(
-                    width: 35,
-                    height: 35,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Pallet.secondaryColor,
+                Semantics(
+                  identifier: 'add_tag_row',
+                  label: 'add_tag_row',
+                  child: GestureDetector(
+                    onTap: controller.addTagRow,
+                    child: Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Pallet.secondaryColor,
+                      ),
+                      child: Icon(Icons.add, color: Colors.white),
                     ),
-                    child: Icon(Icons.add, color: Colors.white),
                   ),
                 ),
-                GestureDetector(
-                  onTap: controller.removeLastTagRow,
-                  child: Container(
-                    width: 35,
-                    height: 35,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Pallet.secondaryColor,
+                Semantics(
+                  identifier: 'remove_tag',
+                  label: 'remove_tag',
+                  child: GestureDetector(
+                    onTap: controller.removeLastTagRow,
+                    child: Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Pallet.secondaryColor,
+                      ),
+                      child: Icon(Icons.remove, color: Colors.white),
                     ),
-                    child: Icon(Icons.remove, color: Colors.white),
                   ),
                 ),
               ],
@@ -67,15 +75,23 @@ class TagsSectionWidget extends StatelessWidget {
                     spacing: 10,
                     children: [
                       Expanded(
-                        child: CommonTextField(
-                          controller: controller.tagControllers[i]['key']!,
-                          hintText: 'Key',
+                        child: Semantics(
+                          identifier: 'tag_key',
+                          label: 'tag_key',
+                          child: CommonTextField(
+                            controller: controller.tagControllers[i]['key']!,
+                            hintText: 'Key',
+                          ),
                         ),
                       ),
                       Expanded(
-                        child: CommonTextField(
-                          controller: controller.tagControllers[i]['value']!,
-                          hintText: 'Value',
+                        child: Semantics(
+                          identifier: 'tag_value',
+                          label: 'tag_value',
+                          child: CommonTextField(
+                            controller: controller.tagControllers[i]['value']!,
+                            hintText: 'Value',
+                          ),
                         ),
                       ),
                     ],

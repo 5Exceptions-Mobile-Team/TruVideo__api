@@ -37,8 +37,8 @@ class AuthenticatedWidget extends StatelessWidget {
               ],
             ),
             Semantics(
-              identifier: 'core_clear_auth',
-              label: 'Clear Authentication',
+              identifier: 'clear_authentication',
+              label: 'clear_authentication',
               child: AppButton(
                 onTap: () {
                   if (onClear != null) {

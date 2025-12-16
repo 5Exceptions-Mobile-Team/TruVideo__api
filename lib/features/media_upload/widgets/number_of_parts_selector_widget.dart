@@ -36,7 +36,7 @@ class NumberOfPartsSelectorWidget extends StatelessWidget {
                 )
               else
                 Text(
-                  'Max $maxParts parts (5MB each)',
+                  'Max $maxParts parts (Min 5MB each)',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
             ],
@@ -44,52 +44,64 @@ class NumberOfPartsSelectorWidget extends StatelessWidget {
           Row(
             spacing: 10,
             children: [
-              GestureDetector(
-                onTap: controller.decrementParts,
-                child: Container(
-                  width: 35,
-                  height: 35,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: controller.numberOfParts.value > 1
-                        ? Pallet.secondaryColor
-                        : Colors.grey[400],
+              Semantics(
+                identifier: 'decrement_parts',
+                label: 'decrement_parts',
+                child: GestureDetector(
+                  onTap: controller.decrementParts,
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: controller.numberOfParts.value > 1
+                          ? Pallet.secondaryColor
+                          : Colors.grey[400],
+                    ),
+                    child: Icon(Icons.remove, color: Colors.white),
                   ),
-                  child: Icon(Icons.remove, color: Colors.white),
                 ),
               ),
               Container(
                 width: 40,
                 alignment: Alignment.center,
-                child: Text(
-                  '${controller.numberOfParts.value}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Pallet.secondaryDarkColor,
+                child: Semantics(
+                  identifier: 'number_of_parts',
+                  label: 'number_of_parts',
+                  child: Text(
+                    '${controller.numberOfParts.value}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Pallet.secondaryDarkColor,
+                    ),
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: isMultipartAllowed
-                    ? controller.incrementParts
-                    : () {
-                        Utils.showToast(
-                          'Files below 10MB cannot be uploaded in parts',
-                        );
-                      },
-                child: Container(
-                  width: 35,
-                  height: 35,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        (isMultipartAllowed &&
-                            controller.numberOfParts.value < maxParts)
-                        ? Pallet.secondaryColor
-                        : Colors.grey[400],
+              Semantics(
+                identifier: 'increment_parts',
+                label: 'increment_parts',
+                child: GestureDetector(
+                  onTap: isMultipartAllowed
+                      ? controller.incrementParts
+                      : () {
+                          Utils.showToast(
+                            'Files below 10MB cannot be uploaded in parts',
+                          );
+                        },
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color:
+                          (isMultipartAllowed &&
+                              controller.numberOfParts.value < maxParts)
+                          ? Pallet.secondaryColor
+                          : Colors.grey[400],
+                    ),
+                    child: Icon(Icons.add, color: Colors.white),
                   ),
-                  child: Icon(Icons.add, color: Colors.white),
                 ),
               ),
             ],

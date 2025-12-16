@@ -14,32 +14,41 @@ class CheckboxesRowWidget extends StatelessWidget {
       () => Row(
         children: [
           Expanded(
-            child: CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: controller.isLibrary.value,
-              onChanged: (value) => controller.isLibrary.value = value ?? true,
-              title: Text(
-                'Add to library',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            child: Semantics(
+              identifier: 'add_to_library',
+              label: 'add_to_library',
+              child: CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: controller.isLibrary.value,
+                onChanged: (value) =>
+                    controller.isLibrary.value = value ?? true,
+                title: Text(
+                  'Add to library',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                activeColor: Pallet.secondaryColor,
               ),
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              activeColor: Pallet.secondaryColor,
             ),
           ),
           Expanded(
-            child: CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: controller.includeInReport.value,
-              onChanged: (value) =>
-                  controller.includeInReport.value = value ?? true,
-              title: Text(
-                'Include in report',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            child: Semantics(
+              identifier: 'include_in_report',
+              label: 'include_in_report',
+              child: CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: controller.includeInReport.value,
+                onChanged: (value) =>
+                    controller.includeInReport.value = value ?? true,
+                title: Text(
+                  'Include in report',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                activeColor: Pallet.secondaryColor,
               ),
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              activeColor: Pallet.secondaryColor,
             ),
           ),
         ],

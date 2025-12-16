@@ -95,25 +95,31 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.copy,
-                    size: 22,
-                    color: Pallet.secondaryColor,
-                  ),
-                  onPressed: () {
-                    try {
-                      jsonEncode(data);
-                      Clipboard.setData(ClipboardData(text: jsonEncode(data)));
-                    } catch (e) {
-                      Utils.showToast('Failed to copy JSON');
-                    }
-                  },
-                  tooltip: 'Copy JSON',
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
+                Semantics(
+                  identifier: 'copy_json',
+                  label: 'copy_json',
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.copy,
+                      size: 22,
+                      color: Pallet.secondaryColor,
+                    ),
+                    onPressed: () {
+                      try {
+                        jsonEncode(data);
+                        Clipboard.setData(
+                          ClipboardData(text: jsonEncode(data)),
+                        );
+                      } catch (e) {
+                        Utils.showToast('Failed to copy JSON');
+                      }
+                    },
+                    tooltip: 'Copy JSON',
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 40,
+                    ),
                   ),
                 ),
               ],

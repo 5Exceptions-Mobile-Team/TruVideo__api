@@ -53,23 +53,35 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
               const SizedBox(height: 20),
               _buildLabel('Title'),
               const SizedBox(height: 5),
-              CommonTextField(
-                controller: controller.titleController,
-                hintText: 'Title',
+              Semantics(
+                identifier: 'title',
+                label: 'title',
+                child: CommonTextField(
+                  controller: controller.titleController,
+                  hintText: 'Title',
+                ),
               ),
               const SizedBox(height: 20),
               _buildLabel('Creator Name'),
               const SizedBox(height: 5),
-              CommonTextField(
-                controller: controller.creatorController,
-                hintText: 'Creator Name',
+              Semantics(
+                identifier: 'creator_name',
+                label: 'creator_name',
+                child: CommonTextField(
+                  controller: controller.creatorController,
+                  hintText: 'Creator Name',
+                ),
               ),
               const SizedBox(height: 20),
               _buildLabel('Metadata'),
               const SizedBox(height: 5),
-              CommonTextField(
-                controller: controller.metadataController,
-                hintText: 'Metadata',
+              Semantics(
+                identifier: 'metadata',
+                label: 'metadata',
+                child: CommonTextField(
+                  controller: controller.metadataController,
+                  hintText: 'Metadata',
+                ),
               ),
               const SizedBox(height: 20),
               TagsSectionWidget(controller: controller),
@@ -103,42 +115,23 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
 
   Widget _buildApiResponsesDisplay() {
     return Obx(() {
-      // Only show JSON responses if testing mode is enabled
       if (!homeController.testingMode.value) {
         return const SizedBox.shrink();
       }
 
       final widgets = <Widget>[];
 
-      // Initialize API - Request Body and Response
-      if (controller.initializePayload.value != null ||
-          controller.initializeResponse.value != null) {
-        if (controller.initializePayload.value != null) {
-          widgets.add(
-            EnhancedJsonViewerWidget(
-              jsonData: controller.initializePayload.value,
-              title: 'Initialize API Request Body',
-            ),
-          );
-        }
-        if (controller.initializeResponse.value != null) {
-          if (widgets.isNotEmpty) {
-            widgets.add(const SizedBox(height: 10));
-          }
-          widgets.add(
-            EnhancedJsonViewerWidget(
-              jsonData: controller.initializeResponse.value,
-              title: 'Initialize API Response',
-            ),
-          );
-        }
-      }
+      // Initialize API
+      _addApiSection(
+        widgets,
+        controller.initializePayload.value,
+        controller.initializeResponse.value,
+        'Initialize API',
+      );
 
-      // Upload API - Response only (no request body as it's binary data)
+      // Upload API
       if (controller.uploadResponse.value != null) {
-        if (widgets.isNotEmpty) {
-          widgets.add(const SizedBox(height: 15));
-        }
+        if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 15));
         widgets.add(
           EnhancedJsonViewerWidget(
             jsonData: controller.uploadResponse.value,
@@ -147,36 +140,15 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
         );
       }
 
-      // Finalize API - Request Body and Response
-      if (controller.finalizePayload.value != null ||
-          controller.finalizeResponse.value != null) {
-        if (widgets.isNotEmpty) {
-          widgets.add(const SizedBox(height: 15));
-        }
-        if (controller.finalizePayload.value != null) {
-          widgets.add(
-            EnhancedJsonViewerWidget(
-              jsonData: controller.finalizePayload.value,
-              title: 'Finalize API Request Body',
-            ),
-          );
-        }
-        if (controller.finalizeResponse.value != null) {
-          if (widgets.isNotEmpty) {
-            widgets.add(const SizedBox(height: 10));
-          }
-          widgets.add(
-            EnhancedJsonViewerWidget(
-              jsonData: controller.finalizeResponse.value,
-              title: 'Finalize API Response',
-            ),
-          );
-        }
-      }
+      // Finalize API
+      _addApiSection(
+        widgets,
+        controller.finalizePayload.value,
+        controller.finalizeResponse.value,
+        'Finalize API',
+      );
 
-      if (widgets.isEmpty) {
-        return const SizedBox.shrink();
-      }
+      if (widgets.isEmpty) return const SizedBox.shrink();
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,5 +167,35 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
         ],
       );
     });
+  }
+
+  void _addApiSection(
+    List<Widget> widgets,
+    Map<String, dynamic>? payload,
+    Map<String, dynamic>? response,
+    String apiName,
+  ) {
+    if (payload == null && response == null) return;
+
+    if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 15));
+
+    if (payload != null) {
+      widgets.add(
+        EnhancedJsonViewerWidget(
+          jsonData: payload,
+          title: '$apiName Request Body',
+        ),
+      );
+    }
+
+    if (response != null) {
+      if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 10));
+      widgets.add(
+        EnhancedJsonViewerWidget(
+          jsonData: response,
+          title: '$apiName Response',
+        ),
+      );
+    }
   }
 }

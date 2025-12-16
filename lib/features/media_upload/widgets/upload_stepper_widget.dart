@@ -139,13 +139,17 @@ class StepRowWidget extends StatelessWidget {
         const SizedBox(width: 12),
         // AppButton
         Expanded(
-          child: AppButton(
-            text: label,
-            onTap: isEnabled && !isLoading ? onTap : () {},
-            backgroundColor: buttonColor,
-            showLoading: isLoading,
-            borderRadius: 10,
-            fontSize: 15,
+          child: Semantics(
+            identifier: 'upload_button_$stepNumber',
+            label: 'upload_button_$stepNumber',
+            child: AppButton(
+              text: label,
+              onTap: isEnabled && !isLoading ? onTap : () {},
+              backgroundColor: buttonColor,
+              showLoading: isLoading,
+              borderRadius: 10,
+              fontSize: 15,
+            ),
           ),
         ),
       ],

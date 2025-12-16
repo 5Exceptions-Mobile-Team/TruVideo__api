@@ -29,8 +29,12 @@ class AuthenticateCard extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             Semantics(
-              identifier: 'api_key_field',
-              label: 'API key textfield',
+              identifier: forBackOffice
+                  ? 'back_office_api_key_field'
+                  : 'mobile_api_key_field',
+              label: forBackOffice
+                  ? 'back_office_api_key_field'
+                  : 'mobile_api_key_field',
               child: CommonTextField(
                 controller: forBackOffice
                     ? authController.boApiKeyController
@@ -40,8 +44,8 @@ class AuthenticateCard extends StatelessWidget {
             ),
             if (!forBackOffice)
               Semantics(
-                identifier: 'payload_field',
-                label: 'Payload textfield',
+                identifier: 'mobile_payload_field',
+                label: 'mobile_payload_field',
                 child: CommonTextField(
                   controller: authController.authPayloadController,
                   hintText: 'Payload',
@@ -49,8 +53,8 @@ class AuthenticateCard extends StatelessWidget {
               ),
             if (!forBackOffice)
               Semantics(
-                identifier: 'signature_field',
-                label: 'Signature textfield',
+                identifier: 'mobile_signature_field',
+                label: 'mobile_signature_field',
                 child: CommonTextField(
                   controller: authController.authSignatureController,
                   hintText: 'Signature',
@@ -58,16 +62,20 @@ class AuthenticateCard extends StatelessWidget {
               ),
             if (forBackOffice)
               Semantics(
-                identifier: 'secret_key',
-                label: 'Secret key textfield',
+                identifier: 'back_office_secret_key',
+                label: 'back_office_secret_key',
                 child: CommonTextField(
                   controller: authController.boSecretKeyController,
                   hintText: 'Secret Key',
                 ),
               ),
             Semantics(
-              identifier: 'external_id_field',
-              label: 'External id textfield',
+              identifier: forBackOffice
+                  ? 'back_office_external_id_field'
+                  : 'mobile_external_id_field',
+              label: forBackOffice
+                  ? 'back_office_external_id_field'
+                  : 'mobile_external_id_field',
               child: CommonTextField(
                 controller: forBackOffice
                     ? authController.boExternalIdController
@@ -77,8 +85,12 @@ class AuthenticateCard extends StatelessWidget {
             ),
             Obx(
               () => Semantics(
-                identifier: 'authenticate_button',
-                label: 'Authenticate Button',
+                identifier: forBackOffice
+                    ? 'back_office_authenticate_button'
+                    : 'mobile_authenticate_button',
+                label: forBackOffice
+                    ? 'back_office_authenticate_button'
+                    : 'mobile_authenticate_button',
                 child: AppButton(
                   onTap: () => forBackOffice
                       ? authController.backOfficeAuthentication()

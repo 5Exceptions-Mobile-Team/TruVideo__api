@@ -106,16 +106,20 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Switch(
-                            value: homeController.testingMode.value,
-                            onChanged: (value) {
-                              homeController.testingMode.value = value;
-                              homeController.storage.write(
-                                HomeController.TESTING_MODE_KEY,
-                                value,
-                              );
-                            },
-                            activeThumbColor: Pallet.secondaryColor,
+                          Semantics(
+                            identifier: 'testing_mode',
+                            label: 'testing_mode',
+                            child: Switch(
+                              value: homeController.testingMode.value,
+                              onChanged: (value) {
+                                homeController.testingMode.value = value;
+                                homeController.storage.write(
+                                  HomeController.TESTING_MODE_KEY,
+                                  value,
+                                );
+                              },
+                              activeThumbColor: Pallet.secondaryColor,
+                            ),
                           ),
                         ],
                       ),

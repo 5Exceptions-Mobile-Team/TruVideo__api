@@ -65,7 +65,8 @@ class CredentialsScreen extends StatelessWidget {
   ) {
     if (credentials == null) {
       return Semantics(
-        label: 'Add $title credentials',
+        label: 'add_credentials',
+        identifier: 'add_credentials',
         child: InkWell(
           onTap: () => Get.to(
             () => SaveUpdateCredentials(targetId: targetId, title: title),
@@ -94,7 +95,8 @@ class CredentialsScreen extends StatelessWidget {
     }
 
     return Semantics(
-      label: '$title credentials card',
+      label: 'credentials_card',
+      identifier: 'credentials_card',
       child: Slidable(
         key: Key(credentials.id.toString()),
         endActionPane: ActionPane(
@@ -139,17 +141,21 @@ class CredentialsScreen extends StatelessWidget {
             color: Pallet.secondaryBackground,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: ListTile(
-            onTap: () => authController.useSavedCredentials(
-              credentials,
-              forBackOffice: title == 'Back Office',
+          child: Semantics(
+            identifier: 'credentials_button',
+            label: 'credentials_button',
+            child: ListTile(
+              onTap: () => authController.useSavedCredentials(
+                credentials,
+                forBackOffice: title == 'Back Office',
+              ),
+              title: Text(
+                credentials.apiKey ?? '',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: Text(credentials.secret ?? ''),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             ),
-            title: Text(
-              credentials.apiKey ?? '',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Text(credentials.secret ?? ''),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           ),
         ),
       ),

@@ -26,15 +26,15 @@ class SignatureCard extends StatelessWidget {
               ),
               Semantics(
                 identifier: 'signature_payload_textfield',
-                label: 'Payload field for signature card',
+                label: 'signature_payload_textfield',
                 child: CommonTextField(
                   controller: authController.signaturePayloadController,
                   hintText: 'Payload',
                 ),
               ),
               Semantics(
-                identifier: 'secret_key',
-                label: 'Secret key textfield',
+                identifier: 'signature_secret_key',
+                label: 'signature_secret_key',
                 child: CommonTextField(
                   controller: authController.signatureSecretController,
                   hintText: 'Secret Key',
@@ -47,7 +47,7 @@ class SignatureCard extends StatelessWidget {
                   children: [
                     Semantics(
                       identifier: 'signature_field',
-                      label: 'Generate signature field',
+                      label: 'signature_field',
                       child: CommonTextField(
                         controller: authController.signatureController,
                         hintText: 'Signature',
@@ -57,7 +57,7 @@ class SignatureCard extends StatelessWidget {
                     ),
                     Semantics(
                       identifier: 'copy_signature',
-                      label: 'Copy Signature',
+                      label: 'copy_signature',
                       child: IconButton(
                         onPressed: () => authController.copyText(
                           authController.signatureController.text,
@@ -70,7 +70,7 @@ class SignatureCard extends StatelessWidget {
               ),
               Semantics(
                 identifier: 'generate_signature',
-                label: 'Generate signature button',
+                label: 'generate_signature',
                 child: AppButton(
                   text: 'Generate',
                   onTap: () => authController.generateSignature(),

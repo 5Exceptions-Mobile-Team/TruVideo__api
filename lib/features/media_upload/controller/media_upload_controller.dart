@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' hide Response;
+import 'package:dio/dio.dart' as dio show Response;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/core/services/api_service.dart';
+import 'package:media_upload_sample_app/core/services/connectivity_service.dart';
 import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
@@ -17,6 +19,11 @@ class MediaUploadController extends GetxController {
   final String filePath;
 
   MediaUploadController(this.filePath);
+
+  // Constants
+  static const int _minFileSizeForMultipartMB = 10;
+  static const int _minPartSizeMB = 5;
+  static const String _boTokenKey = 'bo_token';
 
   late TextEditingController titleController;
   late TextEditingController creatorController;
@@ -129,26 +136,21 @@ class MediaUploadController extends GetxController {
     }
   }
 
+  // Helper: Get file size in MB
+  double _getFileSizeInMB() => sizeInBytes.value / (1024 * 1024);
+
   // Get maximum allowed parts based on file size (each part must be at least 5MB)
   int getMaxAllowedParts() {
     if (sizeInBytes.value == 0) return 1;
-
-    final fileSizeInMB = sizeInBytes.value / (1024 * 1024);
-
-    // Files below 10MB cannot be uploaded in parts
-    if (fileSizeInMB < 10) {
-      return 1;
-    }
-
-    // Each part must be at least 5MB, so max parts = fileSizeInMB / 5 (rounded down)
-    return (fileSizeInMB / 5).floor();
+    final fileSizeInMB = _getFileSizeInMB();
+    if (fileSizeInMB < _minFileSizeForMultipartMB) return 1;
+    return (fileSizeInMB / _minPartSizeMB).floor();
   }
 
   // Check if multipart upload is allowed for current file size
   bool isMultipartAllowed() {
     if (sizeInBytes.value == 0) return false;
-    final fileSizeInMB = sizeInBytes.value / (1024 * 1024);
-    return fileSizeInMB >= 10;
+    return _getFileSizeInMB() >= _minFileSizeForMultipartMB;
   }
 
   void incrementParts() {
@@ -168,75 +170,68 @@ class MediaUploadController extends GetxController {
     }
   }
 
+  void _adjustNumberOfParts() {
+    final fileSizeInMB = _getFileSizeInMB();
+    if (fileSizeInMB < _minFileSizeForMultipartMB) {
+      numberOfParts.value = 1;
+    } else {
+      final maxParts = getMaxAllowedParts();
+      if (numberOfParts.value > maxParts) {
+        numberOfParts.value = maxParts;
+      }
+    }
+  }
+
+  Future<void> _extractVideoDuration(String filePath) async {
+    final metaData = await galleryController.getMediaMetadata(filePath);
+    if (metaData != null) {
+      final data = metaData.$1;
+      if (data.startsWith('Duration: ')) {
+        final durStr = data.replaceAll('Duration: ', '');
+        final parts = durStr.split(':');
+        if (parts.length == 3) {
+          final paddedParts = [
+            parts[0].length == 1 ? '0${parts[0]}' : parts[0],
+            parts[1],
+            parts[2],
+          ];
+          duration.value = paddedParts.join(':');
+        } else {
+          duration.value = durStr;
+        }
+      }
+    }
+  }
+
+  Future<void> _generateVideoThumbnail(String filePath) async {
+    try {
+      final bytes = await VideoThumbnail.thumbnailData(
+        video: filePath,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 1280,
+        quality: 75,
+      );
+      thumbnailBytes.value = bytes;
+    } catch (e) {
+      print('Error generating thumbnail: $e');
+    }
+  }
+
   void _initializeMediaInfo() async {
     try {
       final file = File(filePath);
-      if (await file.exists()) {
-        sizeInBytes.value = await file.length();
-        fileSize.value = _formatBytes(sizeInBytes.value);
+      if (!await file.exists()) return;
 
-        // Auto-adjust number of parts based on file size
-        final fileSizeInMB = sizeInBytes.value / (1024 * 1024);
-        if (fileSizeInMB < 10) {
-          // Files below 10MB must use 1 part
-          numberOfParts.value = 1;
-        } else {
-          // For files >= 10MB, ensure parts don't exceed max allowed
-          final maxParts = getMaxAllowedParts();
-          if (numberOfParts.value > maxParts) {
-            numberOfParts.value = maxParts;
-          }
-        }
+      sizeInBytes.value = await file.length();
+      fileSize.value = _formatBytes(sizeInBytes.value);
+      _adjustNumberOfParts();
+      mediaType.value = galleryController.getMediaType(filePath);
 
-        mediaType.value = galleryController.getMediaType(filePath);
-
-        // Metadata extraction
-        // Re-using logic similar to GalleryController or just generic extraction
-        // Since GalleryController.getMediaMetadata returns formatted string, we might need to parse or re-implement for raw values
-        // For now, let's re-implement basic extraction since we need specific values (duration as int)
-
-        if (mediaType.value == 'VIDEO') {
-          // We need duration. GalleryController uses MediaInfo.
-          // Since we can't easily access the raw logic inside GalleryController's helper without parsing,
-          // we'll use a cached value if available or defaults for now.
-          // However, let's see if we can use the formatted metadata from GalleryController to at least display something,
-          // but for the payload we need int.
-
-          // We will rely on GalleryController's dependencies if we can import them,
-          // but to save time/errors, let's assume 0 for now or try to parse if needed.
-          // User instructions: "get all the other details like size, duration if video (0 for image)"
-          // "There are already some func available in gallery controller... use those functions."
-
-          final metaData = await galleryController.getMediaMetadata(filePath);
-          if (metaData != null) {
-            // metaData.$1 is e.g., "Duration: 12345" or "Resolution: 100x100"
-            String data = metaData.$1;
-            if (data.startsWith('Duration: ')) {
-              String durStr = data.replaceAll('Duration: ', '');
-              // Ensure format HH:MM:SS (pad hours)
-              List<String> parts = durStr.split(':');
-              if (parts.length == 3) {
-                if (parts[0].length == 1) {
-                  parts[0] = '0${parts[0]}';
-                }
-                duration.value = parts.join(':');
-              } else {
-                duration.value = durStr;
-              }
-            }
-          }
-
-          // Generate Thumbnail for video
-          final bytes = await VideoThumbnail.thumbnailData(
-            video: filePath,
-            imageFormat: ImageFormat.JPEG,
-            maxWidth: 1280, // High quality for preview
-            quality: 75,
-          );
-          thumbnailBytes.value = bytes;
-        } else {
-          duration.value = '0';
-        }
+      if (mediaType.value == 'VIDEO') {
+        await _extractVideoDuration(filePath);
+        await _generateVideoThumbnail(filePath);
+      } else {
+        duration.value = '0';
       }
     } catch (e) {
       print('Error initializing media info: $e');
@@ -322,62 +317,96 @@ class MediaUploadController extends GetxController {
     };
   }
 
-  // Step 1: Initialize Upload
-  void onInitialize() async {
+  // Validation helpers
+  bool _validateRequiredFields() {
     if (titleController.text.isEmpty || creatorController.text.isEmpty) {
       Utils.showToast('Title and creator name are required');
-      return;
+      return false;
     }
+    return true;
+  }
 
-    // Validate number of parts based on file size
-    final fileSizeInMB = sizeInBytes.value / (1024 * 1024);
+  bool _validateNumberOfParts() {
+    final fileSizeInMB = _getFileSizeInMB();
+    final maxParts = getMaxAllowedParts();
 
-    // Files below 10MB cannot be uploaded in parts
-    if (fileSizeInMB < 10 && numberOfParts.value > 1) {
+    if (fileSizeInMB < _minFileSizeForMultipartMB && numberOfParts.value > 1) {
       Utils.showToast('Files below 10MB cannot be uploaded in parts');
       numberOfParts.value = 1;
-      return;
+      return false;
     }
 
-    // For files >= 10MB, validate that each part is at least 5MB
-    if (fileSizeInMB >= 10) {
-      final maxParts = getMaxAllowedParts();
+    if (fileSizeInMB >= _minFileSizeForMultipartMB) {
       if (numberOfParts.value > maxParts) {
         Utils.showToast(
           'Maximum $maxParts parts allowed. Each part must be at least 5MB',
         );
         numberOfParts.value = maxParts;
-        return;
+        return false;
       }
 
       final partSizeInMB = fileSizeInMB / numberOfParts.value;
-      if (partSizeInMB < 5) {
+      if (partSizeInMB < _minPartSizeMB) {
         Utils.showToast(
           'Each part must be at least 5MB. Maximum $maxParts parts allowed',
         );
         numberOfParts.value = maxParts;
-        return;
+        return false;
       }
+    }
+    return true;
+  }
+
+  void _clearPreviousUploadData() {
+    uploadParts.clear();
+    uploadedParts.clear();
+    uploadResponseHeaders.clear();
+  }
+
+  void _clearPreviousResponses() {
+    initializeResponse.value = null;
+    uploadResponse.value = null;
+    finalizeResponse.value = null;
+    uploadPayload.value = null;
+    finalizePayload.value = null;
+  }
+
+  void _processInitializeResponse(Map<String, dynamic> response) {
+    uploadId = response['uploadId'];
+    _clearPreviousUploadData();
+
+    if (response['uploadParts'] != null &&
+        (response['uploadParts'] as List).isNotEmpty) {
+      uploadParts = List<Map<String, dynamic>>.from(response['uploadParts']);
+      if (uploadParts.isNotEmpty) {
+        uploadPresignedUrl = uploadParts[0]['uploadPresignedUrl'];
+      }
+    }
+  }
+
+  // Step 1: Initialize Upload
+  void onInitialize() async {
+    if (!_validateRequiredFields() || !_validateNumberOfParts()) {
+      return;
+    }
+    if (!await ConnectivityService().hasConnection()) {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Internet Error',
+          subTitle: 'Make sure you have stable internet connection',
+        ),
+      );
+      return;
     }
 
     isStepLoading.value = true;
     try {
-      // Clear previous responses and payloads when starting new initialize
-      initializeResponse.value = null;
-      uploadResponse.value = null;
-      finalizeResponse.value = null;
-      uploadPayload.value = null;
-      finalizePayload.value = null;
+      _clearPreviousResponses();
 
-      Map<String, dynamic> payload = generatePayload();
-      print("Step 1 - Initialize Upload with payload:");
-      print(payload);
-
-      // Store payload for display
+      final payload = generatePayload();
       initializePayload.value = payload;
 
-      final token = storage.read<String>('bo_token') ?? '';
-      // Call Initialize API
+      final token = storage.read<String>(_boTokenKey) ?? '';
       final response = await ApiService().post<Map<String, dynamic>>(
         path: Endpoints.initializeUpload,
         data: payload,
@@ -385,31 +414,8 @@ class MediaUploadController extends GetxController {
       );
 
       if (response != null) {
-        // Store response data
-        uploadId = response['uploadId'];
-
-        // Clear previous upload parts and responses
-        uploadParts.clear();
-        uploadedParts.clear();
-        uploadResponseHeaders.clear();
-        // Don't clear payloads and responses here - they should remain visible
-
-        if (response['uploadParts'] != null &&
-            (response['uploadParts'] as List).isNotEmpty) {
-          // Store all upload parts for multipart upload
-          uploadParts = List<Map<String, dynamic>>.from(
-            response['uploadParts'],
-          );
-
-          // For backward compatibility, store first part URL
-          if (uploadParts.isNotEmpty) {
-            uploadPresignedUrl = uploadParts[0]['uploadPresignedUrl'];
-          }
-        }
-
-        // Store response for display
+        _processInitializeResponse(response);
         initializeResponse.value = response;
-
         isInitializeComplete.value = true;
         currentStep.value = 1;
         Utils.showToast('Initialize completed successfully!');
@@ -434,6 +440,205 @@ class MediaUploadController extends GetxController {
     }
   }
 
+  // Upload helpers
+  void _initializeUploadProgress(int totalParts) {
+    totalUploadParts.value = totalParts;
+    currentUploadPart.value = 0;
+    uploadProgress.value = 0.0;
+    uploadedParts.clear();
+  }
+
+  void _storeUploadPayload() {
+    if (uploadParts.length > 1) {
+      uploadPayload.value = {
+        'type': 'multipart',
+        'totalParts': uploadParts.length,
+        'presignedUrls': uploadParts
+            .map(
+              (part) => {
+                'partNumber': part['partNumber'],
+                'url': part['uploadPresignedUrl'],
+              },
+            )
+            .toList(),
+      };
+    } else {
+      final url = uploadParts.isNotEmpty
+          ? uploadParts[0]['uploadPresignedUrl']
+          : uploadPresignedUrl;
+      if (url != null) {
+        uploadPayload.value = {'type': 'single', 'presignedUrl': url};
+      }
+    }
+  }
+
+  Map<String, String> _extractResponseHeaders(dio.Response response) {
+    final headers = <String, String>{};
+    response.headers.forEach((key, values) {
+      headers[key] = values.join(', ');
+    });
+    return headers;
+  }
+
+  String? _extractEtag(dio.Response response) {
+    final rawEtag =
+        response.headers.value('ETag') ?? response.headers.value('etag');
+    return rawEtag?.replaceAll('"', '');
+  }
+
+  void _storeUploadResponseHeader(
+    int partNumber,
+    int statusCode,
+    Map<String, String> headers,
+  ) {
+    uploadResponseHeaders.add({
+      'partNumber': partNumber,
+      'statusCode': statusCode,
+      'headers': headers,
+    });
+  }
+
+  void _buildUploadResponse() {
+    if (uploadResponseHeaders.isEmpty) return;
+
+    if (uploadResponseHeaders.length == 1) {
+      final headerData = uploadResponseHeaders[0];
+      final headers = headerData['headers'] as Map<String, String>;
+      final etag = headers['etag'] ?? headers['ETag'] ?? '';
+      uploadResponse.value = {
+        'partNumber': headerData['partNumber'],
+        'etag': etag.replaceAll('"', ''),
+        'statusCode': headerData['statusCode'],
+      };
+    } else {
+      final parts = uploadResponseHeaders.map((headerData) {
+        final headers = headerData['headers'] as Map<String, String>;
+        final etag = headers['etag'] ?? headers['ETag'] ?? '';
+        return {
+          'partNumber': headerData['partNumber'],
+          'etag': etag.replaceAll('"', ''),
+          'statusCode': headerData['statusCode'],
+        };
+      }).toList();
+      uploadResponse.value = {'parts': parts};
+    }
+  }
+
+  Future<void> _uploadMultipartPart(
+    File file,
+    int index,
+    int totalParts,
+    int totalSize,
+    int chunkSize,
+  ) async {
+    final part = uploadParts[index];
+    final partNumber = part['partNumber'] as int;
+    final presignedUrl = part['uploadPresignedUrl'] as String;
+
+    currentUploadPart.value = partNumber;
+    uploadProgress.value = 0.0;
+
+    final startByte = index * chunkSize;
+    final endByte = (index == totalParts - 1)
+        ? totalSize
+        : ((index + 1) * chunkSize);
+    final partSize = endByte - startByte;
+
+    final randomAccessFile = await file.open(mode: FileMode.read);
+    try {
+      await randomAccessFile.setPosition(startByte);
+      final chunkBytes = await randomAccessFile.read(partSize);
+
+      final dioInstance = Dio();
+      final response = await dioInstance.put(
+        presignedUrl,
+        data: chunkBytes,
+        options: Options(headers: {'Content-Type': ''}),
+        onSendProgress: (sent, total) {
+          final partProgress = (sent / total) * 100;
+          uploadProgress.value = partProgress.clamp(0.0, 100.0);
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        uploadProgress.value = 100.0;
+
+        final headers = _extractResponseHeaders(response);
+        _storeUploadResponseHeader(partNumber, response.statusCode!, headers);
+
+        final etagValue = _extractEtag(response);
+        if (etagValue != null) {
+          uploadedParts.add({
+            'etag': etagValue,
+            'partNumber': partNumber.toString(),
+          });
+          if (index < totalParts - 1) {
+            uploadProgress.value = 0.0;
+          }
+        } else {
+          Get.dialog(
+            ErrorDialog(
+              title: 'Upload Error',
+              subTitle: 'No ETag received for part $partNumber',
+            ),
+          );
+          throw Exception('No ETag for part $partNumber');
+        }
+      } else {
+        Get.dialog(
+          ErrorDialog(
+            title: 'Upload Error',
+            subTitle:
+                'Failed to upload part $partNumber. Status code: ${response.statusCode}',
+          ),
+        );
+        throw Exception('Upload failed for part $partNumber');
+      }
+    } finally {
+      await randomAccessFile.close();
+    }
+  }
+
+  Future<void> _uploadSinglePart(File file, int totalSize) async {
+    currentUploadPart.value = 1;
+
+    final dioInstance = Dio();
+    final response = await dioInstance.put(
+      uploadPresignedUrl!,
+      data: file.openRead(),
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': totalSize,
+        },
+      ),
+      onSendProgress: (sent, total) {
+        final progress = (sent / total) * 100;
+        uploadProgress.value = progress.clamp(0.0, 100.0);
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final headers = _extractResponseHeaders(response);
+      _storeUploadResponseHeader(1, response.statusCode!, headers);
+
+      final etagValue = _extractEtag(response);
+      if (etagValue != null) {
+        etag = etagValue;
+        uploadedParts.add({'etag': etagValue, 'partNumber': '1'});
+      }
+    } else {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Upload Error',
+          subTitle:
+              'Failed to upload file. Status code: ${response.statusCode}',
+        ),
+      );
+      throw Exception('Single part upload failed');
+    }
+  }
+
   // Step 2: Upload File
   void onUploadFile() async {
     if (!isInitializeComplete.value) {
@@ -446,238 +651,48 @@ class MediaUploadController extends GetxController {
       Get.snackbar('Error', 'No presigned URL available');
       return;
     }
+    if (!await ConnectivityService().hasConnection()) {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Internet Error',
+          subTitle: 'Make sure you have stable internet connection',
+        ),
+      );
+      return;
+    }
 
     isStepLoading.value = true;
     try {
-      // Get file info without loading into memory
       final file = File(filePath);
       final totalSize = await file.length();
+      final isMultipart = uploadParts.length > 1;
 
-      // Clear previous uploaded parts
-      uploadedParts.clear();
+      _initializeUploadProgress(isMultipart ? uploadParts.length : 1);
+      _storeUploadPayload();
 
-      // Initialize progress tracking
-      totalUploadParts.value = uploadParts.length > 1 ? uploadParts.length : 1;
-      currentUploadPart.value = 0;
-      uploadProgress.value = 0.0;
-
-      // Store upload payload (presigned URLs info)
-      if (uploadParts.isNotEmpty && uploadParts.length > 1) {
-        // Multipart upload
-        uploadPayload.value = {
-          'type': 'multipart',
-          'totalParts': uploadParts.length,
-          'presignedUrls': uploadParts
-              .map(
-                (part) => {
-                  'partNumber': part['partNumber'],
-                  'url': part['uploadPresignedUrl'],
-                },
-              )
-              .toList(),
-        };
-      } else if (uploadParts.isNotEmpty) {
-        // Single part from uploadParts array
-        uploadPayload.value = {
-          'type': 'single',
-          'presignedUrl': uploadParts[0]['uploadPresignedUrl'],
-        };
-      } else if (uploadPresignedUrl != null) {
-        // Single part from legacy uploadPresignedUrl
-        uploadPayload.value = {
-          'type': 'single',
-          'presignedUrl': uploadPresignedUrl,
-        };
-      }
-
-      // Check if multipart upload
-      if (uploadParts.length > 1) {
-        // Calculate chunk size
+      if (isMultipart) {
         final chunkSize = (totalSize / uploadParts.length).ceil();
-
-        // Upload each part using streaming to avoid loading entire file into memory
         for (var i = 0; i < uploadParts.length; i++) {
-          final part = uploadParts[i];
-          final partNumber = part['partNumber'] as int;
-          final presignedUrl = part['uploadPresignedUrl'] as String;
-
-          // Update current part and reset progress for new part
-          currentUploadPart.value = partNumber;
-          uploadProgress.value = 0.0;
-
-          // Calculate start and end byte positions
-          final startByte = i * chunkSize;
-          final endByte = (i == uploadParts.length - 1)
-              ? totalSize
-              : ((i + 1) * chunkSize);
-          final partSize = endByte - startByte;
-
-          // Read only the specific chunk from file using RandomAccessFile
-          final randomAccessFile = await file.open(mode: FileMode.read);
-          try {
-            await randomAccessFile.setPosition(startByte);
-            final chunkBytes = await randomAccessFile.read(partSize);
-
-            // Create Dio instance for direct PUT request to presigned URL
-            final dio = Dio();
-            final response = await dio.put(
-              presignedUrl,
-              data: chunkBytes,
-              options: Options(headers: {'Content-Type': ''}),
-              onSendProgress: (sent, total) {
-                // Calculate progress for current part only (0-100%)
-                final partProgress = (sent / total) * 100;
-                uploadProgress.value = partProgress.clamp(0.0, 100.0);
-              },
-            );
-
-            if (response.statusCode == 200 || response.statusCode == 201) {
-              // Set progress to 100% when part completes
-              uploadProgress.value = 100.0;
-
-              // Store response headers for display
-              final headers = <String, String>{};
-              response.headers.forEach((key, values) {
-                headers[key] = values.join(', ');
-              });
-              uploadResponseHeaders.add({
-                'partNumber': partNumber,
-                'statusCode': response.statusCode,
-                'headers': headers,
-              });
-
-              // Extract ETag from response headers
-              String? rawEtag =
-                  response.headers.value('ETag') ??
-                  response.headers.value('etag');
-              if (rawEtag != null) {
-                // Remove surrounding quotes if present
-                final cleanEtag = rawEtag.replaceAll('"', '');
-                uploadedParts.add({
-                  'etag': cleanEtag,
-                  'partNumber': partNumber.toString(),
-                });
-
-                // Reset progress for next part (if not the last part)
-                if (i < uploadParts.length - 1) {
-                  uploadProgress.value = 0.0;
-                }
-              } else {
-                Get.dialog(
-                  ErrorDialog(
-                    title: 'Upload Error',
-                    subTitle: 'No ETag received for part $partNumber',
-                  ),
-                );
-                return;
-              }
-            } else {
-              Get.dialog(
-                ErrorDialog(
-                  title: 'Upload Error',
-                  subTitle:
-                      'Failed to upload part $partNumber. Status code: ${response.statusCode}',
-                ),
-              );
-              return;
-            }
-          } finally {
-            // Always close the file handle
-            await randomAccessFile.close();
-          }
+          await _uploadMultipartPart(
+            file,
+            i,
+            uploadParts.length,
+            totalSize,
+            chunkSize,
+          );
         }
-
-        // For backward compatibility, store first part's etag
         if (uploadedParts.isNotEmpty) {
           etag = uploadedParts[0]['etag'];
         }
       } else {
-        // Single part upload (backward compatibility)
-        // Use streaming for large files to avoid memory issues
-
-        currentUploadPart.value = 1;
-
-        // For large files, using stream to avoid loading entire file into memory
-        final dio = Dio();
-        final response = await dio.put(
-          uploadPresignedUrl!,
-          data: file.openRead(),
-          options: Options(
-            headers: {
-              'Content-Type': 'application/json',
-              'Content-Length': totalSize,
-            },
-          ),
-          onSendProgress: (sent, total) {
-            final progress = (sent / total) * 100;
-            uploadProgress.value = progress.clamp(0.0, 100.0);
-          },
-        );
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          // Store response headers for display
-          final headers = <String, String>{};
-          response.headers.forEach((key, values) {
-            headers[key] = values.join(', ');
-          });
-          uploadResponseHeaders.add({
-            'partNumber': 1,
-            'statusCode': response.statusCode,
-            'headers': headers,
-          });
-
-          // Extract ETag from response headers
-          String? rawEtag =
-              response.headers.value('ETag') ?? response.headers.value('etag');
-          if (rawEtag != null) {
-            // Remove surrounding quotes if present
-            etag = rawEtag.replaceAll('"', '');
-            uploadedParts.add({'etag': etag!, 'partNumber': '1'});
-          }
-          print('Upload Success - ETag: $etag');
-        } else {
-          Get.dialog(
-            ErrorDialog(
-              title: 'Upload Error',
-              subTitle:
-                  'Failed to upload file. Status code: ${response.statusCode}',
-            ),
-          );
-          return;
-        }
+        await _uploadSinglePart(file, totalSize);
       }
 
-      // Store upload response headers for display (only partNumber, etag, statusCode)
-      if (uploadResponseHeaders.isNotEmpty) {
-        // Build response with only partNumber, etag, and statusCode
-        if (uploadResponseHeaders.length == 1) {
-          // Single part
-          final headers =
-              uploadResponseHeaders[0]['headers'] as Map<String, String>;
-          final etag = headers['etag'] ?? headers['ETag'] ?? '';
-          uploadResponse.value = {
-            'partNumber': uploadResponseHeaders[0]['partNumber'],
-            'etag': etag.replaceAll('"', ''),
-            'statusCode': uploadResponseHeaders[0]['statusCode'],
-          };
-        } else {
-          // Multiple parts - show array
-          final parts = uploadResponseHeaders.map((headerData) {
-            final headers = headerData['headers'] as Map<String, String>;
-            final etag = headers['etag'] ?? headers['ETag'] ?? '';
-            return {
-              'partNumber': headerData['partNumber'],
-              'etag': etag.replaceAll('"', ''),
-              'statusCode': headerData['statusCode'],
-            };
-          }).toList();
-          uploadResponse.value = {'parts': parts};
-        }
-      }
+      _buildUploadResponse();
 
       isUploadComplete.value = true;
       currentStep.value = 2;
-      uploadProgress.value = 100.0; // Ensure progress is 100% on completion
+      uploadProgress.value = 100.0;
       Utils.showToast('File uploaded successfully!');
     } catch (e) {
       print('Error in Upload File: $e');
@@ -687,7 +702,6 @@ class MediaUploadController extends GetxController {
           subTitle: 'Failed to upload file: ${e.toString()}',
         ),
       );
-      // Reset upload state on error
       uploadedParts.clear();
       uploadProgress.value = 0.0;
       currentUploadPart.value = 0;
@@ -696,107 +710,116 @@ class MediaUploadController extends GetxController {
     }
   }
 
-  // Step 3: Finalize Upload
-  void onFinalize() async {
+  // Finalize helpers
+  bool _validateFinalizePrerequisites() {
     if (!isUploadComplete.value) {
       Get.snackbar('Error', 'Please complete Upload step first');
-      return;
+      return false;
     }
 
     if (uploadId == null || uploadedParts.isEmpty) {
       Get.snackbar('Error', 'Missing uploadId or uploaded parts');
-      return;
+      return false;
     }
 
-    // Validate that all parts are uploaded (for multipart uploads)
     if (uploadParts.length > 1 && uploadedParts.length != uploadParts.length) {
       Get.snackbar(
         'Error',
         'Not all parts have been uploaded. Expected ${uploadParts.length} parts, got ${uploadedParts.length}',
+      );
+      return false;
+    }
+    return true;
+  }
+
+  Map<String, dynamic> _buildFinalizePayload() {
+    final sortedParts = List<Map<String, String>>.from(uploadedParts);
+    sortedParts.sort((a, b) {
+      final partNumA = int.parse(a['partNumber']!);
+      final partNumB = int.parse(b['partNumber']!);
+      return partNumA.compareTo(partNumB);
+    });
+
+    final parts = sortedParts
+        .map(
+          (part) => {
+            "etag": part['etag'],
+            "partNumber": int.parse(part['partNumber']!),
+          },
+        )
+        .toList();
+
+    return {"parts": parts, "uploadId": uploadId};
+  }
+
+  void _processFinalizeResponse(dio.Response response) {
+    if (response.data is Map) {
+      finalizeResponse.value = Map<String, dynamic>.from(response.data);
+    } else {
+      finalizeResponse.value = {
+        'status': 'success',
+        'statusCode': response.statusCode,
+        'message': 'Upload completed successfully',
+      };
+    }
+    isFinalizeComplete.value = true;
+    Utils.showToast('Finalize completed successfully!');
+  }
+
+  // Step 3: Finalize Upload
+  void onFinalize() async {
+    if (!_validateFinalizePrerequisites()) return;
+    if (!await ConnectivityService().hasConnection()) {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Internet Error',
+          subTitle: 'Make sure you have stable internet connection',
+        ),
       );
       return;
     }
 
     isStepLoading.value = true;
     try {
-      final token = storage.read<String>('bo_token') ?? '';
-
-      // Prepare finalize payload with all parts
-      // Sort parts by partNumber to ensure correct order
-      final sortedParts = List<Map<String, String>>.from(uploadedParts);
-      sortedParts.sort((a, b) {
-        final partNumA = int.parse(a['partNumber']!);
-        final partNumB = int.parse(b['partNumber']!);
-        return partNumA.compareTo(partNumB);
-      });
-
-      final parts = sortedParts
-          .map(
-            (part) => {
-              "etag": part['etag'],
-              "partNumber": int.parse(part['partNumber']!),
-            },
-          )
-          .toList();
-
-      final payload = {"parts": parts, "uploadId": uploadId};
-
-      // Store payload for display
+      final token = storage.read<String>(_boTokenKey) ?? '';
+      final payload = _buildFinalizePayload();
       finalizePayload.value = payload;
 
-      // Call Finalize API using Dio directly to get better error information
-      final dio = Dio(BaseOptions(baseUrl: Endpoints.baseUrl));
-      try {
-        final response = await dio.post(
-          Endpoints.finalizeUpload,
-          data: payload,
-          options: Options(headers: {'Authorization': 'Bearer $token'}),
-        );
+      final dioInstance = Dio(BaseOptions(baseUrl: Endpoints.baseUrl));
+      final response = await dioInstance.post(
+        Endpoints.finalizeUpload,
+        data: payload,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          // Store finalize response for display
-          if (response.data is Map) {
-            finalizeResponse.value = Map<String, dynamic>.from(response.data);
-          } else {
-            finalizeResponse.value = {
-              'status': 'success',
-              'statusCode': response.statusCode,
-              'message': 'Upload completed successfully',
-            };
-          }
-
-          isFinalizeComplete.value = true;
-          Utils.showToast('Finalize completed successfully!');
-        } else {
-          Get.dialog(
-            ErrorDialog(
-              title: 'Finalize Failed',
-              subTitle:
-                  'Failed to finalize upload. Status code: ${response.statusCode}',
-            ),
-          );
-        }
-      } on DioException catch (e) {
-        print('DioException in Finalize: ${e.message}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _processFinalizeResponse(response);
+      } else {
         Get.dialog(
           ErrorDialog(
-            title: 'Finalize Error',
+            title: 'Finalize Failed',
             subTitle:
-                'Failed to finalize upload: ${e.response?.data?.toString() ?? e.message ?? 'Unknown error'}',
-          ),
-        );
-      } catch (e) {
-        print('Error in Finalize: $e');
-        Get.dialog(
-          ErrorDialog(
-            title: 'Finalize Error',
-            subTitle: 'Failed to finalize upload: ${e.toString()}',
+                'Failed to finalize upload. Status code: ${response.statusCode}',
           ),
         );
       }
+    } on DioException catch (e) {
+      print('DioException in Finalize: ${e.message}');
+      Get.dialog(
+        ErrorDialog(
+          title: 'Finalize Error',
+          subTitle:
+              'Failed to finalize upload: ${e.response?.data?.toString() ?? e.message ?? 'Unknown error'}',
+        ),
+      );
     } catch (e) {
       print('Error in Finalize: $e');
-      Get.snackbar('Error', 'Failed to finalize: $e');
+      Get.dialog(
+        ErrorDialog(
+          title: 'Finalize Error',
+          subTitle: 'Failed to finalize upload: ${e.toString()}',
+        ),
+      );
     } finally {
       isStepLoading.value = false;
     }

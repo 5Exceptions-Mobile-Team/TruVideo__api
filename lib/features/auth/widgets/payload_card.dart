@@ -43,7 +43,7 @@ class _PayloadCardState extends State<PayloadCard> {
                   children: [
                     Semantics(
                       identifier: 'payload_textfield',
-                      label: 'Payload text field',
+                      label: 'payload_textfield',
                       child: CommonTextField(
                         controller: authController.payloadController,
                         hintText: 'Generate Payload',
@@ -53,7 +53,7 @@ class _PayloadCardState extends State<PayloadCard> {
                     ),
                     Semantics(
                       identifier: 'copy_payload',
-                      label: 'Copy Payload Button',
+                      label: 'copy_payload',
                       child: IconButton(
                         onPressed: () => authController.copyText(
                           authController.payloadController.text,
@@ -66,7 +66,7 @@ class _PayloadCardState extends State<PayloadCard> {
               ),
               Semantics(
                 identifier: 'generate_payload',
-                label: 'Generate Payload Button',
+                label: 'generate_payload',
                 child: AppButton(
                   text: 'Generate',
                   onTap: () => authController.generatePayload(),
