@@ -35,7 +35,17 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(title: 'Media Upload'),
+      appBar: CommonAppBar(
+        title: 'Media Upload',
+        leading: Semantics(
+          identifier: 'back_button',
+          label: 'back_button',
+          child: IconButton(
+            onPressed: () => Get.back(),
+            icon: Icon(Icons.arrow_back_rounded),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

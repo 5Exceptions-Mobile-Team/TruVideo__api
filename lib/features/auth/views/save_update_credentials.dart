@@ -62,6 +62,14 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
         title: widget.forUpdate
             ? 'Update ${widget.title ?? "Credentials"}'
             : 'Create ${widget.title ?? "Credentials"}',
+        leading: Semantics(
+          identifier: 'back_button',
+          label: 'back_button',
+          child: IconButton(
+            onPressed: () => Get.back(),
+            icon: Icon(Icons.arrow_back_rounded),
+          ),
+        ),
       ),
       persistentFooterButtons: [
         Semantics(

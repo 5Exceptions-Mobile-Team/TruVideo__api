@@ -14,7 +14,17 @@ class CredentialsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     AuthController authController = Get.find();
     return Scaffold(
-      appBar: CommonAppBar(title: 'Credentials'),
+      appBar: CommonAppBar(
+        title: 'Credentials',
+        leading: Semantics(
+          identifier: 'back_button',
+          label: 'back_button',
+          child: IconButton(
+            onPressed: () => Get.back(),
+            icon: Icon(Icons.arrow_back_rounded),
+          ),
+        ),
+      ),
       body: Obx(
         () => SafeArea(
           child: SingleChildScrollView(

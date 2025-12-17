@@ -34,7 +34,17 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(title: 'Core Module'),
+      appBar: CommonAppBar(
+        title: 'Core Module',
+        leading: Semantics(
+          identifier: 'back_button',
+          label: 'back_button',
+          child: IconButton(
+            onPressed: () => Get.back(),
+            icon: Icon(Icons.arrow_back_rounded),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Obx(
           () => SingleChildScrollView(
