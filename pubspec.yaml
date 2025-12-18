@@ -57,7 +57,7 @@ dependencies:
   open_filex: ^4.7.0
   image_size_getter: ^2.4.1
   media_info: ^0.12.0+2
-  flutter_file_info: ^0.3.0
+#  flutter_file_info: ^0.3.0
   video_thumbnail: ^0.5.6
   fluttertoast:
   uuid:

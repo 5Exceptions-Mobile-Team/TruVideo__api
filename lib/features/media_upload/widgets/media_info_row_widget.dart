@@ -7,11 +7,6 @@ class MediaInfoRowWidget extends StatelessWidget {
 
   const MediaInfoRowWidget({super.key, required this.controller});
 
-  String _getFileType() {
-    final fileExtension = controller.filePath.split('.').last.toUpperCase();
-    return fileExtension;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Obx(

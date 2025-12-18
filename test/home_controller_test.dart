@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 
 // Mock storage that doesn't require platform channels
@@ -109,9 +108,9 @@ void main() {
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async => '/tmp',
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async => '/tmp',
+        );
   });
 
   setUp(() {
@@ -150,23 +149,26 @@ void main() {
   });
 
   group('checkAuthStatus', () {
-    test('should update isFullyAuthenticated based on all conditions', () async {
-      // Set up valid BO token in storage first
-      await controller.storage.write(
-        TestableHomeController.BO_TOKEN_KEY,
-        'test_token',
-      );
-      await controller.storage.write(
-        TestableHomeController.BO_TOKEN_TIMESTAMP_KEY,
-        DateTime.now().toIso8601String(),
-      );
-      controller.mobileAuthenticated.value = true;
-      controller.isAuthExpired.value = false;
+    test(
+      'should update isFullyAuthenticated based on all conditions',
+      () async {
+        // Set up valid BO token in storage first
+        await controller.storage.write(
+          TestableHomeController.BO_TOKEN_KEY,
+          'test_token',
+        );
+        await controller.storage.write(
+          TestableHomeController.BO_TOKEN_TIMESTAMP_KEY,
+          DateTime.now().toIso8601String(),
+        );
+        controller.mobileAuthenticated.value = true;
+        controller.isAuthExpired.value = false;
 
-      controller.checkAuthStatus();
+        controller.checkAuthStatus();
 
-      expect(controller.isFullyAuthenticated.value, true);
-    });
+        expect(controller.isFullyAuthenticated.value, true);
+      },
+    );
 
     test('should be false if mobile not authenticated', () {
       controller.mobileAuthenticated.value = false;
@@ -333,4 +335,3 @@ void main() {
     });
   });
 }
-

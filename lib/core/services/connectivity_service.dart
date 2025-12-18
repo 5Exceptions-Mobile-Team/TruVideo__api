@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 
 /// Service to check internet connectivity status
 /// Provides reusable functions to check if user has internet/wifi connected
@@ -25,7 +26,9 @@ class ConnectivityService {
             result == ConnectivityResult.ethernet,
       );
     } catch (e) {
-      print('Error checking connectivity: $e');
+      if (kDebugMode) {
+        print('Error checking connectivity: $e');
+      }
       return false;
     }
   }
@@ -39,7 +42,9 @@ class ConnectivityService {
 
       return connectivityResults.contains(ConnectivityResult.wifi);
     } catch (e) {
-      print('Error checking WiFi connectivity: $e');
+      if (kDebugMode) {
+        print('Error checking WiFi connectivity: $e');
+      }
       return false;
     }
   }
@@ -53,7 +58,9 @@ class ConnectivityService {
 
       return connectivityResults.contains(ConnectivityResult.mobile);
     } catch (e) {
-      print('Error checking mobile data connectivity: $e');
+      if (kDebugMode) {
+        print('Error checking mobile data connectivity: $e');
+      }
       return false;
     }
   }
@@ -76,7 +83,9 @@ class ConnectivityService {
 
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (e) {
-      print('Error checking internet access: $e');
+      if (kDebugMode) {
+        print('Error checking internet access: $e');
+      }
       return false;
     }
   }
@@ -87,7 +96,9 @@ class ConnectivityService {
     try {
       return await _connectivity.checkConnectivity();
     } catch (e) {
-      print('Error getting connectivity type: $e');
+      if (kDebugMode) {
+        print('Error getting connectivity type: $e');
+      }
       return [];
     }
   }

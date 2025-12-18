@@ -1,5 +1,4 @@
 import 'package:hive/hive.dart';
-
 part 'credentials_model.g.dart';
 
 @HiveType(typeId: 0)
@@ -32,12 +31,12 @@ class CredentialsModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['title'] = this.title;
-    data['api_key'] = this.apiKey;
-    data['secret_key'] = this.secret;
-    data['external_id'] = this.externalId;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['title'] = title;
+    data['api_key'] = apiKey;
+    data['secret_key'] = secret;
+    data['external_id'] = externalId;
     return data;
   }
 }

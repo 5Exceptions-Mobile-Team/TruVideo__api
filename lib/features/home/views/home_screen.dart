@@ -161,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 identifier: 'auth_expired',
                                 label: 'Is auth expired',
                                 child: Text(
-                                  homeController.isAuthExpired.value.toString(),
+                                  homeController.boExpired.value.toString(),
                                 ),
                               ),
                             ],

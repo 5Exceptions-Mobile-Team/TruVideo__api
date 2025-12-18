@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:dio/dio.dart' hide Response;
 import 'package:dio/dio.dart' as dio show Response;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -12,7 +13,6 @@ import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-import 'dart:typed_data';
 
 class MediaUploadController extends GetxController {
   GetStorage storage = GetStorage();
@@ -91,13 +91,7 @@ class MediaUploadController extends GetxController {
     _addInitialTagRow();
     metadataController = TextEditingController();
     creatorController = TextEditingController();
-
-    // Attempt to find existing GalleryController or put a new one if needed (though usually it should exist)
-    if (Get.isRegistered<GalleryController>()) {
-      galleryController = Get.find<GalleryController>();
-    } else {
-      galleryController = Get.put(GalleryController());
-    }
+    galleryController = Get.find<GalleryController>();
     _initializeMediaInfo();
     super.onInit();
   }
@@ -213,7 +207,9 @@ class MediaUploadController extends GetxController {
       );
       thumbnailBytes.value = bytes;
     } catch (e) {
-      print('Error generating thumbnail: $e');
+      if (kDebugMode) {
+        print('Error generating thumbnail: $e');
+      }
     }
   }
 
@@ -234,7 +230,9 @@ class MediaUploadController extends GetxController {
         duration.value = '0';
       }
     } catch (e) {
-      print('Error initializing media info: $e');
+      if (kDebugMode) {
+        print('Error initializing media info: $e');
+      }
       Get.dialog(
         ErrorDialog(
           title: 'Media Error',
@@ -284,7 +282,9 @@ class MediaUploadController extends GetxController {
         return int.parse(durationStr);
       }
     } catch (e) {
-      print('Error parsing duration: $e');
+      if (kDebugMode) {
+        print('Error parsing duration: $e');
+      }
       return 0;
     }
   }
@@ -428,7 +428,9 @@ class MediaUploadController extends GetxController {
         );
       }
     } catch (e) {
-      print('Error in Initialize: $e');
+      if (kDebugMode) {
+        print('Error in Initialize: $e');
+      }
       Get.dialog(
         ErrorDialog(
           title: 'Initialize Error',
@@ -642,13 +644,13 @@ class MediaUploadController extends GetxController {
   // Step 2: Upload File
   void onUploadFile() async {
     if (!isInitializeComplete.value) {
-      Get.snackbar('Error', 'Please complete Initialize step first');
+      Utils.showToast('Please complete Initialize step first');
       return;
     }
 
     if (uploadParts.isEmpty &&
         (uploadPresignedUrl == null || uploadPresignedUrl!.isEmpty)) {
-      Get.snackbar('Error', 'No presigned URL available');
+      Utils.showToast('No presigned URL available');
       return;
     }
     if (!await ConnectivityService().hasConnection()) {
@@ -695,7 +697,9 @@ class MediaUploadController extends GetxController {
       uploadProgress.value = 100.0;
       Utils.showToast('File uploaded successfully!');
     } catch (e) {
-      print('Error in Upload File: $e');
+      if (kDebugMode) {
+        print('Error in Upload File: $e');
+      }
       Get.dialog(
         ErrorDialog(
           title: 'Upload Error',
@@ -713,18 +717,17 @@ class MediaUploadController extends GetxController {
   // Finalize helpers
   bool _validateFinalizePrerequisites() {
     if (!isUploadComplete.value) {
-      Get.snackbar('Error', 'Please complete Upload step first');
+      Utils.showToast('Please complete Upload step first');
       return false;
     }
 
     if (uploadId == null || uploadedParts.isEmpty) {
-      Get.snackbar('Error', 'Missing uploadId or uploaded parts');
+      Utils.showToast('Missing uploadId or uploaded parts');
       return false;
     }
 
     if (uploadParts.length > 1 && uploadedParts.length != uploadParts.length) {
-      Get.snackbar(
-        'Error',
+      Utils.showToast(
         'Not all parts have been uploaded. Expected ${uploadParts.length} parts, got ${uploadedParts.length}',
       );
       return false;
@@ -804,7 +807,9 @@ class MediaUploadController extends GetxController {
         );
       }
     } on DioException catch (e) {
-      print('DioException in Finalize: ${e.message}');
+      if (kDebugMode) {
+        print('DioException in Finalize: ${e.message}');
+      }
       Get.dialog(
         ErrorDialog(
           title: 'Finalize Error',
@@ -813,7 +818,9 @@ class MediaUploadController extends GetxController {
         ),
       );
     } catch (e) {
-      print('Error in Finalize: $e');
+      if (kDebugMode) {
+        print('Error in Finalize: $e');
+      }
       Get.dialog(
         ErrorDialog(
           title: 'Finalize Error',

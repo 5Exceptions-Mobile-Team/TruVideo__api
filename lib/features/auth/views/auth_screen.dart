@@ -25,9 +25,9 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   void initState() {
     authController = Get.put(AuthController());
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => authController.homeController.checkAuthStatus(),
-    );
+    // WidgetsBinding.instance.addPostFrameCallback(
+    //   (_) => authController.homeController.checkAuthStatus(),
+    // );
     super.initState();
   }
 
@@ -62,7 +62,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       backgroundColor: Pallet.secondaryDarkColor,
                     ),
                   ),
-                  _buildSeparator('Back Office Authentication'),
+                  if (authController.homeController.enableTruVideoSdk)
+                    _buildSeparator('Back Office Authentication'),
                   authController.homeController.boAuthenticated.value
                       ? AuthenticatedWidget(
                           title: 'Back Office Authenticated',
@@ -73,22 +74,28 @@ class _AuthScreenState extends State<AuthScreen> {
                           title: 'Authenticate',
                           forBackOffice: true,
                         ),
-                  const Divider(),
-                  _buildSeparator('Mobile Authentication'),
-                  authController.homeController.mobileAuthenticated.value
-                      ? AuthenticatedWidget(
-                          title: 'Mobile Authenticated',
-                          onClear: () =>
-                              authController.homeController.clearMobileAuth(),
-                        )
-                      : Column(
-                          spacing: 20,
-                          children: [
-                            PayloadCard(title: 'Payload'),
-                            SignatureCard(title: 'Signature'),
-                            AuthenticateCard(title: 'Authenticate'),
-                          ],
-                        ),
+                  // const Divider(),
+                  if (authController.homeController.enableTruVideoSdk)
+                    Column(
+                      children: [
+                        _buildSeparator('Mobile Authentication'),
+                        authController.homeController.mobileAuthenticated.value
+                            ? AuthenticatedWidget(
+                                title: 'Mobile Authenticated',
+                                onClear: () => authController.homeController
+                                    .clearMobileAuth(),
+                              )
+                            : Column(
+                                spacing: 20,
+                                children: [
+                                  PayloadCard(title: 'Payload'),
+                                  SignatureCard(title: 'Signature'),
+                                  AuthenticateCard(title: 'Authenticate'),
+                                ],
+                              ),
+                      ],
+                    ),
+
                   Obx(() {
                     // Only show JSON response if testing mode is enabled
                     if (!authController.homeController.testingMode.value) {

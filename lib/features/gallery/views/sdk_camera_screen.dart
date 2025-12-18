@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:truvideo_camera_sdk/camera_configuration.dart';
-import 'package:truvideo_camera_sdk/camera_mode.dart';
 import 'package:truvideo_camera_sdk/truvideo_sdk_camera_flash_mode.dart';
 import 'package:truvideo_camera_sdk/truvideo_sdk_camera_lens_facing.dart';
 import 'package:truvideo_camera_sdk/truvideo_sdk_camera_orientation.dart';

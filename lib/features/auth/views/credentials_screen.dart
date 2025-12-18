@@ -42,15 +42,20 @@ class CredentialsScreen extends StatelessWidget {
                   'Back Office',
                 ),
                 const SizedBox(height: 30),
-                _buildSectionHeader('Mobile Credentials'),
-                const SizedBox(height: 10),
-                _buildCredentialCard(
-                  context,
-                  authController,
-                  authController.mobileCredentials.value,
-                  AuthController.MOBILE_ID,
-                  'Mobile',
-                ),
+                if (authController.homeController.enableTruVideoSdk)
+                  Column(
+                    children: [
+                      _buildSectionHeader('Mobile Credentials'),
+                      const SizedBox(height: 10),
+                      _buildCredentialCard(
+                        context,
+                        authController,
+                        authController.mobileCredentials.value,
+                        AuthController.MOBILE_ID,
+                        'Mobile',
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

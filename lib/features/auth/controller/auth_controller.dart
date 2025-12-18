@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -105,7 +106,9 @@ class AuthController extends GetxController {
         (element) => element.id == MOBILE_ID,
       );
     } catch (e) {
-      print('Error on fetching saved credentials: $e');
+      if (kDebugMode) {
+        print('Error on fetching saved credentials: $e');
+      }
     }
   }
 
@@ -172,12 +175,16 @@ class AuthController extends GetxController {
         ),
       );
 
+      if (kDebugMode) {
+        print(res);
+      }
+
       if (res != null && res['accessToken'] != null) {
         String token = res['accessToken'];
         // Store the full response for JSON display
         backOfficeAuthResponse.value = res as Map<String, dynamic>?;
         homeController.setBackOfficeSuccess(token);
-        homeController.checkAuthStatus();
+        // homeController.checkAuthStatus();
       } else {
         backOfficeAuthResponse.value = null;
       }
@@ -186,7 +193,9 @@ class AuthController extends GetxController {
       boLoading.value = false;
       // Clear response on error
       backOfficeAuthResponse.value = null;
-      debugPrint('Authentication failed: $e');
+      if (kDebugMode) {
+        print('Authentication failed: $e');
+      }
       Get.dialog(
         ErrorDialog(
           title: 'Authentication Failed!',
@@ -228,56 +237,60 @@ class AuthController extends GetxController {
       signatureVisible.value = true;
       signatureController.text = macData.toString();
     } catch (e) {
-      debugPrint("Error generating SHA256 HMAC: $e");
+      if (kDebugMode) {
+        print("Error generating SHA256 HMAC: $e");
+      }
     }
   }
 
   void authenticate() async {
-    if (authApiKeyController.text.isEmpty ||
-        authPayloadController.text.isEmpty ||
-        authSignatureController.text.isEmpty) {
-      Utils.showToast(
-        'API Key, Payload and Signature are required to authenticate',
-        length: Toast.LENGTH_LONG,
-      );
-      return;
-    }
-    if (!await ConnectivityService().hasConnection()) {
-      Get.dialog(
-        ErrorDialog(
-          title: 'Internet Error',
-          subTitle: 'Make sure you have stable internet connection',
-        ),
-      );
-      return;
-    }
-    try {
-      showLoading.value = true;
-      bool isAuthenticated = await TruvideoCoreSdk.isAuthenticated();
-      bool isAuthExpired = await TruvideoCoreSdk.isAuthenticationExpired();
-
-      if (!isAuthenticated || isAuthExpired) {
-        await TruvideoCoreSdk.authenticate(
-          apiKey: authApiKeyController.text.trim(),
-          signature: authSignatureController.text.trim(),
-          payload: authPayloadController.text.trim(),
-          externalId: authExternalIdController.text.trim(),
-        );
-      }
-      await TruvideoCoreSdk.initAuthentication();
-      homeController.checkAuthStatus();
-      showLoading.value = false;
-      Utils.showToast('Mobile Authentication Successfully');
-    } catch (e) {
-      showLoading.value = false;
-      debugPrint('Authentication failed: $e');
-      Get.dialog(
-        ErrorDialog(
-          title: 'Authentication Failed!',
-          subTitle: 'Make sure your API and Secret key are correct',
-        ),
-      );
-    }
+    // if (authApiKeyController.text.isEmpty ||
+    //     authPayloadController.text.isEmpty ||
+    //     authSignatureController.text.isEmpty) {
+    //   Utils.showToast(
+    //     'API Key, Payload and Signature are required to authenticate',
+    //     length: Toast.LENGTH_LONG,
+    //   );
+    //   return;
+    // }
+    // if (!await ConnectivityService().hasConnection()) {
+    //   Get.dialog(
+    //     ErrorDialog(
+    //       title: 'Internet Error',
+    //       subTitle: 'Make sure you have stable internet connection',
+    //     ),
+    //   );
+    //   return;
+    // }
+    // try {
+    //   showLoading.value = true;
+    //   bool isAuthenticated = await TruvideoCoreSdk.isAuthenticated();
+    //   bool isAuthExpired = await TruvideoCoreSdk.isAuthenticationExpired();
+    //
+    //   if (!isAuthenticated || isAuthExpired) {
+    //     await TruvideoCoreSdk.authenticate(
+    //       apiKey: authApiKeyController.text.trim(),
+    //       signature: authSignatureController.text.trim(),
+    //       payload: authPayloadController.text.trim(),
+    //       externalId: authExternalIdController.text.trim(),
+    //     );
+    //   }
+    //   await TruvideoCoreSdk.initAuthentication();
+    //   homeController.checkAuthStatus();
+    //   showLoading.value = false;
+    //   Utils.showToast('Mobile Authentication Successfully');
+    // } catch (e) {
+    //   showLoading.value = false;
+    //   if (kDebugMode) {
+    //     print('Authentication failed: $e');
+    //   }
+    //   Get.dialog(
+    //     ErrorDialog(
+    //       title: 'Authentication Failed!',
+    //       subTitle: 'Make sure your API and Secret key are correct',
+    //     ),
+    //   );
+    // }
   }
 
   void copyText(String text) async {
@@ -311,7 +324,9 @@ class AuthController extends GetxController {
         getCredentials();
         Get.back();
       } catch (e) {
-        print('Error on saving credentials: $e');
+        if (kDebugMode) {
+          print('Error on saving credentials: $e');
+        }
       }
     } else {
       try {
@@ -328,7 +343,9 @@ class AuthController extends GetxController {
         getCredentials();
         Get.back();
       } catch (e) {
-        print('Error on saving credentials: $e');
+        if (kDebugMode) {
+          print('Error on saving credentials: $e');
+        }
       }
     }
   }
@@ -338,7 +355,9 @@ class AuthController extends GetxController {
       await LocalDatabase().deleteCredentials(id);
       getCredentials();
     } catch (e) {
-      print('Error on deleting credentials: $e');
+      if (kDebugMode) {
+        print('Error on deleting credentials: $e');
+      }
     }
   }
 

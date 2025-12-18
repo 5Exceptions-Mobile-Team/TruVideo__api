@@ -3,9 +3,10 @@ import 'dart:io';
 import 'dart:math';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_file_info/flutter_file_info.dart';
+// import 'package:flutter_file_info/flutter_file_info.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_size_getter/file_input.dart';
@@ -21,7 +22,6 @@ import 'package:truvideo_camera_sdk/truvideo_camera_sdk.dart';
 import 'package:truvideo_camera_sdk/truvideo_sdk_camera_media.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path/path.dart' as mPath;
-
 import '../../common/widgets/error_widget.dart';
 import '../widgets/loading_file_widget.dart';
 import '../../media_upload/views/media_upload_screen.dart';
@@ -204,7 +204,9 @@ class GalleryController extends GetxController {
 
       update(['update_media_list']);
     } catch (e) {
-      print('Error on getting media path $e');
+      if (kDebugMode) {
+        print('Error on getting media path $e');
+      }
     }
   }
 
@@ -329,7 +331,9 @@ class GalleryController extends GetxController {
         // Navigate to Media Upload Screen as per new requirement
         Get.to(() => MediaUploadScreen(path: path));
       } catch (e) {
-        print('Error while opening the file: $e');
+        if (kDebugMode) {
+          print('Error while opening the file: $e');
+        }
       }
     }
   }
@@ -369,29 +373,34 @@ class GalleryController extends GetxController {
       );
 
       if (result != null) {
-        final dir = await getApplicationDocumentsDirectory();
-        String galleryPath = '${dir.path}/gallery';
+        if (kIsWeb) {
+        } else {
+          final dir = await getApplicationDocumentsDirectory();
+          String galleryPath = '${dir.path}/gallery';
 
-        final galleryDir = Directory(galleryPath);
+          final galleryDir = Directory(galleryPath);
 
-        if (!galleryDir.existsSync()) {
-          await galleryDir.create(recursive: true);
+          if (!galleryDir.existsSync()) {
+            await galleryDir.create(recursive: true);
+          }
+
+          File file = File(result.files.single.path!);
+          String newPath = '$galleryPath/${result.files.single.name}';
+          try {
+            await file.rename(newPath);
+          } catch (e) {
+            await file.copy(newPath);
+          }
+          updateMediaList(newPath);
+          Get.back();
         }
-
-        File file = File(result.files.single.path!);
-        String newPath = '$galleryPath/${result.files.single.name}';
-        try {
-          await file.rename(newPath);
-        } catch (e) {
-          await file.copy(newPath);
-        }
-        updateMediaList(newPath);
-        Get.back();
       } else {
         Get.back();
       }
     } catch (e) {
-      print('Error on picking file: $e');
+      if (kDebugMode) {
+        print('Error on picking file: $e');
+      }
     }
   }
 
@@ -425,7 +434,9 @@ class GalleryController extends GetxController {
         }
       }
     } on PlatformException catch (e) {
-      print('Camera opening failed: $e');
+      if (kDebugMode) {
+        print('Camera opening failed: $e');
+      }
       Get.dialog(ErrorDialog(title: 'Error', subTitle: e.message));
     }
   }
@@ -474,7 +485,6 @@ class GalleryController extends GetxController {
       final extension = path.toLowerCase().split('.').last;
       final isImage = ['jpg', 'jpeg', 'png'].contains(extension);
       final isVideo = ['mp4', 'mkv', 'mov', 'webm'].contains(extension);
-      final isAudio = ['mp3', 'aac', 'wav', 'm4a'].contains(extension);
 
       String metadata = '';
       String creationDate = '';
@@ -494,22 +504,24 @@ class GalleryController extends GetxController {
       creationDate = await getFileCreationTime(path);
       return (metadata, creationDate);
     } catch (e) {
-      print('Error reading metadata: $e');
+      if (kDebugMode) {
+        print('Error reading metadata: $e');
+      }
       return null;
     }
   }
 
   Future<String> getFileCreationTime(String path) async {
-    FileMetadata? fileMetadata = await FileInfo.instance.getFileInfo(path);
-
-    final data = fileMetadata?.creationTime;
-
-    if (data != null) {
-      return formatDate(data.toString());
-    } else {
-      final fileStat = await File(path).stat();
-      return formatDate(fileStat.modified.toString());
-    }
+    // FileMetadata? fileMetadata = await FileInfo.instance.getFileInfo(path);
+    //
+    // final data = fileMetadata?.creationTime;
+    //
+    // if (data != null) {
+    //   return formatDate(data.toString());
+    // } else {
+    final fileStat = await File(path).stat();
+    return formatDate(fileStat.modified.toString());
+    // }
   }
 
   String formatDate(String? date) {

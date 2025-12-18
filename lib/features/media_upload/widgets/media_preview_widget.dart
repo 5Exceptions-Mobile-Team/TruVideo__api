@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
@@ -25,7 +26,9 @@ class MediaPreviewWidget extends StatelessWidget {
             try {
               OpenFilex.open(filePath);
             } catch (e) {
-              print('Error opening file: $e');
+              if (kDebugMode) {
+                print('Error opening file: $e');
+              }
             }
           },
           child: Container(

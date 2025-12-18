@@ -89,31 +89,32 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ],
       ),
       floatingActionButton: Semantics(
-        identifier: 'add_media_dialog',
-        label: 'Show add media dialog',
+        identifier: 'add_media',
+        label: 'add_media',
         child: FloatingActionButton(
           backgroundColor: Pallet.secondaryColor,
-          onPressed: () => showDialog(
-            context: context,
-            builder: (context) => AddMediaDialog(),
-          ),
+          onPressed: () => galleryController.pickFile(),
+          // onPressed: () => showDialog(
+          //   context: context,
+          //   builder: (context) => AddMediaDialog(),
+          // ),
           child: Icon(Icons.add, color: Colors.white, size: 30),
         ),
       ),
-      persistentFooterButtons: [
-        if (widget.forVideo && !widget.singleVideo)
-          Semantics(
-            identifier: 'select_media',
-            label: 'Select media button',
-            child: AppButton(
-              text: 'Select',
-              onTap: () {
-                Get.back();
-                widget.onSelect(List.from(galleryController.selectedMedia));
-              },
-            ),
-          ),
-      ],
+      // persistentFooterButtons: [
+      //   if (widget.forVideo && !widget.singleVideo)
+      //     Semantics(
+      //       identifier: 'select_media',
+      //       label: 'Select media button',
+      //       child: AppButton(
+      //         text: 'Select',
+      //         onTap: () {
+      //           Get.back();
+      //           widget.onSelect(List.from(galleryController.selectedMedia));
+      //         },
+      //       ),
+      //     ),
+      // ],
       body: SafeArea(
         child: widget.forVideo
             ? Column(
