@@ -1,13 +1,16 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
 import 'package:open_filex/open_filex.dart';
 
 class MediaPreviewWidget extends StatelessWidget {
   final String filePath;
   final MediaUploadController controller;
+  static final WebMediaStorageService _webStorage = WebMediaStorageService();
 
   const MediaPreviewWidget({
     super.key,
@@ -23,11 +26,13 @@ class MediaPreviewWidget extends StatelessWidget {
         label: 'open_media',
         child: GestureDetector(
           onTap: () {
-            try {
-              OpenFilex.open(filePath);
-            } catch (e) {
-              if (kDebugMode) {
-                print('Error opening file: $e');
+            if (!kIsWeb) {
+              try {
+                OpenFilex.open(filePath);
+              } catch (e) {
+                if (kDebugMode) {
+                  print('Error opening file: $e');
+                }
               }
             }
           },
@@ -56,15 +61,47 @@ class MediaPreviewWidget extends StatelessWidget {
                         return Container(color: Colors.black);
                       }
                     } else {
-                      return Image.file(
-                        File(filePath),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Icon(Icons.broken_image, size: 50),
-                          );
-                        },
-                      );
+                      // Handle web paths
+                      if (kIsWeb && filePath.startsWith('web_media_')) {
+                        return FutureBuilder<Uint8List?>(
+                          future: _webStorage.getMediaBytes(
+                            filePath.replaceFirst('web_media_', ''),
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            if (snapshot.hasData && snapshot.data != null) {
+                              return Image.memory(
+                                snapshot.data!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Icon(Icons.broken_image, size: 50),
+                                  );
+                                },
+                              );
+                            }
+                            return Center(
+                              child: Icon(Icons.broken_image, size: 50),
+                            );
+                          },
+                        );
+                      } else {
+                        // Mobile/Desktop: Use file system
+                        return Image.file(
+                          File(filePath),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Icon(Icons.broken_image, size: 50),
+                            );
+                          },
+                        );
+                      }
                     }
                   }),
                 ),

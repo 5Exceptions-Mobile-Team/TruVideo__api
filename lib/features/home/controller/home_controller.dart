@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
+import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:truvideo_core_sdk/truvideo_core_sdk.dart';
 
 class HomeController extends GetxController {
@@ -26,6 +27,7 @@ class HomeController extends GetxController {
     checkBackOfficeValidity();
     // Load testing mode preference from storage
     testingMode.value = storage.read(TESTING_MODE_KEY) ?? false;
+    Get.put(GalleryController());
     super.onInit();
   }
 

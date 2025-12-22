@@ -31,7 +31,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   void initState() {
-    galleryController = Get.put(GalleryController());
+    galleryController = Get.find();
+    // galleryController = Get.put(GalleryController());
     super.initState();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 
 class CommonDialog extends StatelessWidget {
@@ -22,11 +23,13 @@ class CommonDialog extends StatelessWidget {
         AppButton(
           text: 'Cancel',
           onTap: () => Get.back(),
+          backgroundColor: Pallet.secondaryColor,
           buttonSize: Size(context.width * 0.28, 45),
         ),
         AppButton(
           text: 'Confirm',
           onTap: onConfirm,
+          backgroundColor: Pallet.secondaryColor,
           buttonSize: Size(context.width * 0.28, 45),
         ),
       ],

@@ -14,6 +14,7 @@ import 'package:image_size_getter/image_size_getter.dart';
 import 'package:intl/intl.dart';
 import 'package:media_info/media_info.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:truvideo_camera_sdk/camera_configuration.dart';
@@ -23,6 +24,7 @@ import 'package:truvideo_camera_sdk/truvideo_sdk_camera_media.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path/path.dart' as mPath;
 import '../../common/widgets/error_widget.dart';
+import '../../common/widgets/common_dialog.dart';
 import '../widgets/loading_file_widget.dart';
 import '../../media_upload/views/media_upload_screen.dart';
 
@@ -63,10 +65,16 @@ class GalleryController extends GetxController {
   int? mediaCount;
   int? videoDuration;
 
+  final WebMediaStorageService _webStorage = WebMediaStorageService();
+
   @override
   void onInit() {
-    getMediaPath();
-    requestPermission();
+    if (kIsWeb) {
+      _webStorage.init().then((_) => getMediaPath());
+    } else {
+      getMediaPath();
+      requestPermission();
+    }
     super.onInit();
   }
 
@@ -134,32 +142,34 @@ class GalleryController extends GetxController {
   }
 
   String getMediaType(String filePath) {
-    if ([
-      'png',
-      'jpeg',
-      'jpg',
-    ].contains(filePath.split('.').last.toLowerCase())) {
+    // For web paths, get media type from stored item
+    if (kIsWeb && filePath.startsWith('web_media_')) {
+      final id = filePath.replaceFirst('web_media_', '');
+      final allMedia = _webStorage.getAllMedia();
+      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      if (mediaItem != null) {
+        return mediaItem.mediaType;
+      }
+      // Fallback: if item not found, return UNKNOWN
+      return 'UNKNOWN';
+    }
+    
+    // For file system paths, extract extension from path
+    if (filePath.contains('.')) {
+      final extension = filePath.split('.').last.toLowerCase();
+      return _getMediaTypeFromExtension(extension);
+    }
+    return 'UNKNOWN';
+  }
+
+  String _getMediaTypeFromExtension(String extension) {
+    if (['png', 'jpeg', 'jpg'].contains(extension)) {
       return 'IMAGE';
-    } else if ([
-      'mp4',
-      'mov',
-      'mkv',
-      'webm',
-    ].contains(filePath.split('.').last.toLowerCase())) {
+    } else if (['mp4', 'mov', 'mkv', 'webm'].contains(extension)) {
       return 'VIDEO';
-    } else if ([
-      'mp3',
-      'aac',
-      'wav',
-      'm4a',
-    ].contains(filePath.split('.').last.toLowerCase())) {
+    } else if (['mp3', 'aac', 'wav', 'm4a'].contains(extension)) {
       return 'AUDIO';
-    } else if ([
-      'pdf',
-      'doc',
-      'docx',
-      'txt',
-    ].contains(filePath.split('.').last.toLowerCase())) {
+    } else if (['pdf', 'doc', 'docx', 'txt'].contains(extension)) {
       return 'DOCUMENT';
     } else {
       return 'UNKNOWN';
@@ -168,41 +178,79 @@ class GalleryController extends GetxController {
 
   void getMediaPath() async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
+      // Clear existing paths first
+      allMediaPaths.clear();
+      imagePaths.clear();
+      videoPaths.clear();
+      audioPaths.clear();
+      documentPaths.clear();
 
-      String galleryPath = '${directory.path}/gallery';
+      if (kIsWeb) {
+        // Load media from Hive storage for web
+        if (!_webStorage.isInitialized) {
+          await _webStorage.init();
+        }
 
-      final galleryDir = Directory(galleryPath);
-
-      if (!await galleryDir.exists()) {
-        await galleryDir.create(recursive: true);
-      }
-
-      if (await galleryDir.exists()) {
-        galleryDir.listSync().forEach((file) {
-          if (file is File &&
-              [
-                'png',
-                'jpeg',
-                'jpg',
-              ].contains(file.path.split('.').last.toLowerCase()) &&
-              !file.path.contains('thumbnail')) {
-            imagePaths.add(file.path);
-          } else if (file is File &&
-              [
-                'mp4',
-                'mov',
-                'mkv',
-                'webm',
-              ].contains(file.path.split('.').last.toLowerCase()) &&
-              !file.path.contains('edited')) {
-            videoPaths.add(file.path);
+        final allMedia = _webStorage.getAllMedia();
+        for (var mediaItem in allMedia) {
+          final path = mediaItem.displayPath;
+          if (mediaItem.mediaType == 'IMAGE') {
+            if (!imagePaths.contains(path)) {
+              imagePaths.add(path);
+            }
+          } else if (mediaItem.mediaType == 'VIDEO') {
+            if (!videoPaths.contains(path)) {
+              videoPaths.add(path);
+            }
+          } else if (mediaItem.mediaType == 'AUDIO') {
+            if (!audioPaths.contains(path)) {
+              audioPaths.add(path);
+            }
+          } else if (mediaItem.mediaType == 'DOCUMENT') {
+            if (!documentPaths.contains(path)) {
+              documentPaths.add(path);
+            }
           }
-        });
-      }
-      _orderMediaByLatest();
+        }
+        _orderMediaByLatest();
+        update(['update_media_list']);
+      } else {
+        // Mobile/Desktop: Use file system
+        final directory = await getApplicationDocumentsDirectory();
 
-      update(['update_media_list']);
+        String galleryPath = '${directory.path}/gallery';
+
+        final galleryDir = Directory(galleryPath);
+
+        if (!await galleryDir.exists()) {
+          await galleryDir.create(recursive: true);
+        }
+
+        if (await galleryDir.exists()) {
+          galleryDir.listSync().forEach((file) {
+            if (file is File &&
+                [
+                  'png',
+                  'jpeg',
+                  'jpg',
+                ].contains(file.path.split('.').last.toLowerCase()) &&
+                !file.path.contains('thumbnail')) {
+              imagePaths.add(file.path);
+            } else if (file is File &&
+                [
+                  'mp4',
+                  'mov',
+                  'mkv',
+                  'webm',
+                ].contains(file.path.split('.').last.toLowerCase()) &&
+                !file.path.contains('edited')) {
+              videoPaths.add(file.path);
+            }
+          });
+        }
+        _orderMediaByLatest();
+        update(['update_media_list']);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error on getting media path $e');
@@ -211,17 +259,25 @@ class GalleryController extends GetxController {
   }
 
   void updateMediaList(String path) async {
-    if (['png', 'jpeg', 'jpg'].contains(path.split('.').last.toLowerCase()) &&
-        !path.contains('thumbnail')) {
-      imagePaths.add(path);
-    } else if ([
-          'mp4',
-          'mov',
-          'mkv',
-          'webm',
-        ].contains(path.split('.').last.toLowerCase()) &&
-        !path.contains('edited')) {
-      videoPaths.add(path);
+    // Get media type using the helper method which handles both web and file system paths
+    final mediaType = getMediaType(path);
+    
+    if (mediaType == 'IMAGE' && !path.contains('thumbnail')) {
+      if (!imagePaths.contains(path)) {
+        imagePaths.add(path);
+      }
+    } else if (mediaType == 'VIDEO' && !path.contains('edited')) {
+      if (!videoPaths.contains(path)) {
+        videoPaths.add(path);
+      }
+    } else if (mediaType == 'AUDIO') {
+      if (!audioPaths.contains(path)) {
+        audioPaths.add(path);
+      }
+    } else if (mediaType == 'DOCUMENT') {
+      if (!documentPaths.contains(path)) {
+        documentPaths.add(path);
+      }
     }
     _orderMediaByLatest();
     update(['update_media_list']);
@@ -268,32 +324,42 @@ class GalleryController extends GetxController {
         return cache[path]!;
       }
       try {
-        final value = File(path).lastModifiedSync();
-        cache[path] = value;
-        return value;
+        if (kIsWeb && path.startsWith('web_media_')) {
+          // Web: Get from stored media item
+          final id = path.replaceFirst('web_media_', '');
+          final allMedia = _webStorage.getAllMedia();
+          final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+          if (mediaItem != null) {
+            cache[path] = mediaItem.modifiedAt;
+            return mediaItem.modifiedAt;
+          }
+        } else {
+          // Mobile/Desktop: Use file system
+          final value = File(path).lastModifiedSync();
+          cache[path] = value;
+          return value;
+        }
       } catch (_) {
-        final fallback = DateTime.fromMillisecondsSinceEpoch(0);
-        cache[path] = fallback;
-        return fallback;
+        // Fallback
       }
+      final fallback = DateTime.fromMillisecondsSinceEpoch(0);
+      cache[path] = fallback;
+      return fallback;
     }
 
     paths.sort((a, b) => modified(b).compareTo(modified(a)));
   }
 
   Future<Widget> getLeadingWidget(String path, String type) async {
-    if (type == 'IMAGE') {
-      return Image.file(File(path), height: 45, width: 45);
-    } else if (type == 'VIDEO') {
-      final thumbnailBytes = await VideoThumbnail.thumbnailData(
-        video: path,
-        maxWidth: 300,
-        quality: 20,
-      );
-
-      if (thumbnailBytes != null) {
-        return Image.memory(thumbnailBytes, height: 45, width: 45);
-      } else {
+    if (kIsWeb && path.startsWith('web_media_')) {
+      // Web: Load from Hive storage
+      final id = path.replaceFirst('web_media_', '');
+      final bytes = await _webStorage.getMediaBytes(id);
+      
+      if (type == 'IMAGE' && bytes != null) {
+        return Image.memory(bytes, height: 45, width: 45, fit: BoxFit.cover);
+      } else if (type == 'VIDEO') {
+        // For web videos, we can't generate thumbnails easily, show icon
         return Container(
           height: 45,
           width: 45,
@@ -304,18 +370,55 @@ class GalleryController extends GetxController {
           ),
           child: Icon(Icons.video_camera_front_rounded, size: 30),
         );
+      } else {
+        return Container(
+          height: 45,
+          width: 45,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Pallet.secondaryColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.file_copy_rounded, size: 30),
+        );
       }
     } else {
-      return Container(
-        height: 45,
-        width: 45,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Pallet.secondaryColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(Icons.file_copy_rounded, size: 30),
-      );
+      // Mobile/Desktop: Use file system
+      if (type == 'IMAGE') {
+        return Image.file(File(path), height: 45, width: 45, fit: BoxFit.cover);
+      } else if (type == 'VIDEO') {
+        final thumbnailBytes = await VideoThumbnail.thumbnailData(
+          video: path,
+          maxWidth: 300,
+          quality: 20,
+        );
+
+        if (thumbnailBytes != null) {
+          return Image.memory(thumbnailBytes, height: 45, width: 45, fit: BoxFit.cover);
+        } else {
+          return Container(
+            height: 45,
+            width: 45,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Pallet.secondaryColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.video_camera_front_rounded, size: 30),
+          );
+        }
+      } else {
+        return Container(
+          height: 45,
+          width: 45,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Pallet.secondaryColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.file_copy_rounded, size: 30),
+        );
+      }
     }
   }
 
@@ -344,19 +447,45 @@ class GalleryController extends GetxController {
   }
 
   void deleteMedia() async {
-    List<Future> futures = [];
-    for (String path in selectedMedia) {
-      final file = File(path);
-      futures.add(file.delete());
-    }
-    await Future.wait(futures);
-    allMediaPaths.clear();
-    imagePaths.clear();
-    videoPaths.clear();
-    audioPaths.clear();
-    documentPaths.clear();
-    selectEnabled.value = false;
-    getMediaPath();
+    if (selectedMedia.isEmpty) return;
+
+    // Show confirmation dialog
+    Get.dialog(
+      CommonDialog(
+        title: 'Delete Media',
+        content: 'Are you sure you want to delete ${selectedMedia.length} item(s)?',
+        onConfirm: () async {
+          Get.back(); // Close dialog
+          
+          if (kIsWeb) {
+            // Web: Delete from Hive storage
+            List<Future> futures = [];
+            for (String path in selectedMedia) {
+              if (path.startsWith('web_media_')) {
+                final id = path.replaceFirst('web_media_', '');
+                futures.add(_webStorage.deleteMedia(id));
+              }
+            }
+            await Future.wait(futures);
+          } else {
+            // Mobile/Desktop: Delete from file system
+            List<Future> futures = [];
+            for (String path in selectedMedia) {
+              final file = File(path);
+              futures.add(file.delete());
+            }
+            await Future.wait(futures);
+          }
+          allMediaPaths.clear();
+          imagePaths.clear();
+          videoPaths.clear();
+          audioPaths.clear();
+          documentPaths.clear();
+          selectEnabled.value = false;
+          getMediaPath();
+        },
+      ),
+    );
   }
 
   void showLoadingDialog() async {
@@ -369,12 +498,30 @@ class GalleryController extends GetxController {
       showLoadingDialog();
 
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        withData: false,
+        withData: kIsWeb, // Need data for web
       );
 
       if (result != null) {
         if (kIsWeb) {
+          // Web: Store file bytes in Hive
+          final file = result.files.single;
+          if (file.bytes != null) {
+            // Determine media type from file name extension
+            final extension = file.name.split('.').last.toLowerCase();
+            final mediaType = _getMediaTypeFromExtension(extension);
+            
+            final displayPath = await _webStorage.saveMedia(
+              fileName: file.name,
+              mediaType: mediaType,
+              fileBytes: file.bytes!,
+            );
+            
+            // Immediately update the media list with the new file
+            updateMediaList(displayPath);
+          }
+          Get.back();
         } else {
+          // Mobile/Desktop: Use file system
           final dir = await getApplicationDocumentsDirectory();
           String galleryPath = '${dir.path}/gallery';
 
@@ -401,6 +548,7 @@ class GalleryController extends GetxController {
       if (kDebugMode) {
         print('Error on picking file: $e');
       }
+      Get.back();
     }
   }
 
@@ -482,27 +630,60 @@ class GalleryController extends GetxController {
     String path,
   ) async {
     try {
-      final extension = path.toLowerCase().split('.').last;
-      final isImage = ['jpg', 'jpeg', 'png'].contains(extension);
-      final isVideo = ['mp4', 'mkv', 'mov', 'webm'].contains(extension);
+      if (kIsWeb && path.startsWith('web_media_')) {
+        // Web: Get metadata from stored media item
+        final id = path.replaceFirst('web_media_', '');
+        final allMedia = _webStorage.getAllMedia();
+        final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+        
+        if (mediaItem == null) return null;
 
-      String metadata = '';
-      String creationDate = '';
+        String metadata = '';
+        String creationDate = '';
 
-      if (isImage) {
-        final res = ImageSizeGetter.getSizeResult(FileInput(File(path)));
-        metadata = 'Resolution: ${res.size.width}x${res.size.height}';
-      } else if (isVideo) {
-        final mediaInfo = MediaInfo();
-        final info = await mediaInfo.getMediaInfo(path);
+        if (mediaItem.mediaType == 'IMAGE') {
+          final bytes = await _webStorage.getMediaBytes(id);
+          if (bytes != null) {
+            try {
+              // For web, we'll use file size as metadata since image_size_getter
+              // doesn't easily support memory input on web
+              metadata = 'Size: ${_formatBytes(mediaItem.fileSize)}';
+            } catch (e) {
+              metadata = 'Size: ${_formatBytes(mediaItem.fileSize)}';
+            }
+          }
+        } else if (mediaItem.mediaType == 'VIDEO') {
+          metadata = 'Size: ${_formatBytes(mediaItem.fileSize)}';
+        } else {
+          metadata = 'Size: ${_formatBytes(mediaItem.fileSize)}';
+        }
 
-        final durationMs = info['durationMs'] as int?;
+        creationDate = formatDate(mediaItem.createdAt.toString());
+        return (metadata, creationDate);
+      } else {
+        // Mobile/Desktop: Use file system
+        final extension = path.toLowerCase().split('.').last;
+        final isImage = ['jpg', 'jpeg', 'png'].contains(extension);
+        final isVideo = ['mp4', 'mkv', 'mov', 'webm'].contains(extension);
 
-        final duration = Duration(milliseconds: durationMs ?? 0);
-        metadata = 'Duration: ${duration.toString().split('.').first}';
+        String metadata = '';
+        String creationDate = '';
+
+        if (isImage) {
+          final res = ImageSizeGetter.getSizeResult(FileInput(File(path)));
+          metadata = 'Resolution: ${res.size.width}x${res.size.height}';
+        } else if (isVideo) {
+          final mediaInfo = MediaInfo();
+          final info = await mediaInfo.getMediaInfo(path);
+
+          final durationMs = info['durationMs'] as int?;
+
+          final duration = Duration(milliseconds: durationMs ?? 0);
+          metadata = 'Duration: ${duration.toString().split('.').first}';
+        }
+        creationDate = await getFileCreationTime(path);
+        return (metadata, creationDate);
       }
-      creationDate = await getFileCreationTime(path);
-      return (metadata, creationDate);
     } catch (e) {
       if (kDebugMode) {
         print('Error reading metadata: $e');
@@ -511,17 +692,28 @@ class GalleryController extends GetxController {
     }
   }
 
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return "0 B";
+    const suffixes = ["B", "KB", "MB", "GB"];
+    var i = (log(bytes) / log(1024)).floor();
+    return '${(bytes / pow(1024, i)).toStringAsFixed(2)} ${suffixes[i]}';
+  }
+
   Future<String> getFileCreationTime(String path) async {
-    // FileMetadata? fileMetadata = await FileInfo.instance.getFileInfo(path);
-    //
-    // final data = fileMetadata?.creationTime;
-    //
-    // if (data != null) {
-    //   return formatDate(data.toString());
-    // } else {
-    final fileStat = await File(path).stat();
-    return formatDate(fileStat.modified.toString());
-    // }
+    if (kIsWeb && path.startsWith('web_media_')) {
+      // Web: Get from stored media item
+      final id = path.replaceFirst('web_media_', '');
+      final allMedia = _webStorage.getAllMedia();
+      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      if (mediaItem != null) {
+        return formatDate(mediaItem.createdAt.toString());
+      }
+      return '';
+    } else {
+      // Mobile/Desktop: Use file system
+      final fileStat = await File(path).stat();
+      return formatDate(fileStat.modified.toString());
+    }
   }
 
   String formatDate(String? date) {

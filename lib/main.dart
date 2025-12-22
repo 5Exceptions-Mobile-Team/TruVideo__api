@@ -5,7 +5,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:media_upload_sample_app/splash_screen.dart';
 import 'config/theme/app_theme.dart';
 import 'core/services/local_database_service.dart';
+import 'core/services/web_media_storage_service.dart';
 import 'features/auth/models/credentials_model.dart';
+import 'features/gallery/models/media_item_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +15,9 @@ void main() async {
   await Hive.initFlutter();
 
   Hive.registerAdapter(CredentialsModelAdapter());
+  Hive.registerAdapter(MediaItemModelAdapter());
   await LocalDatabase().openLocalDB();
+  await WebMediaStorageService().init();
   runApp(const MyApp());
 }
 

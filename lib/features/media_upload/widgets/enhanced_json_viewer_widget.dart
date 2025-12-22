@@ -189,9 +189,11 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
     final itemKey = '${path}_object';
     final isExpanded = depth < 2; // Auto-expand first 2 levels
 
-    // Set initial expanded state if not already set
+    // Set initial expanded state if not already set (use WidgetsBinding to avoid setState during build)
     if (!_controller.expandedItems.containsKey(itemKey)) {
-      _controller.setExpanded(itemKey, isExpanded);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller.setExpanded(itemKey, isExpanded);
+      });
     }
 
     return _ExpandableJsonItem(
@@ -284,9 +286,11 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
     final itemKey = '${path}_array';
     final isExpanded = depth < 2; // Auto-expand first 2 levels
 
-    // Set initial expanded state if not already set
+    // Set initial expanded state if not already set (use WidgetsBinding to avoid setState during build)
     if (!_controller.expandedItems.containsKey(itemKey)) {
-      _controller.setExpanded(itemKey, isExpanded);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller.setExpanded(itemKey, isExpanded);
+      });
     }
 
     return _ExpandableJsonItem(
