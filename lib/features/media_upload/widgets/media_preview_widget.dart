@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:media_upload_sample_app/features/media_upload/views/image_preview_screen.dart';
+import 'package:media_upload_sample_app/features/media_upload/views/video_preview_screen.dart';
 
 class MediaPreviewWidget extends StatelessWidget {
   final String filePath;
@@ -25,21 +26,17 @@ class MediaPreviewWidget extends StatelessWidget {
         identifier: 'open_media',
         label: 'open_media',
         child: GestureDetector(
-          onTap: () async {
-            if (kIsWeb) {
-              // Handle Web Preview
-              if (controller.mediaType.value == 'IMAGE') {
-                await _showWebImagePreview(context);
-              }
-            } else {
-              // Mobile/Desktop Native Open
-              try {
-                OpenFilex.open(filePath);
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Error opening file: $e');
-                }
-              }
+          onTap: () {
+            if (controller.mediaType.value == 'IMAGE') {
+              Get.to(
+                () => ImagePreviewScreen(filePath: filePath),
+                transition: Transition.fadeIn,
+              );
+            } else if (controller.mediaType.value == 'VIDEO') {
+              Get.to(
+                () => VideoPreviewScreen(filePath: filePath),
+                transition: Transition.fadeIn,
+              );
             }
           },
           child: Container(
@@ -62,22 +59,26 @@ class MediaPreviewWidget extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildMediaContent(),
-                  if (controller.mediaType.value == 'VIDEO')
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.black45,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                  Obx(() {
+                    if (controller.mediaType.value == 'VIDEO') {
+                      return Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.black45,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 48,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 48,
-                        ),
-                      ),
-                    ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
                 ],
               ),
             ),
@@ -135,56 +136,5 @@ class MediaPreviewWidget extends StatelessWidget {
         }
       }
     });
-  }
-
-  Future<void> _showWebImagePreview(BuildContext context) async {
-    // For Web, we need to fetch bytes again or pass them.
-    // Since FutureBuilder handles it in UI, let's fetch for the dialog.
-    Uint8List? bytes;
-    if (filePath.startsWith('web_media_')) {
-      bytes = await _webStorage.getMediaBytes(
-        filePath.replaceFirst('web_media_', ''),
-      );
-    }
-
-    if (bytes == null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Could not load image preview")));
-      return;
-    }
-
-    if (context.mounted) {
-      showDialog(
-        context: context,
-        builder: (ctx) => Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(20),
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              InteractiveViewer(
-                // Allow zooming
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.memory(bytes!, fit: BoxFit.contain),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: IconButton(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.black54,
-                    shape: const CircleBorder(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
   }
 }

@@ -31,9 +31,9 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
 
   @override
   void initState() {
-    super.initState();
     controller = Get.put(MediaUploadController(widget.path));
     homeController = Get.find<HomeController>();
+    super.initState();
   }
 
   @override
