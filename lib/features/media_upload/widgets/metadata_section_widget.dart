@@ -29,13 +29,13 @@ class MetadataSectionWidget extends StatelessWidget {
             Row(
               children: [
                 _buildActionButton(
-                  icon: Icons.remove,
-                  onTap: controller.removeLastMetadataRow,
+                  icon: Icons.add,
+                  onTap: controller.addMetadataRow,
                 ),
                 const SizedBox(width: 10),
                 _buildActionButton(
-                  icon: Icons.add,
-                  onTap: controller.addMetadataRow,
+                  icon: Icons.remove,
+                  onTap: controller.removeLastMetadataRow,
                 ),
               ],
             ),
@@ -81,12 +81,12 @@ class MetadataSectionWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Pallet.primaryColor.withValues(alpha: 0.1),
+          color: Pallet.secondaryColor,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 20, color: Pallet.primaryColor),
+        child: Icon(icon, size: 20, color: Pallet.whiteColor),
       ),
     );
   }

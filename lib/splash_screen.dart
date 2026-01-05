@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
@@ -35,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Center(
         child: Image.asset(
           AppAssets.truVideoLogo,
-          width: context.width * 0.4,
+          width: kIsWeb ? context.width * 0.2 : context.width * 0.4,
           fit: BoxFit.cover,
         ),
       ),

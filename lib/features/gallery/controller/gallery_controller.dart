@@ -84,14 +84,20 @@ class GalleryController extends GetxController {
           Permission.photos,
           Permission.videos,
           Permission.audio,
-          Permission.camera,
+          // Permission.camera,
         ].request();
       } else {
         /// Android 12 and below (API < 33)
-        await [Permission.storage, Permission.camera].request();
+        await [
+          Permission.storage,
+          // Permission.camera
+        ].request();
       }
     } else if (Platform.isIOS) {
-      await [Permission.photos, Permission.camera].request();
+      await [
+        Permission.photos,
+        // Permission.camera
+      ].request();
     }
   }
 
@@ -509,23 +515,31 @@ class GalleryController extends GetxController {
     try {
       showLoadingDialog();
 
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: Platform.isIOS ? FileType.media : FileType.custom,
-        withData: kIsWeb, // Need data for web
-        allowedExtensions: Platform.isIOS
-            ? null
-            : [
-                'png',
-                'jpeg',
-                'jpg',
-                'heic',
-                'heif',
-                'mp4',
-                'mov',
-                'mkv',
-                'webm',
-              ],
-      );
+      FilePickerResult? result;
+
+      if (kIsWeb) {
+        result = await FilePicker.platform.pickFiles(
+          withData: kIsWeb, // Need data for web
+        );
+      } else {
+        result = await FilePicker.platform.pickFiles(
+          type: Platform.isIOS ? FileType.media : FileType.custom,
+          withData: kIsWeb, // Need data for web
+          allowedExtensions: Platform.isIOS
+              ? null
+              : [
+                  'png',
+                  'jpeg',
+                  'jpg',
+                  'heic',
+                  'heif',
+                  'mp4',
+                  'mov',
+                  'mkv',
+                  'webm',
+                ],
+        );
+      }
 
       if (result != null) {
         if (kIsWeb) {
