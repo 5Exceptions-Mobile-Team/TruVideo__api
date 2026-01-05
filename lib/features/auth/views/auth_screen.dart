@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/auth/widgets/authenticate_card.dart';
@@ -8,6 +10,7 @@ import 'package:media_upload_sample_app/features/auth/widgets/payload_card.dart'
 import 'package:media_upload_sample_app/features/auth/widgets/signature_card.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_app_bar.dart';
+import 'package:media_upload_sample_app/features/common/widgets/gradient_background.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/enhanced_json_viewer_widget.dart';
 import 'credentials_screen.dart';
 
@@ -25,33 +28,31 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   void initState() {
     authController = Get.put(AuthController());
-    // WidgetsBinding.instance.addPostFrameCallback(
-    //   (_) => authController.homeController.checkAuthStatus(),
-    // );
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonAppBar(
-        title: 'Core Module',
-        leading: Semantics(
-          identifier: 'back_button',
-          label: 'back_button',
-          child: IconButton(
-            onPressed: () => Get.back(),
-            icon: Icon(Icons.arrow_back_rounded),
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: CommonAppBar(
+          title: 'Core Module',
+          leading: Semantics(
+            identifier: 'back_button',
+            label: 'back_button',
+            child: IconButton(
+              onPressed: () => Get.back(),
+              icon: const Icon(Icons.arrow_back_rounded),
+            ),
           ),
         ),
-      ),
-      body: SafeArea(
-        child: Obx(
-          () => SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(15),
+        body: SafeArea(
+          child: Obx(
+            () => SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
               child: Column(
-                spacing: 20,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Semantics(
                     identifier: 'credentials_history',
@@ -59,55 +60,73 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: AppButton(
                       text: 'Credentials History',
                       onTap: () => Get.to(() => CredentialsScreen()),
-                      backgroundColor: Pallet.secondaryDarkColor,
+                      backgroundColor: Pallet.primaryDarkColor,
+                      buttonIcon: const Icon(
+                        Icons.history,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  if (authController.homeController.enableTruVideoSdk)
-                    _buildSeparator('Back Office Authentication'),
+                  ).animate().fadeIn(delay: 100.ms).slideY(begin: -0.5),
+                  const SizedBox(height: 24),
+
+                  if (authController.homeController.enableTruVideoSdk) ...[
+                    _buildSeparator(
+                      'Back Office Authentication',
+                    ).animate().fadeIn(delay: 200.ms),
+                    const SizedBox(height: 16),
+                  ],
+
                   authController.homeController.boAuthenticated.value
                       ? AuthenticatedWidget(
                           title: 'Back Office Authenticated',
                           onClear: () => authController.homeController
                               .clearBackOfficeAuth(),
-                        )
+                        ).animate().fadeIn(delay: 300.ms).scale()
                       : AuthenticateCard(
                           title: 'Authenticate',
                           forBackOffice: true,
-                        ),
-                  // const Divider(),
-                  if (authController.homeController.enableTruVideoSdk)
-                    Column(
-                      children: [
-                        _buildSeparator('Mobile Authentication'),
-                        authController.homeController.mobileAuthenticated.value
-                            ? AuthenticatedWidget(
-                                title: 'Mobile Authenticated',
-                                onClear: () => authController.homeController
-                                    .clearMobileAuth(),
-                              )
-                            : Column(
-                                spacing: 20,
-                                children: [
-                                  PayloadCard(title: 'Payload'),
-                                  SignatureCard(title: 'Signature'),
-                                  AuthenticateCard(title: 'Authenticate'),
-                                ],
-                              ),
-                      ],
-                    ),
+                        ).animate().fadeIn(delay: 300.ms).slideX(),
 
+                  if (authController.homeController.enableTruVideoSdk) ...[
+                    const SizedBox(height: 24),
+                    _buildSeparator(
+                      'Mobile Authentication',
+                    ).animate().fadeIn(delay: 400.ms),
+                    const SizedBox(height: 16),
+
+                    authController.homeController.mobileAuthenticated.value
+                        ? AuthenticatedWidget(
+                            title: 'Mobile Authenticated',
+                            onClear: () =>
+                                authController.homeController.clearMobileAuth(),
+                          ).animate().fadeIn(delay: 500.ms).scale()
+                        : Column(
+                            children: [
+                              PayloadCard(
+                                title: 'Payload',
+                              ).animate().fadeIn(delay: 500.ms).slideX(),
+                              const SizedBox(height: 16),
+                              SignatureCard(
+                                title: 'Signature',
+                              ).animate().fadeIn(delay: 600.ms).slideX(),
+                              const SizedBox(height: 16),
+                              AuthenticateCard(
+                                title: 'Authenticate',
+                              ).animate().fadeIn(delay: 700.ms).slideX(),
+                            ],
+                          ),
+                  ],
+
+                  const SizedBox(height: 20),
                   Obx(() {
-                    // Only show JSON response if testing mode is enabled
-                    if (!authController.homeController.testingMode.value) {
+                    if (!authController.homeController.testingMode.value ||
+                        authController.backOfficeAuthResponse.value == null) {
                       return const SizedBox.shrink();
                     }
-                    return authController.backOfficeAuthResponse.value != null
-                        ? EnhancedJsonViewerWidget(
-                            jsonData:
-                                authController.backOfficeAuthResponse.value,
-                            title: 'Back Office Auth Response',
-                          )
-                        : const SizedBox.shrink();
+                    return EnhancedJsonViewerWidget(
+                      jsonData: authController.backOfficeAuthResponse.value,
+                      title: 'Back Office Auth Response',
+                    ).animate().fadeIn();
                   }),
                 ],
               ),
@@ -119,19 +138,23 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildSeparator(String title) {
-    return Container(
-      width: double.maxFinite,
-      height: 50,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Pallet.secondaryBackground,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Text(
-        title,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-      ),
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Pallet.glassBorder)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Pallet.textSecondary,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ),
+        const Expanded(child: Divider(color: Pallet.glassBorder)),
+      ],
     );
   }
 }

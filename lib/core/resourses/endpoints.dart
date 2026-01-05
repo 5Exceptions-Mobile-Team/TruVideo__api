@@ -1,6 +1,15 @@
 class Endpoints {
-  static const baseUrl = 'https://sdk-mobile-api-rc.truvideo.com';
+  // Login API uses the SDK Mobile API
+  static const loginBaseUrl = 'https://sdk-mobile-api-rc.truvideo.com';
   static const login = '/api/login';
-  static const initializeUpload = '/api/media/upload/initialize';
-  static const finalizeUpload = '/api/media/upload/finalize';
+
+  // Upload API uses the dedicated Upload API
+  static const uploadBaseUrl = 'https://upload-api-rc.truvideo.com';
+  static const initializeUpload = '/upload/start';
+  static const finalizeUpload = '/upload/{uploadId}/complete';
+  static const getUploadStatus = '/upload/{uploadId}';
+
+  // Deprecated: Use loginBaseUrl or uploadBaseUrl instead
+  @Deprecated('Use loginBaseUrl or uploadBaseUrl instead')
+  static const baseUrl = loginBaseUrl;
 }

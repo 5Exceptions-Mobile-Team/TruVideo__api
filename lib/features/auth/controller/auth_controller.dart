@@ -163,6 +163,16 @@ class AuthController extends GetxController {
       Digest digest = hmac.convert(messageBytes);
       String signature = digest.toString();
 
+      if (kDebugMode) {
+        print('Login URL: ${Endpoints.loginBaseUrl}${Endpoints.login}');
+        print('Headers: x-authentication-api-key: ${boApiKeyController.text}');
+        print(
+          'Headers: x-multitenant-external-id: ${boExternalIdController.text}',
+        );
+        print('Headers: x-authentication-signature: $signature');
+        print("jsonBody: $jsonBody");
+      }
+
       final res = await ApiService().post(
         path: Endpoints.login,
         data: jsonBody,
@@ -176,6 +186,7 @@ class AuthController extends GetxController {
       );
 
       if (kDebugMode) {
+        print('/////////////////////////////');
         print(res);
       }
 

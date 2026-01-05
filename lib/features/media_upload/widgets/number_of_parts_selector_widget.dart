@@ -42,7 +42,7 @@ class NumberOfPartsSelectorWidget extends StatelessWidget {
             ],
           ),
           Row(
-            spacing: 10,
+            spacing: 5,
             children: [
               Semantics(
                 identifier: 'decrement_parts',

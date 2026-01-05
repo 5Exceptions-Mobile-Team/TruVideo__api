@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/resourses/pallet.dart';
 import '../controller/gallery_controller.dart';
+import 'dart:ui';
 
 class MediaContainer extends StatefulWidget {
   final String path;
@@ -62,77 +63,163 @@ class _MediaContainerState extends State<MediaContainer> {
           onTap: widget.forMedia
               ? null
               : () => galleryController.openOrSelect(widget.path),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[400],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ListTile(
-              leading: leadingEnabled.value
-                  ? leadingWidget
-                  : const SizedBox.shrink(),
-              title: Text(
-                'Type: $type',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (resOrDuration.value.isNotEmpty)
-                    Text(
-                      resOrDuration.value,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.25),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.09),
+                      blurRadius: 10,
+                      offset: const Offset(1, 3),
                     ),
-                  Text(
-                    creationDate.value,
-                    style: TextStyle(
+                  ],
+                ),
+                child: ListTile(
+                  leading: leadingEnabled.value
+                      ? leadingWidget
+                      : const SizedBox.shrink(),
+                  title: Text(
+                    'Type: $type',
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
+                      // color: Colors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
-              trailing:
-                  galleryController.selectEnabled.value ||
-                      widget.forVideo && !widget.singleVideo
-                  ? Semantics(
-                      identifier: 'select_media',
-                      label: 'Select Media',
-                      child: Checkbox(
-                        activeColor: Pallet.secondaryDarkColor,
-                        value: galleryController.selectedMedia.contains(
-                          widget.path,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (resOrDuration.value.isNotEmpty)
+                        Text(
+                          resOrDuration.value,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            // color: Colors.white70,
+                          ),
                         ),
-                        onChanged: (_) {
-                          if (widget.forVideo) {
-                            if (galleryController.selectedMedia.contains(
-                              widget.path,
-                            )) {
-                              galleryController.selectedMedia.remove(
-                                widget.path,
-                              );
-                            } else {
-                              galleryController.selectedMedia.add(widget.path);
-                            }
-                          } else {
-                            galleryController.openOrSelect(widget.path);
-                          }
-                        },
+                      Text(
+                        creationDate.value,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          // color: Colors.white70,
+                        ),
                       ),
-                    )
-                  : null,
+                    ],
+                  ),
+                  trailing:
+                      galleryController.selectEnabled.value ||
+                          widget.forVideo && !widget.singleVideo
+                      ? Checkbox(
+                          activeColor: Pallet.secondaryDarkColor,
+                          value: galleryController.selectedMedia.contains(
+                            widget.path,
+                          ),
+                          onChanged: (_) {
+                            if (widget.forVideo) {
+                              if (galleryController.selectedMedia.contains(
+                                widget.path,
+                              )) {
+                                galleryController.selectedMedia.remove(
+                                  widget.path,
+                                );
+                              } else {
+                                galleryController.selectedMedia.add(
+                                  widget.path,
+                                );
+                              }
+                            } else {
+                              galleryController.openOrSelect(widget.path);
+                            }
+                          },
+                        )
+                      : null,
+                ),
+              ),
             ),
           ),
+
+          // child: Container(
+          //   margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          //   decoration: BoxDecoration(
+          //     color: Colors.grey.withOpacity(0.2),
+          //     // color: Colors.grey[400],
+          //     borderRadius: BorderRadius.circular(10),
+          //   ),
+          //   child: ListTile(
+          //     leading: leadingEnabled.value
+          //         ? leadingWidget
+          //         : const SizedBox.shrink(),
+          //     title: Text(
+          //       'Type: $type',
+          //       style: TextStyle(
+          //         fontSize: 12,
+          //         color: Colors.white,
+          //         fontWeight: FontWeight.w500,
+          //       ),
+          //     ),
+          //     subtitle: Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         if (resOrDuration.value.isNotEmpty)
+          //           Text(
+          //             resOrDuration.value,
+          //             style: TextStyle(
+          //               fontSize: 12,
+          //               color: Colors.white,
+          //               fontWeight: FontWeight.w500,
+          //             ),
+          //           ),
+          //         Text(
+          //           creationDate.value,
+          //           style: TextStyle(
+          //             fontSize: 12,
+          //             color: Colors.white,
+          //             fontWeight: FontWeight.w500,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //     trailing:
+          //         galleryController.selectEnabled.value ||
+          //             widget.forVideo && !widget.singleVideo
+          //         ? Semantics(
+          //             identifier: 'select_media',
+          //             label: 'Select Media',
+          //             child: Checkbox(
+          //               activeColor: Pallet.secondaryDarkColor,
+          //               value: galleryController.selectedMedia.contains(
+          //                 widget.path,
+          //               ),
+          //               onChanged: (_) {
+          //                 if (widget.forVideo) {
+          //                   if (galleryController.selectedMedia.contains(
+          //                     widget.path,
+          //                   )) {
+          //                     galleryController.selectedMedia.remove(
+          //                       widget.path,
+          //                     );
+          //                   } else {
+          //                     galleryController.selectedMedia.add(widget.path);
+          //                   }
+          //                 } else {
+          //                   galleryController.openOrSelect(widget.path);
+          //                 }
+          //               },
+          //             ),
+          //           )
+          //         : null,
+          //   ),
+          // ),
         ),
       ),
     );

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart'; // Import GlassContainer
 
 class FeatureCard extends StatelessWidget {
   final Icon icon;
@@ -15,25 +18,25 @@ class FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [icon],
+      child: GlassContainer(
+        // Use GlassContainer
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
-              Text(
-                title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
+    ).animate().scale(duration: 200.ms, curve: Curves.easeOut);
   }
 }

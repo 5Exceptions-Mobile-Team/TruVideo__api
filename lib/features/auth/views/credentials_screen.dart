@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/auth/models/credentials_model.dart';
 import 'package:media_upload_sample_app/features/auth/views/save_update_credentials.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_app_bar.dart';
+import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
+import 'package:media_upload_sample_app/features/common/widgets/gradient_background.dart';
 
 class CredentialsScreen extends StatelessWidget {
   const CredentialsScreen({super.key});
@@ -13,50 +17,60 @@ class CredentialsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AuthController authController = Get.find();
-    return Scaffold(
-      appBar: CommonAppBar(
-        title: 'Credentials',
-        leading: Semantics(
-          identifier: 'back_button',
-          label: 'back_button',
-          child: IconButton(
-            onPressed: () => Get.back(),
-            icon: Icon(Icons.arrow_back_rounded),
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: CommonAppBar(
+          title: 'Credentials',
+          leading: Semantics(
+            identifier: 'back_button',
+            label: 'back_button',
+            child: IconButton(
+              onPressed: () => Get.back(),
+              icon: Icon(Icons.arrow_back_rounded),
+            ),
           ),
         ),
-      ),
-      body: Obx(
-        () => SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader('Back Office Credentials'),
-                const SizedBox(height: 10),
-                _buildCredentialCard(
-                  context,
-                  authController,
-                  authController.backOfficeCredentials.value,
-                  AuthController.BACK_OFFICE_ID,
-                  'Back Office',
-                ),
-                const SizedBox(height: 30),
-                if (authController.homeController.enableTruVideoSdk)
-                  Column(
-                    children: [
-                      _buildSectionHeader('Mobile Credentials'),
-                      const SizedBox(height: 10),
-                      _buildCredentialCard(
-                        context,
-                        authController,
-                        authController.mobileCredentials.value,
-                        AuthController.MOBILE_ID,
-                        'Mobile',
-                      ),
-                    ],
+        body: Obx(
+          () => SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    'Back Office Credentials',
+                  ).animate().fadeIn(delay: 100.ms),
+                  const SizedBox(height: 10),
+                  _buildCredentialCard(
+                    context,
+                    authController,
+                    authController.backOfficeCredentials.value,
+                    AuthController.BACK_OFFICE_ID,
+                    'Back Office',
+                    200,
                   ),
-              ],
+                  const SizedBox(height: 30),
+                  if (authController.homeController.enableTruVideoSdk)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(
+                          'Mobile Credentials',
+                        ).animate().fadeIn(delay: 300.ms),
+                        const SizedBox(height: 10),
+                        _buildCredentialCard(
+                          context,
+                          authController,
+                          authController.mobileCredentials.value,
+                          AuthController.MOBILE_ID,
+                          'Mobile',
+                          400,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -67,7 +81,7 @@ class CredentialsScreen extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 
@@ -77,6 +91,7 @@ class CredentialsScreen extends StatelessWidget {
     CredentialsModel? credentials,
     String targetId,
     String title,
+    int delayMs,
   ) {
     if (credentials == null) {
       return Semantics(
@@ -86,27 +101,21 @@ class CredentialsScreen extends StatelessWidget {
           onTap: () => Get.to(
             () => SaveUpdateCredentials(targetId: targetId, title: title),
           ),
-          child: Container(
-            width: double.infinity,
+          child: GlassContainer(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Pallet.secondaryBackground,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.5)),
-            ),
-            child: const Center(
+            child: Center(
               child: Text(
                 '+ Add Credentials',
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w500,
+                  color: Pallet.primaryColor,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
         ),
-      );
+      ).animate().fadeIn(delay: delayMs.ms).slideY(begin: 0.1);
     }
 
     return Semantics(
@@ -133,6 +142,10 @@ class CredentialsScreen extends StatelessWidget {
               foregroundColor: Colors.white,
               icon: Icons.edit,
               label: 'Edit',
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
             ),
           ],
         ),
@@ -148,14 +161,15 @@ class CredentialsScreen extends StatelessWidget {
               foregroundColor: Colors.white,
               icon: Icons.delete,
               label: 'Delete',
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+              ),
             ),
           ],
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Pallet.secondaryBackground,
-            borderRadius: BorderRadius.circular(10),
-          ),
+        child: GlassContainer(
+          padding: EdgeInsets.zero,
           child: Semantics(
             identifier: 'credentials_button',
             label: 'credentials_button',
@@ -164,16 +178,23 @@ class CredentialsScreen extends StatelessWidget {
                 credentials,
                 forBackOffice: title == 'Back Office',
               ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 8,
+              ),
               title: Text(
                 credentials.apiKey ?? '',
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
               ),
-              subtitle: Text(credentials.secret ?? ''),
+              subtitle: Text(
+                credentials.secret ?? '',
+                style: GoogleFonts.inter(),
+              ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             ),
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(delay: delayMs.ms).slideY(begin: 0.1);
   }
 }

@@ -8,10 +8,35 @@ class ApiService {
   factory ApiService() => _instance;
 
   ApiService._internal() {
-    final baseOptions = BaseOptions(baseUrl: Endpoints.baseUrl);
-    dio = Dio(baseOptions);
+    dio = createDio(baseUrl: Endpoints.loginBaseUrl);
+  }
 
-    dio.interceptors.add(
+  static final ApiService _instance = ApiService._internal();
+  late Dio dio;
+
+  /// Helper to create a Dio instance with logging and standard interceptors
+  Dio createDio({String? baseUrl, String? token}) {
+    final newDio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl ?? Endpoints.loginBaseUrl,
+        headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+      ),
+    );
+
+    // Add logging interceptor for debugging
+    newDio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+        logPrint: (obj) => debugPrint('API LOG: $obj'),
+      ),
+    );
+
+    newDio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException exception, handler) {
           final err = ApiHandler().getExceptionMessage(exception);
@@ -20,30 +45,32 @@ class ApiService {
         },
       ),
     );
+
+    return newDio;
   }
-  static final ApiService _instance = ApiService._internal();
-  late Dio dio;
 
   /// Reusable function for Get API.
-  /// Define return type during calling
-  /// ```dart
-  /// String? response = await ApiService().get<String>(path: 'Your Endpoint');
-  /// ```
   Future<T?> get<T>({
     required String path,
     Map<String, dynamic>? queryParameters,
     Options? options,
     String? token,
+    String? baseUrl,
   }) async {
     try {
-      Response res = await dio.get(
+      final dioInstance = (baseUrl != null || token != null)
+          ? createDio(baseUrl: baseUrl, token: token)
+          : dio;
+
+      Response res = await dioInstance.get(
         path,
         queryParameters: queryParameters,
-        options:
-            options ?? Options(headers: {'Authorization': 'Bearer $token'}),
+        options: options,
       );
 
-      if (res.statusCode == 200) {
+      if (res.statusCode != null &&
+          res.statusCode! >= 200 &&
+          res.statusCode! < 300) {
         return res.data;
       } else {
         return null;
@@ -55,25 +82,23 @@ class ApiService {
   }
 
   /// Reusable function for Post API.
-  /// Define return type during calling
-  /// ```dart
-  /// String? response = await ApiService().post<String>(path: 'Your Endpoint', data: {});
-  /// ```
   Future<T?> post<T>({
     required String path,
     required dynamic data,
     Options? options,
     String? token,
+    String? baseUrl,
   }) async {
     try {
-      Response res = await dio.post(
-        path,
-        data: data,
-        options:
-            options ?? Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dioInstance = (baseUrl != null || token != null)
+          ? createDio(baseUrl: baseUrl, token: token)
+          : dio;
 
-      if (res.statusCode == 200) {
+      Response res = await dioInstance.post(path, data: data, options: options);
+
+      if (res.statusCode != null &&
+          res.statusCode! >= 200 &&
+          res.statusCode! < 300) {
         return res.data;
       } else {
         return null;
@@ -85,24 +110,22 @@ class ApiService {
   }
 
   /// Reusable function for Put API.
-  /// Define return type during calling
-  /// ```dart
-  /// String? response = await ApiService().put<String>(path: 'Your Endpoint', data: {});
-  /// ```
   Future<T?> put<T>({
     required String path,
     required dynamic data,
     Options? options,
     String? token,
+    String? baseUrl,
   }) async {
     try {
-      Response res = await dio.put(
-        path,
-        data: data,
-        options:
-            options ?? Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      if (res.statusCode == 200) {
+      final dioInstance = (baseUrl != null || token != null)
+          ? createDio(baseUrl: baseUrl, token: token)
+          : dio;
+
+      Response res = await dioInstance.put(path, data: data, options: options);
+      if (res.statusCode != null &&
+          res.statusCode! >= 200 &&
+          res.statusCode! < 300) {
         return res.data;
       } else {
         return null;

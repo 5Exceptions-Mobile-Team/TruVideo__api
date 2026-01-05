@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
 
 import 'app_button.dart';
 
@@ -12,7 +13,7 @@ class ErrorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: Card(
+      child: GlassContainer(
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: Column(
@@ -20,9 +21,11 @@ class ErrorDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title ?? 'Authentication Required',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              Center(
+                child: Text(
+                  title ?? 'Authentication Required',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
               ),
               Text(
                 subTitle ?? 'Please authenticate first to use other features.',
@@ -30,7 +33,7 @@ class ErrorDialog extends StatelessWidget {
               AppButton(
                 onTap: () => Get.back(),
                 text: 'Back',
-                backgroundColor: Pallet.secondaryDarkColor,
+                backgroundColor: Pallet.primaryDarkColor,
               ),
             ],
           ),

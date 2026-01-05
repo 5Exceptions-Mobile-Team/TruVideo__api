@@ -319,8 +319,8 @@ class MediaUploadController extends GetxController {
     return '${sizeInMb.toStringAsFixed(2)} MB';
   }
 
-  // Convert duration string (HH:MM:SS) to seconds (integer)
-  int _parseDurationToSeconds(String durationStr) {
+  // Convert duration string (HH:MM:SS) to milliseconds (integer)
+  int _parseDurationToMilliseconds(String durationStr) {
     try {
       if (durationStr.isEmpty || durationStr == '0') {
         return 0;
@@ -332,21 +332,76 @@ class MediaUploadController extends GetxController {
         int hours = int.parse(parts[0]);
         int minutes = int.parse(parts[1]);
         int seconds = int.parse(parts[2]);
-        return (hours * 3600) + (minutes * 60) + seconds;
+        int totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+        return totalSeconds * 1000; // Convert to milliseconds
       } else if (parts.length == 2) {
         // MM:SS format
         int minutes = int.parse(parts[0]);
         int seconds = int.parse(parts[1]);
-        return (minutes * 60) + seconds;
+        int totalSeconds = (minutes * 60) + seconds;
+        return totalSeconds * 1000; // Convert to milliseconds
       } else {
         // Try parsing as integer (seconds)
-        return int.parse(durationStr);
+        int seconds = int.parse(durationStr);
+        return seconds * 1000; // Convert to milliseconds
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error parsing duration: $e');
       }
       return 0;
+    }
+  }
+
+  String getMimeType() {
+    String extension = 'UNKNOWN';
+    if (kIsWeb && filePath.startsWith('web_media_')) {
+      final id = filePath.replaceFirst('web_media_', '');
+      final allMedia = _webStorage.getAllMedia();
+      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      if (mediaItem != null && mediaItem.fileName.contains('.')) {
+        extension = mediaItem.fileName.split('.').last.toLowerCase();
+      }
+    } else if (filePath.contains('.')) {
+      extension = filePath.split('.').last.toLowerCase();
+    }
+
+    switch (extension) {
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      case 'avi':
+        return 'video/x-msvideo';
+      case 'mkv':
+        return 'video/x-matroska';
+      case 'flv':
+        return 'video/x-flv';
+      case 'wmv':
+        return 'video/x-ms-wmv';
+      case '3gpp':
+        return 'video/3gpp';
+      case 'webm':
+        return 'video/webm';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'svg':
+        return 'image/svg+xml';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'wav':
+        return 'audio/wav';
+      case 'aac':
+        return 'audio/aac';
+      case 'flac':
+        return 'audio/flac';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
     }
   }
 
@@ -365,27 +420,38 @@ class MediaUploadController extends GetxController {
       fileExtension = filePath.split('.').last.toUpperCase();
     }
 
+    // Build metadata object from metadataController if not empty
+    Map<String, dynamic>? customMetadata;
+    if (metadataController.text.isNotEmpty) {
+      // Try to parse as JSON, otherwise use as a simple string value
+      try {
+        customMetadata = {'note': metadataController.text};
+      } catch (e) {
+        customMetadata = {'note': metadataController.text};
+      }
+    }
+
     return {
       "amountOfParts": numberOfParts.value,
-      "fileType": fileExtension, // e.g., PNG, JPG, MP4
-      "metadata": {
+      "media": {
+        "fileType": fileExtension.toLowerCase(), // e.g., png, jpg, mp4
+        "creator": creatorController.text,
         "title": titleController.text,
-        "type": mediaType.value, // IMAGE or VIDEO
+        "duration": mediaType.value == 'VIDEO'
+            ? _parseDurationToMilliseconds(duration.value)
+            : 0,
         "resolution": resolution.value,
-        "size": sizeInBytes.value,
-        "metadata": metadataController.text,
         "tags": {
           for (var tag in tagControllers)
             if (tag['key']!.text.isNotEmpty)
               tag['key']!.text: tag['value']!.text,
         },
-        "duration": mediaType.value == 'VIDEO'
-            ? _parseDurationToSeconds(duration.value)
-            : 0,
-        "creator": creatorController.text,
-        "includeInReport": includeInReport.value,
-        "isLibrary": isLibrary.value,
+        "insights": {
+          "includeInReport": includeInReport.value,
+          "isLibrary": isLibrary.value,
+        },
       },
+      if (customMetadata != null) "metadata": customMetadata,
     };
   }
 
@@ -447,11 +513,11 @@ class MediaUploadController extends GetxController {
     uploadId = response['uploadId'];
     _clearPreviousUploadData();
 
-    if (response['uploadParts'] != null &&
-        (response['uploadParts'] as List).isNotEmpty) {
-      uploadParts = List<Map<String, dynamic>>.from(response['uploadParts']);
+    // New API uses 'parts' instead of 'uploadParts' and 'presignedUrl' instead of 'uploadPresignedUrl'
+    if (response['parts'] != null && (response['parts'] as List).isNotEmpty) {
+      uploadParts = List<Map<String, dynamic>>.from(response['parts']);
       if (uploadParts.isNotEmpty) {
-        uploadPresignedUrl = uploadParts[0]['uploadPresignedUrl'];
+        uploadPresignedUrl = uploadParts[0]['presignedUrl'];
       }
     }
   }
@@ -483,6 +549,7 @@ class MediaUploadController extends GetxController {
         path: Endpoints.initializeUpload,
         data: payload,
         token: token,
+        baseUrl: Endpoints.uploadBaseUrl,
       );
 
       if (response != null) {
@@ -530,15 +597,16 @@ class MediaUploadController extends GetxController {
         'presignedUrls': uploadParts
             .map(
               (part) => {
-                'partNumber': part['partNumber'],
-                'url': part['uploadPresignedUrl'],
+                'partNumber':
+                    part['partNumber'] ?? (uploadParts.indexOf(part) + 1),
+                'url': part['presignedUrl'],
               },
             )
             .toList(),
       };
     } else {
       final url = uploadParts.isNotEmpty
-          ? uploadParts[0]['uploadPresignedUrl']
+          ? uploadParts[0]['presignedUrl']
           : uploadPresignedUrl;
       if (url != null) {
         uploadPayload.value = {'type': 'single', 'presignedUrl': url};
@@ -606,8 +674,8 @@ class MediaUploadController extends GetxController {
     int chunkSize,
   ) async {
     final part = uploadParts[index];
-    final partNumber = part['partNumber'] as int;
-    final presignedUrl = part['uploadPresignedUrl'] as String;
+    final partNumber = (part['partNumber'] as int?) ?? (index + 1);
+    final presignedUrl = part['presignedUrl'] as String;
 
     currentUploadPart.value = partNumber;
     uploadProgress.value = 0.0;
@@ -623,11 +691,11 @@ class MediaUploadController extends GetxController {
       await randomAccessFile.setPosition(startByte);
       final chunkBytes = await randomAccessFile.read(partSize);
 
-      final dioInstance = Dio();
+      final dioInstance = ApiService().createDio();
       final response = await dioInstance.put(
         presignedUrl,
         data: chunkBytes,
-        options: Options(headers: {'Content-Type': ''}),
+        options: Options(headers: {'Content-Type': getMimeType()}),
         onSendProgress: (sent, total) {
           final partProgress = (sent / total) * 100;
           uploadProgress.value = partProgress.clamp(0.0, 100.0);
@@ -676,15 +744,12 @@ class MediaUploadController extends GetxController {
   Future<void> _uploadSinglePart(File file, int totalSize) async {
     currentUploadPart.value = 1;
 
-    final dioInstance = Dio();
+    final dioInstance = ApiService().createDio();
     final response = await dioInstance.put(
       uploadPresignedUrl!,
       data: file.openRead(),
       options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': totalSize,
-        },
+        headers: {'Content-Type': getMimeType(), 'Content-Length': totalSize},
       ),
       onSendProgress: (sent, total) {
         final progress = (sent / total) * 100;
@@ -716,15 +781,12 @@ class MediaUploadController extends GetxController {
   Future<void> _uploadSinglePartWeb(Uint8List bytes, int totalSize) async {
     currentUploadPart.value = 1;
 
-    final dioInstance = Dio();
+    final dioInstance = ApiService().createDio();
     final response = await dioInstance.put(
       uploadPresignedUrl!,
       data: bytes,
       options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': totalSize,
-        },
+        headers: {'Content-Type': getMimeType(), 'Content-Length': totalSize},
       ),
       onSendProgress: (sent, total) {
         final progress = (sent / total) * 100;
@@ -761,8 +823,8 @@ class MediaUploadController extends GetxController {
     int chunkSize,
   ) async {
     final part = uploadParts[index];
-    final partNumber = part['partNumber'] as int;
-    final presignedUrl = part['uploadPresignedUrl'] as String;
+    final partNumber = (part['partNumber'] as int?) ?? (index + 1);
+    final presignedUrl = part['presignedUrl'] as String;
 
     currentUploadPart.value = partNumber;
     uploadProgress.value = 0.0;
@@ -771,14 +833,13 @@ class MediaUploadController extends GetxController {
     final endByte = (index == totalParts - 1)
         ? totalSize
         : ((index + 1) * chunkSize);
-    final partSize = endByte - startByte;
     final chunkBytes = bytes.sublist(startByte, endByte);
 
-    final dioInstance = Dio();
+    final dioInstance = ApiService().createDio();
     final response = await dioInstance.put(
       presignedUrl,
       data: chunkBytes,
-      options: Options(headers: {'Content-Type': ''}),
+      options: Options(headers: {'Content-Type': getMimeType()}),
       onSendProgress: (sent, total) {
         final partProgress = (sent / total) * 100;
         uploadProgress.value = partProgress.clamp(0.0, 100.0);
@@ -945,10 +1006,7 @@ class MediaUploadController extends GetxController {
   }
 
   Map<String, dynamic> _buildFinalizePayload() {
-    final sortedParts = [
-      {"partNumber": '1', "etag": "dcascascascascasc"},
-    ];
-    // final sortedParts = List<Map<String, String>>.from(uploadedParts);
+    final sortedParts = List<Map<String, String>>.from(uploadedParts);
     sortedParts.sort((a, b) {
       final partNumA = int.parse(a['partNumber']!);
       final partNumB = int.parse(b['partNumber']!);
@@ -958,13 +1016,14 @@ class MediaUploadController extends GetxController {
     final parts = sortedParts
         .map(
           (part) => {
-            "etag": part['etag'],
+            "eTag": part['etag'],
             "partNumber": int.parse(part['partNumber']!),
           },
         )
         .toList();
 
-    return {"parts": parts, "uploadId": uploadId};
+    // New API: uploadId is in URL path, not in body
+    return {"parts": parts};
   }
 
   void _processFinalizeResponse(dio.Response response) {
@@ -972,19 +1031,18 @@ class MediaUploadController extends GetxController {
       finalizeResponse.value = Map<String, dynamic>.from(response.data);
     } else {
       finalizeResponse.value = {
-        'status': 'success',
+        'status': 'accepted',
         'statusCode': response.statusCode,
-        'message': 'Upload completed successfully',
+        'message': 'Upload finalization accepted, processing...',
       };
     }
-    isFinalizeComplete.value = true;
-    Utils.showToast('Finalize completed successfully!');
+    // Don't mark as complete yet - need to poll for status
+    Utils.showToast('Upload finalization accepted, checking status...');
   }
 
   // Step 3: Finalize Upload
   void onFinalize() async {
-    print('////////////////////////////////');
-    // if (!_validateFinalizePrerequisites()) return;
+    if (!_validateFinalizePrerequisites()) return;
     if (!await ConnectivityService().hasConnection()) {
       Get.dialog(
         ErrorDialog(
@@ -1001,15 +1059,26 @@ class MediaUploadController extends GetxController {
       final payload = _buildFinalizePayload();
       finalizePayload.value = payload;
 
-      final dioInstance = Dio(BaseOptions(baseUrl: Endpoints.baseUrl));
+      // New API: uploadId is in the URL path
+      final url = Endpoints.finalizeUpload.replaceAll('{uploadId}', uploadId!);
+
+      // Use uploadBaseUrl for finalize endpoint
+      final dioInstance = ApiService().createDio(
+        baseUrl: Endpoints.uploadBaseUrl,
+      );
       final response = await dioInstance.post(
-        Endpoints.finalizeUpload,
+        url,
         data: payload,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      // New API returns 202 Accepted for async processing
+      if (response.statusCode == 202 ||
+          response.statusCode == 200 ||
+          response.statusCode == 201) {
         _processFinalizeResponse(response);
+        // Start polling for completion status
+        await _pollUploadStatus();
       } else {
         Get.dialog(
           ErrorDialog(
@@ -1043,5 +1112,68 @@ class MediaUploadController extends GetxController {
     } finally {
       isStepLoading.value = false;
     }
+  }
+
+  // Poll upload status until completion
+  Future<void> _pollUploadStatus() async {
+    const maxAttempts =
+        30; // Maximum 30 attempts (1 minute with 2-second intervals)
+    const pollInterval = Duration(seconds: 2);
+    int attempts = 0;
+
+    while (attempts < maxAttempts) {
+      try {
+        await Future.delayed(pollInterval);
+        attempts++;
+
+        final token = storage.read<String>(_boTokenKey) ?? '';
+        final url = Endpoints.getUploadStatus.replaceAll(
+          '{uploadId}',
+          uploadId!,
+        );
+
+        // Use uploadBaseUrl for status polling
+        final dioInstance = ApiService().createDio(
+          baseUrl: Endpoints.uploadBaseUrl,
+        );
+        final response = await dioInstance.get(
+          url,
+          options: Options(headers: {'Authorization': 'Bearer $token'}),
+        );
+
+        if (response.statusCode == 200 && response.data is Map) {
+          final status = response.data['status'] as String?;
+
+          if (status == 'COMPLETED') {
+            isFinalizeComplete.value = true;
+            finalizeResponse.value = Map<String, dynamic>.from(response.data);
+            Utils.showToast('Upload completed successfully!');
+            return;
+          } else if (status == 'FAILED') {
+            Get.dialog(
+              ErrorDialog(
+                title: 'Upload Failed',
+                subTitle: 'Upload processing failed. Please try again.',
+              ),
+            );
+            return;
+          }
+          // Status is still PENDING_COMPLETE, continue polling
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error polling upload status: $e');
+        }
+        // Continue polling even on error
+      }
+    }
+
+    // Max attempts reached
+    Get.dialog(
+      ErrorDialog(
+        title: 'Status Check Timeout',
+        subTitle: 'Upload status check timed out. Please check manually.',
+      ),
+    );
   }
 }

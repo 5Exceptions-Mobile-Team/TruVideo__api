@@ -77,6 +77,7 @@ class HomeController extends GetxController {
     );
     boAuthenticated.value = true;
     isFullyAuthenticated.value = true;
+    isAuthExpired.value = false;
     // checkAuthStatus(skipMobile: true);
   }
 

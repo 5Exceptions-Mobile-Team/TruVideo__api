@@ -1,0 +1,22 @@
+import 'package:flutter/material.dart';
+import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+
+class GradientBackground extends StatelessWidget {
+  final Widget child;
+  const GradientBackground({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Pallet.gradient1, Pallet.gradient2, Pallet.gradient3],
+          stops: [0.0, 0.5, 1.0],
+        ),
+      ),
+      child: child, // Ensure child takes up space/scaffold works
+    );
+  }
+}

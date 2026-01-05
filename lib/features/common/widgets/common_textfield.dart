@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CommonTextField extends StatelessWidget {
   final String hintText;
@@ -11,6 +12,7 @@ class CommonTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+
   const CommonTextField({
     super.key,
     required this.hintText,
@@ -34,19 +36,16 @@ class CommonTextField extends StatelessWidget {
       keyboardType: textInputType,
       maxLines: maxLines ?? 1,
       maxLength: maxLength,
-      // style: TextStyle(fontSize: 12),
+      style: GoogleFonts.inter(fontSize: 15),
       onTapOutside: (_) => FocusScope.of(context).unfocus(),
       textInputAction: textInputAction,
       decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 12,
-          horizontal: 25,
-        ),
+        // contentPadding is handled by Theme, but can be overridden here if needed
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey, fontSize: 15),
-        counterStyle: TextStyle(fontSize: 12, color: Colors.grey),
+        // Remove hardcoded hintStyle color to respect Theme (which uses Pallet.greyColor)
+        hintStyle: GoogleFonts.inter(fontSize: 14),
       ),
     );
   }
