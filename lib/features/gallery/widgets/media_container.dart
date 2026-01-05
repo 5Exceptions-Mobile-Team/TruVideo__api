@@ -70,15 +70,15 @@ class _MediaContainerState extends State<MediaContainer> {
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.09),
+                      color: Colors.grey.withValues(alpha: 0.09),
                       blurRadius: 10,
                       offset: const Offset(1, 3),
                     ),

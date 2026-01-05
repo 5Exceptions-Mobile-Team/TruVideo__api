@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,10 +12,13 @@ class MediaPreviewWidget extends StatelessWidget {
   final MediaUploadController controller;
   static final WebMediaStorageService _webStorage = WebMediaStorageService();
 
+  final double height;
+
   const MediaPreviewWidget({
     super.key,
     required this.filePath,
     required this.controller,
+    this.height = 250,
   });
 
   @override
@@ -40,7 +42,7 @@ class MediaPreviewWidget extends StatelessWidget {
             }
           },
           child: Container(
-            height: 250, // Increased height for better visibility
+            height: height, // Increased height for better visibility
             width: double.infinity,
             decoration: BoxDecoration(
               // Simple clean decoration, image speaks for itself

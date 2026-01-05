@@ -20,7 +20,7 @@ class MediaItemModelAdapter extends TypeAdapter<MediaItemModel> {
       id: fields[0] as String,
       fileName: fields[1] as String,
       mediaType: fields[2] as String,
-      fileBytes: (fields[3] as List).cast<int>(),
+      fileBytes: Uint8List.fromList((fields[3] as List).cast<int>()),
       fileSize: fields[4] as int,
       createdAt: fields[5] as DateTime,
       modifiedAt: fields[6] as DateTime,

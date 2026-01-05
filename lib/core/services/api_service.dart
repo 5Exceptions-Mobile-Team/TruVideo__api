@@ -15,7 +15,7 @@ class ApiService {
   late Dio dio;
 
   /// Helper to create a Dio instance with logging and standard interceptors
-  Dio createDio({String? baseUrl, String? token}) {
+  Dio createDio({String? baseUrl, String? token, bool logBody = true}) {
     final newDio = Dio(
       BaseOptions(
         baseUrl: baseUrl ?? Endpoints.loginBaseUrl,
@@ -28,9 +28,9 @@ class ApiService {
       LogInterceptor(
         request: true,
         requestHeader: true,
-        requestBody: true,
+        requestBody: logBody,
         responseHeader: true,
-        responseBody: true,
+        responseBody: logBody,
         error: true,
         logPrint: (obj) => debugPrint('API LOG: $obj'),
       ),

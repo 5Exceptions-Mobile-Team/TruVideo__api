@@ -203,7 +203,7 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
       depth: depth,
       children: [
         ...map.entries.map((entry) {
-          final entryPath = '${path}.${entry.key}';
+          final entryPath = '$path.${entry.key}';
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

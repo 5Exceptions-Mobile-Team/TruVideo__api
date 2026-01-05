@@ -99,9 +99,10 @@ class AuthenticateCard extends StatelessWidget {
                   ? 'back_office_authenticate_button'
                   : 'mobile_authenticate_button',
               child: AppButton(
-                onTap: () => forBackOffice
-                    ? authController.backOfficeAuthentication()
-                    : authController.authenticate(),
+                onTap: () => authController.backOfficeAuthentication(),
+                // onTap: () => forBackOffice
+                //     ? authController.backOfficeAuthentication()
+                //     : authController.authenticate(),
                 text: forBackOffice
                     ? authController.homeController.boAuthenticated.value
                           ? 'Authenticated'

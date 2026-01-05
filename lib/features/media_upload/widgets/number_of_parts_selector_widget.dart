@@ -18,28 +18,30 @@ class NumberOfPartsSelectorWidget extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Number of Parts',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Pallet.secondaryDarkColor,
-                ),
-              ),
-              if (!isMultipartAllowed)
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  'Files below 10MB must use 1 part',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                )
-              else
-                Text(
-                  'Max $maxParts parts (Min 5MB each)',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  'Number of Parts',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Pallet.secondaryDarkColor,
+                  ),
                 ),
-            ],
+                if (!isMultipartAllowed)
+                  Text(
+                    'Files below 10MB must use 1 part',
+                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  )
+                else
+                  Text(
+                    'Max $maxParts parts (Min 5MB each)',
+                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  ),
+              ],
+            ),
           ),
           Row(
             spacing: 5,

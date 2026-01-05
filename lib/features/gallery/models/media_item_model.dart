@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:hive/hive.dart';
 
 part 'media_item_model.g.dart';
@@ -14,7 +16,7 @@ class MediaItemModel extends HiveObject {
   String mediaType; // IMAGE, VIDEO, AUDIO, DOCUMENT
 
   @HiveField(3)
-  List<int> fileBytes;
+  Uint8List fileBytes;
 
   @HiveField(4)
   int fileSize;
@@ -39,4 +41,3 @@ class MediaItemModel extends HiveObject {
 
   String get displayPath => 'web_media_$id';
 }
-

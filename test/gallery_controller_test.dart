@@ -11,16 +11,16 @@ void main() {
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async => '/tmp',
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async => '/tmp',
+        );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('dev.fluttercommunity.plus/device_info'),
-      (MethodCall methodCall) async => <String, dynamic>{
-        'version': {'sdkInt': 33},
-      },
-    );
+          const MethodChannel('dev.fluttercommunity.plus/device_info'),
+          (MethodCall methodCall) async => <String, dynamic>{
+            'version': {'sdkInt': 33},
+          },
+        );
   });
 
   setUp(() {
@@ -45,7 +45,6 @@ void main() {
       expect(controller.autoClose, false);
       expect(controller.selectEnabled.value, false);
       expect(controller.selectedMedia, isEmpty);
-      expect(controller.cameraMode, isNull);
     });
   });
 
@@ -110,50 +109,6 @@ void main() {
     });
   });
 
-  group('buildCameraMode', () {
-    test('should set autoClose true for singleImage mode', () {
-      controller.cameraMode = CameraModeEnum.singleImage;
-      controller.buildCameraMode();
-      expect(controller.autoClose, true);
-    });
-
-    test('should set autoClose true for singleVideo mode', () {
-      controller.cameraMode = CameraModeEnum.singleVideo;
-      controller.buildCameraMode();
-      expect(controller.autoClose, true);
-    });
-
-    test('should set autoClose true for singleVideoAndImage mode', () {
-      controller.cameraMode = CameraModeEnum.singleVideoAndImage;
-      controller.buildCameraMode();
-      expect(controller.autoClose, true);
-    });
-
-    test('should set autoClose false for videoAndImage mode', () {
-      controller.cameraMode = CameraModeEnum.videoAndImage;
-      controller.buildCameraMode();
-      expect(controller.autoClose, false);
-    });
-
-    test('should set autoClose false for video mode', () {
-      controller.cameraMode = CameraModeEnum.video;
-      controller.buildCameraMode();
-      expect(controller.autoClose, false);
-    });
-
-    test('should set autoClose false for image mode', () {
-      controller.cameraMode = CameraModeEnum.image;
-      controller.buildCameraMode();
-      expect(controller.autoClose, false);
-    });
-
-    test('should clear tempCameraMode', () {
-      controller.tempCameraMode = CameraModeEnum.video;
-      controller.buildCameraMode();
-      expect(controller.tempCameraMode, isNull);
-    });
-  });
-
   group('enableDisableSelection', () {
     test('should toggle selectEnabled', () {
       expect(controller.selectEnabled.value, false);
@@ -172,27 +127,6 @@ void main() {
       controller.enableDisableSelection();
 
       expect(controller.selectedMedia, isEmpty);
-    });
-  });
-
-  group('changeCameraMode', () {
-    test('should set tempCameraMode', () {
-      controller.changeCameraMode(CameraModeEnum.video);
-      expect(controller.tempCameraMode, CameraModeEnum.video);
-    });
-
-    test('should clear all count values', () {
-      controller.videoCount = 5;
-      controller.imageCount = 10;
-      controller.mediaCount = 15;
-      controller.videoDuration = 30000;
-
-      controller.changeCameraMode(CameraModeEnum.image);
-
-      expect(controller.videoCount, isNull);
-      expect(controller.imageCount, isNull);
-      expect(controller.mediaCount, isNull);
-      expect(controller.videoDuration, isNull);
     });
   });
 
@@ -218,19 +152,6 @@ void main() {
     });
   });
 
-  group('CameraModeEnum', () {
-    test('should have all expected values', () {
-      expect(CameraModeEnum.values.length, 7);
-      expect(CameraModeEnum.values, contains(CameraModeEnum.videoAndImage));
-      expect(CameraModeEnum.values, contains(CameraModeEnum.video));
-      expect(CameraModeEnum.values, contains(CameraModeEnum.image));
-      expect(CameraModeEnum.values, contains(CameraModeEnum.singleVideo));
-      expect(CameraModeEnum.values, contains(CameraModeEnum.singleImage));
-      expect(CameraModeEnum.values, contains(CameraModeEnum.singleMedia));
-      expect(CameraModeEnum.values, contains(CameraModeEnum.singleVideoAndImage));
-    });
-  });
-
   group('updateMediaList', () {
     test('should add image path to imagePaths', () {
       controller.updateMediaList('/path/to/image.jpg');
@@ -253,4 +174,3 @@ void main() {
     });
   });
 }
-

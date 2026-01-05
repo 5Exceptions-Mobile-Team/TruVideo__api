@@ -24,7 +24,7 @@ class CheckboxesRowWidget extends StatelessWidget {
                     controller.isLibrary.value = value ?? true,
                 title: Text(
                   'Add to library',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
                 dense: true,
@@ -43,7 +43,7 @@ class CheckboxesRowWidget extends StatelessWidget {
                     controller.includeInReport.value = value ?? true,
                 title: Text(
                   'Include in report',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
                 dense: true,

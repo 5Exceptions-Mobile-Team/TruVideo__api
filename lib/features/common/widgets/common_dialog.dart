@@ -17,6 +17,7 @@ class CommonDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Pallet.gradient2,
       title: Text(title),
       content: Text(content),
       actions: [

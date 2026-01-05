@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:dio/dio.dart' hide Response;
 import 'package:dio/dio.dart' as dio show Response;
 import 'package:flutter/foundation.dart';
@@ -11,10 +10,12 @@ import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/core/services/api_service.dart';
 import 'package:media_upload_sample_app/core/services/connectivity_service.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
+import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:video_player/video_player.dart';
 
 class MediaUploadController extends GetxController {
   GetStorage storage = GetStorage();
@@ -29,9 +30,12 @@ class MediaUploadController extends GetxController {
 
   late TextEditingController titleController;
   late TextEditingController creatorController;
-  late TextEditingController metadataController;
+  // late TextEditingController metadataController; // Removed
 
   RxList<Map<String, TextEditingController>> tagControllers =
+      <Map<String, TextEditingController>>[].obs;
+
+  RxList<Map<String, TextEditingController>> metadataControllers =
       <Map<String, TextEditingController>>[].obs;
 
   late GalleryController galleryController;
@@ -64,6 +68,9 @@ class MediaUploadController extends GetxController {
   );
   Rx<Map<String, dynamic>?> uploadResponse = Rx<Map<String, dynamic>?>(null);
   Rx<Map<String, dynamic>?> finalizeResponse = Rx<Map<String, dynamic>?>(null);
+  Rx<Map<String, dynamic>?> pollStatusResponse = Rx<Map<String, dynamic>?>(
+    null,
+  );
 
   // API Request payload storage for display
   Rx<Map<String, dynamic>?> initializePayload = Rx<Map<String, dynamic>?>(null);
@@ -92,7 +99,8 @@ class MediaUploadController extends GetxController {
   void onInit() {
     titleController = TextEditingController();
     _addInitialTagRow();
-    metadataController = TextEditingController();
+    _addInitialMetadataRow();
+    // metadataController = TextEditingController(); // Removed
     creatorController = TextEditingController();
     galleryController = Get.find<GalleryController>();
     _initializeMediaInfo();
@@ -102,9 +110,13 @@ class MediaUploadController extends GetxController {
   @override
   void onClose() {
     titleController.dispose();
-    metadataController.dispose();
+    // metadataController.dispose(); // Removed
     creatorController.dispose();
     for (var controllers in tagControllers) {
+      controllers['key']?.dispose();
+      controllers['value']?.dispose();
+    }
+    for (var controllers in metadataControllers) {
       controllers['key']?.dispose();
       controllers['value']?.dispose();
     }
@@ -128,6 +140,28 @@ class MediaUploadController extends GetxController {
   void removeLastTagRow() {
     if (tagControllers.length > 1) {
       var last = tagControllers.removeLast();
+      last['key']?.dispose();
+      last['value']?.dispose();
+    }
+  }
+
+  void _addInitialMetadataRow() {
+    metadataControllers.add({
+      'key': TextEditingController(),
+      'value': TextEditingController(),
+    });
+  }
+
+  void addMetadataRow() {
+    metadataControllers.add({
+      'key': TextEditingController(),
+      'value': TextEditingController(),
+    });
+  }
+
+  void removeLastMetadataRow() {
+    if (metadataControllers.length > 1) {
+      var last = metadataControllers.removeLast();
       last['key']?.dispose();
       last['value']?.dispose();
     }
@@ -216,60 +250,51 @@ class MediaUploadController extends GetxController {
     }
   }
 
-  Future<void> _generateVideoThumbnailWeb(Uint8List videoBytes) async {
-    try {
-      // For web, we can use video_thumbnail with a temporary file approach
-      // or use a web-compatible method. Since video_thumbnail may not work on web,
-      // we'll create a video element approach or use a simpler method.
-      // For now, we'll try to use video_thumbnail if it supports web, otherwise show placeholder
-      if (kIsWeb) {
-        // On web, video thumbnail generation is complex.
-        // We can use html package to create a video element and capture a frame,
-        // but for simplicity, we'll set a placeholder or try video_thumbnail
-        try {
-          // Try using video_thumbnail - it might work if the package supports web
-          // For now, we'll leave thumbnail as null and show a placeholder
-          thumbnailBytes.value = null;
-        } catch (e) {
-          if (kDebugMode) {
-            print('Video thumbnail not available on web: $e');
-          }
-          thumbnailBytes.value = null;
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error generating web video thumbnail: $e');
-      }
-      thumbnailBytes.value = null;
-    }
-  }
-
   void _initializeMediaInfo() async {
     try {
       if (kIsWeb && filePath.startsWith('web_media_')) {
         // Web: Get from Hive storage
         final id = filePath.replaceFirst('web_media_', '');
-        final bytes = await _webStorage.getMediaBytes(id);
-        if (bytes == null) return;
 
-        sizeInBytes.value = bytes.length;
+        // Optimize: Fetch item once
+        final mediaItem = _webStorage.getMediaItem(id);
+
+        if (mediaItem == null) return;
+
+        // Use data from mediaItem directly
+        sizeInBytes.value = mediaItem.fileSize;
         fileSize.value = _formatBytes(sizeInBytes.value);
         _adjustNumberOfParts();
-
-        // Get media type from stored item
-        final allMedia = _webStorage.getAllMedia();
-        final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
-        if (mediaItem != null) {
-          mediaType.value = mediaItem.mediaType;
-        } else {
-          mediaType.value = galleryController.getMediaType(filePath);
-        }
+        mediaType.value = mediaItem.mediaType;
 
         if (mediaType.value == 'VIDEO') {
-          // For web videos, try to generate thumbnail from bytes
-          await _generateVideoThumbnailWeb(bytes);
-          duration.value = '0';
+          // For web videos, get duration using Blob URL
+          duration.value = '0'; // Default
+
+          final bytes = await _webStorage.getMediaBytes(id);
+          if (bytes != null) {
+            String? blobUrl;
+            VideoPlayerController? tempController;
+            try {
+              blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+              tempController = VideoPlayerController.networkUrl(
+                Uri.parse(blobUrl),
+              );
+              await tempController.initialize();
+              final d = tempController.value.duration;
+              duration.value = d.toString().split('.').first.padLeft(8, "0");
+            } catch (e) {
+              if (kDebugMode) print("Error getting duration: $e");
+            } finally {
+              tempController?.dispose();
+              if (blobUrl != null) BlobUrlHelper.revokeBlobUrl(blobUrl);
+            }
+
+            // Generate Thumbnail
+            thumbnailBytes.value = await BlobUrlHelper.generateVideoThumbnail(
+              bytes,
+            );
+          }
         } else {
           duration.value = '0';
         }
@@ -357,8 +382,7 @@ class MediaUploadController extends GetxController {
     String extension = 'UNKNOWN';
     if (kIsWeb && filePath.startsWith('web_media_')) {
       final id = filePath.replaceFirst('web_media_', '');
-      final allMedia = _webStorage.getAllMedia();
-      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      final mediaItem = _webStorage.getMediaItem(id);
       if (mediaItem != null && mediaItem.fileName.contains('.')) {
         extension = mediaItem.fileName.split('.').last.toLowerCase();
       }
@@ -388,6 +412,10 @@ class MediaUploadController extends GetxController {
         return 'image/jpeg';
       case 'png':
         return 'image/png';
+      case 'heic':
+        return 'image/heic';
+      case 'heif':
+        return 'image/heif';
       case 'svg':
         return 'image/svg+xml';
       case 'mp3':
@@ -411,8 +439,7 @@ class MediaUploadController extends GetxController {
     if (kIsWeb && filePath.startsWith('web_media_')) {
       // Web: Get extension from stored media item
       final id = filePath.replaceFirst('web_media_', '');
-      final allMedia = _webStorage.getAllMedia();
-      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      final mediaItem = _webStorage.getMediaItem(id);
       if (mediaItem != null && mediaItem.fileName.contains('.')) {
         fileExtension = mediaItem.fileName.split('.').last.toUpperCase();
       }
@@ -420,15 +447,18 @@ class MediaUploadController extends GetxController {
       fileExtension = filePath.split('.').last.toUpperCase();
     }
 
-    // Build metadata object from metadataController if not empty
+    // Build metadata object from metadataControllers
     Map<String, dynamic>? customMetadata;
-    if (metadataController.text.isNotEmpty) {
-      // Try to parse as JSON, otherwise use as a simple string value
-      try {
-        customMetadata = {'note': metadataController.text};
-      } catch (e) {
-        customMetadata = {'note': metadataController.text};
+    Map<String, dynamic> metadataMap = {};
+
+    for (var meta in metadataControllers) {
+      if (meta['key']!.text.isNotEmpty) {
+        metadataMap[meta['key']!.text] = meta['value']!.text;
       }
+    }
+
+    if (metadataMap.isNotEmpty) {
+      customMetadata = metadataMap;
     }
 
     return {
@@ -505,6 +535,7 @@ class MediaUploadController extends GetxController {
     initializeResponse.value = null;
     uploadResponse.value = null;
     finalizeResponse.value = null;
+    pollStatusResponse.value = null;
     uploadPayload.value = null;
     finalizePayload.value = null;
   }
@@ -691,7 +722,7 @@ class MediaUploadController extends GetxController {
       await randomAccessFile.setPosition(startByte);
       final chunkBytes = await randomAccessFile.read(partSize);
 
-      final dioInstance = ApiService().createDio();
+      final dioInstance = ApiService().createDio(logBody: false);
       final response = await dioInstance.put(
         presignedUrl,
         data: chunkBytes,
@@ -833,9 +864,14 @@ class MediaUploadController extends GetxController {
     final endByte = (index == totalParts - 1)
         ? totalSize
         : ((index + 1) * chunkSize);
-    final chunkBytes = bytes.sublist(startByte, endByte);
+    // Use view for zero-copy slicing to save memory
+    final chunkBytes = Uint8List.view(
+      bytes.buffer,
+      bytes.offsetInBytes + startByte,
+      endByte - startByte,
+    );
 
-    final dioInstance = ApiService().createDio();
+    final dioInstance = ApiService().createDio(logBody: false);
     final response = await dioInstance.put(
       presignedUrl,
       data: chunkBytes,
@@ -1146,10 +1182,11 @@ class MediaUploadController extends GetxController {
 
           if (status == 'COMPLETED') {
             isFinalizeComplete.value = true;
-            finalizeResponse.value = Map<String, dynamic>.from(response.data);
+            pollStatusResponse.value = Map<String, dynamic>.from(response.data);
             Utils.showToast('Upload completed successfully!');
             return;
           } else if (status == 'FAILED') {
+            pollStatusResponse.value = Map<String, dynamic>.from(response.data);
             Get.dialog(
               ErrorDialog(
                 title: 'Upload Failed',

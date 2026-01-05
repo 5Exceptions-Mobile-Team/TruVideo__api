@@ -4,10 +4,7 @@ import 'package:get/get.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/common/widgets/gradient_background.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
-
-import '../../common/widgets/app_button.dart';
 import '../../common/widgets/common_app_bar.dart';
-import '../widgets/add_dialog.dart';
 import '../widgets/all_media_widget.dart';
 
 class GalleryScreen extends StatefulWidget {

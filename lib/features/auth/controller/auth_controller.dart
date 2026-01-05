@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
@@ -15,11 +14,13 @@ import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:media_upload_sample_app/features/auth/models/credentials_model.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
-import 'package:truvideo_core_sdk/truvideo_core_sdk.dart';
 import 'package:uuid/uuid.dart';
 
 class AuthController extends GetxController {
   GetStorage storage = GetStorage();
+  LocalDatabase localDatabase = LocalDatabase();
+  ApiService apiService = ApiService();
+  ConnectivityService connectivityService = ConnectivityService();
 
   late TextEditingController boApiKeyController;
   late TextEditingController boSecretKeyController;
@@ -95,7 +96,7 @@ class AuthController extends GetxController {
 
   void getCredentials() async {
     try {
-      final credentials = LocalDatabase().getCredentials();
+      final credentials = localDatabase.getCredentials();
       savedCredentials.clear();
       savedCredentials.addAll(credentials);
 
@@ -121,16 +122,16 @@ class AuthController extends GetxController {
       boSecretKeyController.text = credentials.secret!;
       boExternalIdController.text = credentials.externalId!;
     } else {
-      await generatePayload(
-        fromSavedCredentials: true,
-        secretKey: credentials.secret,
-      );
-      await generateSignature();
-
-      authApiKeyController.text = credentials.apiKey!;
-      authPayloadController.text = payloadController.text;
-      authSignatureController.text = signatureController.text;
-      authExternalIdController.text = credentials.externalId!;
+      // await generatePayload(
+      //   fromSavedCredentials: true,
+      //   secretKey: credentials.secret,
+      // );
+      // await generateSignature();
+      //
+      // authApiKeyController.text = credentials.apiKey!;
+      // authPayloadController.text = payloadController.text;
+      // authSignatureController.text = signatureController.text;
+      // authExternalIdController.text = credentials.externalId!;
     }
     Get.back();
   }
@@ -140,7 +141,7 @@ class AuthController extends GetxController {
       Utils.showToast('API Key and Secret Key both are required');
       return;
     }
-    if (!await ConnectivityService().hasConnection()) {
+    if (!await connectivityService.hasConnection()) {
       Get.dialog(
         ErrorDialog(
           title: 'Internet Error',
@@ -173,7 +174,7 @@ class AuthController extends GetxController {
         print("jsonBody: $jsonBody");
       }
 
-      final res = await ApiService().post(
+      final res = await apiService.post(
         path: Endpoints.login,
         data: jsonBody,
         options: Options(
@@ -216,93 +217,93 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> generatePayload({
-    bool fromSavedCredentials = false,
-    String? secretKey,
-  }) async {
-    final payload = await TruvideoCoreSdk.generatePayload();
-    payloadController.text = payload;
-    payloadVisible.value = true;
-    if (fromSavedCredentials) {
-      signaturePayloadController.text = payloadController.text;
-      signatureSecretController.text = secretKey!;
-    }
-  }
+  // Future<void> generatePayload({
+  //   bool fromSavedCredentials = false,
+  //   String? secretKey,
+  // }) async {
+  //   final payload = await TruvideoCoreSdk.generatePayload();
+  //   payloadController.text = payload;
+  //   payloadVisible.value = true;
+  //   if (fromSavedCredentials) {
+  //     signaturePayloadController.text = payloadController.text;
+  //     signatureSecretController.text = secretKey!;
+  //   }
+  // }
 
-  Future<void> generateSignature() async {
-    if (signaturePayloadController.text.isEmpty ||
-        signatureSecretController.text.isEmpty) {
-      Utils.showToast('Payload and Secret key both are required');
-      return;
-    }
+  // Future<void> generateSignature() async {
+  //   if (signaturePayloadController.text.isEmpty ||
+  //       signatureSecretController.text.isEmpty) {
+  //     Utils.showToast('Payload and Secret key both are required');
+  //     return;
+  //   }
+  //
+  //   try {
+  //     List<int> secretBytes = utf8.encode(
+  //       signatureSecretController.text.trim(),
+  //     );
+  //     List<int> payloadBytes = utf8.encode(
+  //       signaturePayloadController.text.trim(),
+  //     );
+  //     final hmacSha256 = Hmac(sha256, secretBytes);
+  //     final macData = hmacSha256.convert(payloadBytes);
+  //     signatureVisible.value = true;
+  //     signatureController.text = macData.toString();
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error generating SHA256 HMAC: $e");
+  //     }
+  //   }
+  // }
 
-    try {
-      List<int> secretBytes = utf8.encode(
-        signatureSecretController.text.trim(),
-      );
-      List<int> payloadBytes = utf8.encode(
-        signaturePayloadController.text.trim(),
-      );
-      final hmacSha256 = Hmac(sha256, secretBytes);
-      final macData = hmacSha256.convert(payloadBytes);
-      signatureVisible.value = true;
-      signatureController.text = macData.toString();
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error generating SHA256 HMAC: $e");
-      }
-    }
-  }
-
-  void authenticate() async {
-    // if (authApiKeyController.text.isEmpty ||
-    //     authPayloadController.text.isEmpty ||
-    //     authSignatureController.text.isEmpty) {
-    //   Utils.showToast(
-    //     'API Key, Payload and Signature are required to authenticate',
-    //     length: Toast.LENGTH_LONG,
-    //   );
-    //   return;
-    // }
-    // if (!await ConnectivityService().hasConnection()) {
-    //   Get.dialog(
-    //     ErrorDialog(
-    //       title: 'Internet Error',
-    //       subTitle: 'Make sure you have stable internet connection',
-    //     ),
-    //   );
-    //   return;
-    // }
-    // try {
-    //   showLoading.value = true;
-    //   bool isAuthenticated = await TruvideoCoreSdk.isAuthenticated();
-    //   bool isAuthExpired = await TruvideoCoreSdk.isAuthenticationExpired();
-    //
-    //   if (!isAuthenticated || isAuthExpired) {
-    //     await TruvideoCoreSdk.authenticate(
-    //       apiKey: authApiKeyController.text.trim(),
-    //       signature: authSignatureController.text.trim(),
-    //       payload: authPayloadController.text.trim(),
-    //       externalId: authExternalIdController.text.trim(),
-    //     );
-    //   }
-    //   await TruvideoCoreSdk.initAuthentication();
-    //   homeController.checkAuthStatus();
-    //   showLoading.value = false;
-    //   Utils.showToast('Mobile Authentication Successfully');
-    // } catch (e) {
-    //   showLoading.value = false;
-    //   if (kDebugMode) {
-    //     print('Authentication failed: $e');
-    //   }
-    //   Get.dialog(
-    //     ErrorDialog(
-    //       title: 'Authentication Failed!',
-    //       subTitle: 'Make sure your API and Secret key are correct',
-    //     ),
-    //   );
-    // }
-  }
+  // void authenticate() async {
+  //   if (authApiKeyController.text.isEmpty ||
+  //       authPayloadController.text.isEmpty ||
+  //       authSignatureController.text.isEmpty) {
+  //     Utils.showToast(
+  //       'API Key, Payload and Signature are required to authenticate',
+  //       length: Toast.LENGTH_LONG,
+  //     );
+  //     return;
+  //   }
+  //   if (!await ConnectivityService().hasConnection()) {
+  //     Get.dialog(
+  //       ErrorDialog(
+  //         title: 'Internet Error',
+  //         subTitle: 'Make sure you have stable internet connection',
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //   try {
+  //     showLoading.value = true;
+  //     bool isAuthenticated = await TruvideoCoreSdk.isAuthenticated();
+  //     bool isAuthExpired = await TruvideoCoreSdk.isAuthenticationExpired();
+  //
+  //     if (!isAuthenticated || isAuthExpired) {
+  //       await TruvideoCoreSdk.authenticate(
+  //         apiKey: authApiKeyController.text.trim(),
+  //         signature: authSignatureController.text.trim(),
+  //         payload: authPayloadController.text.trim(),
+  //         externalId: authExternalIdController.text.trim(),
+  //       );
+  //     }
+  //     await TruvideoCoreSdk.initAuthentication();
+  //     homeController.checkAuthStatus();
+  //     showLoading.value = false;
+  //     Utils.showToast('Mobile Authentication Successfully');
+  //   } catch (e) {
+  //     showLoading.value = false;
+  //     if (kDebugMode) {
+  //       print('Authentication failed: $e');
+  //     }
+  //     Get.dialog(
+  //       ErrorDialog(
+  //         title: 'Authentication Failed!',
+  //         subTitle: 'Make sure your API and Secret key are correct',
+  //       ),
+  //     );
+  //   }
+  // }
 
   void copyText(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
@@ -323,7 +324,7 @@ class AuthController extends GetxController {
 
     if (forUpdate) {
       try {
-        await LocalDatabase().updateCredentials(
+        await localDatabase.updateCredentials(
           CredentialsModel(
             id: id,
             title: title,
@@ -342,7 +343,7 @@ class AuthController extends GetxController {
     } else {
       try {
         final uuid = Uuid();
-        await LocalDatabase().saveNewCredentials(
+        await localDatabase.saveNewCredentials(
           CredentialsModel(
             id: id ?? uuid.v1(),
             title: title,
@@ -363,7 +364,7 @@ class AuthController extends GetxController {
 
   void deleteCredentials(String id) async {
     try {
-      await LocalDatabase().deleteCredentials(id);
+      await localDatabase.deleteCredentials(id);
       getCredentials();
     } catch (e) {
       if (kDebugMode) {

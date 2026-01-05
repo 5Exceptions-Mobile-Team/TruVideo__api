@@ -5,24 +5,17 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-// import 'package:flutter_file_info/flutter_file_info.dart';
+import 'package:video_compress/video_compress.dart' as video_info;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_size_getter/file_input.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 import 'package:intl/intl.dart';
-import 'package:media_info/media_info.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:truvideo_camera_sdk/camera_configuration.dart';
-import 'package:truvideo_camera_sdk/camera_mode.dart';
-import 'package:truvideo_camera_sdk/truvideo_camera_sdk.dart';
-import 'package:truvideo_camera_sdk/truvideo_sdk_camera_media.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:path/path.dart' as mPath;
 import '../../common/widgets/error_widget.dart';
 import '../../common/widgets/common_dialog.dart';
 import '../widgets/loading_file_widget.dart';
@@ -145,15 +138,14 @@ class GalleryController extends GetxController {
     // For web paths, get media type from stored item
     if (kIsWeb && filePath.startsWith('web_media_')) {
       final id = filePath.replaceFirst('web_media_', '');
-      final allMedia = _webStorage.getAllMedia();
-      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      final mediaItem = _webStorage.getMediaItem(id);
       if (mediaItem != null) {
         return mediaItem.mediaType;
       }
       // Fallback: if item not found, return UNKNOWN
       return 'UNKNOWN';
     }
-    
+
     // For file system paths, extract extension from path
     if (filePath.contains('.')) {
       final extension = filePath.split('.').last.toLowerCase();
@@ -163,7 +155,7 @@ class GalleryController extends GetxController {
   }
 
   String _getMediaTypeFromExtension(String extension) {
-    if (['png', 'jpeg', 'jpg'].contains(extension)) {
+    if (['png', 'jpeg', 'jpg', 'heic', 'heif'].contains(extension)) {
       return 'IMAGE';
     } else if (['mp4', 'mov', 'mkv', 'webm'].contains(extension)) {
       return 'VIDEO';
@@ -233,6 +225,8 @@ class GalleryController extends GetxController {
                   'png',
                   'jpeg',
                   'jpg',
+                  'heic',
+                  'heif',
                 ].contains(file.path.split('.').last.toLowerCase()) &&
                 !file.path.contains('thumbnail')) {
               imagePaths.add(file.path);
@@ -261,7 +255,7 @@ class GalleryController extends GetxController {
   void updateMediaList(String path) async {
     // Get media type using the helper method which handles both web and file system paths
     final mediaType = getMediaType(path);
-    
+
     if (mediaType == 'IMAGE' && !path.contains('thumbnail')) {
       if (!imagePaths.contains(path)) {
         imagePaths.add(path);
@@ -327,8 +321,7 @@ class GalleryController extends GetxController {
         if (kIsWeb && path.startsWith('web_media_')) {
           // Web: Get from stored media item
           final id = path.replaceFirst('web_media_', '');
-          final allMedia = _webStorage.getAllMedia();
-          final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+          final mediaItem = _webStorage.getMediaItem(id);
           if (mediaItem != null) {
             cache[path] = mediaItem.modifiedAt;
             return mediaItem.modifiedAt;
@@ -354,12 +347,25 @@ class GalleryController extends GetxController {
     if (kIsWeb && path.startsWith('web_media_')) {
       // Web: Load from Hive storage
       final id = path.replaceFirst('web_media_', '');
-      final bytes = await _webStorage.getMediaBytes(id);
-      
-      if (type == 'IMAGE' && bytes != null) {
-        return Image.memory(bytes, height: 45, width: 45, fit: BoxFit.cover);
+      if (type == 'IMAGE') {
+        final bytes = await _webStorage.getMediaBytes(id);
+        if (bytes != null) {
+          return Image.memory(bytes, height: 45, width: 45, fit: BoxFit.cover);
+        } else {
+          return Container(
+            height: 45,
+            width: 45,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Pallet.secondaryColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.file_copy_rounded, size: 30),
+          );
+        }
       } else if (type == 'VIDEO') {
         // For web videos, we can't generate thumbnails easily, show icon
+        // No need to load bytes!
         return Container(
           height: 45,
           width: 45,
@@ -394,7 +400,12 @@ class GalleryController extends GetxController {
         );
 
         if (thumbnailBytes != null) {
-          return Image.memory(thumbnailBytes, height: 45, width: 45, fit: BoxFit.cover);
+          return Image.memory(
+            thumbnailBytes,
+            height: 45,
+            width: 45,
+            fit: BoxFit.cover,
+          );
         } else {
           return Container(
             height: 45,
@@ -453,10 +464,11 @@ class GalleryController extends GetxController {
     Get.dialog(
       CommonDialog(
         title: 'Delete Media',
-        content: 'Are you sure you want to delete ${selectedMedia.length} item(s)?',
+        content:
+            'Are you sure you want to delete ${selectedMedia.length} item(s)?',
         onConfirm: () async {
           Get.back(); // Close dialog
-          
+
           if (kIsWeb) {
             // Web: Delete from Hive storage
             List<Future> futures = [];
@@ -498,7 +510,21 @@ class GalleryController extends GetxController {
       showLoadingDialog();
 
       FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: Platform.isIOS ? FileType.media : FileType.custom,
         withData: kIsWeb, // Need data for web
+        allowedExtensions: Platform.isIOS
+            ? null
+            : [
+                'png',
+                'jpeg',
+                'jpg',
+                'heic',
+                'heif',
+                'mp4',
+                'mov',
+                'mkv',
+                'webm',
+              ],
       );
 
       if (result != null) {
@@ -509,16 +535,34 @@ class GalleryController extends GetxController {
             // Determine media type from file name extension
             final extension = file.name.split('.').last.toLowerCase();
             final mediaType = _getMediaTypeFromExtension(extension);
-            
+
             final displayPath = await _webStorage.saveMedia(
               fileName: file.name,
               mediaType: mediaType,
               fileBytes: file.bytes!,
             );
-            
+
             // Immediately update the media list with the new file
             updateMediaList(displayPath);
           }
+          Get.back();
+        } else if (Platform.isIOS) {
+          final dir = await getApplicationDocumentsDirectory();
+          String galleryPath = '${dir.path}/gallery';
+
+          final galleryDir = Directory(galleryPath);
+
+          if (!galleryDir.existsSync()) {
+            await galleryDir.create(recursive: true);
+          }
+
+          File file = File(result.files.single.path!);
+          String newPath = '$galleryPath/${result.files.single.name}';
+
+          await File(file.path).copy(newPath);
+          await File(newPath).setLastModified(DateTime.now());
+
+          updateMediaList(newPath);
           Get.back();
         } else {
           // Mobile/Desktop: Use file system
@@ -552,79 +596,79 @@ class GalleryController extends GetxController {
     }
   }
 
-  Future<void> openCamera(CameraConfiguration config, String path) async {
-    try {
-      List<TruvideoSdkCameraMedia> result = await TruvideoCameraSdk.openCamera(
-        configuration: config,
-      );
-      Get.back();
+  // Future<void> openCamera(CameraConfiguration config, String path) async {
+  //   try {
+  //     List<TruvideoSdkCameraMedia> result = await TruvideoCameraSdk.openCamera(
+  //       configuration: config,
+  //     );
+  //     Get.back();
+  //
+  //     if (result.isNotEmpty) {
+  //       cameraMode = null;
+  //     }
+  //
+  //     for (var e in result) {
+  //       if (Platform.isAndroid || e.filePath.split('.').last == 'mp4') {
+  //         String filePath = e.filePath;
+  //         final File originalFile = File(filePath);
+  //         final String fileName = mPath.basename(filePath);
+  //         final String targetPath = mPath.join(path, fileName);
+  //         try {
+  //           await originalFile.rename(targetPath);
+  //         } catch (e) {
+  //           await originalFile.copy(targetPath);
+  //           originalFile.delete();
+  //         }
+  //
+  //         updateMediaList(targetPath);
+  //       } else {
+  //         updateMediaList(e.filePath);
+  //       }
+  //     }
+  //   } on PlatformException catch (e) {
+  //     if (kDebugMode) {
+  //       print('Camera opening failed: $e');
+  //     }
+  //     Get.dialog(ErrorDialog(title: 'Error', subTitle: e.message));
+  //   }
+  // }
 
-      if (result.isNotEmpty) {
-        cameraMode = null;
-      }
+  // void changeCameraMode(CameraModeEnum selectedMode) {
+  //   tempCameraMode = selectedMode;
+  //   videoCount = null;
+  //   imageCount = null;
+  //   mediaCount = null;
+  //   videoDuration = null;
+  //   update(['camera_mode']);
+  // }
 
-      for (var e in result) {
-        if (Platform.isAndroid || e.filePath.split('.').last == 'mp4') {
-          String filePath = e.filePath;
-          final File originalFile = File(filePath);
-          final String fileName = mPath.basename(filePath);
-          final String targetPath = mPath.join(path, fileName);
-          try {
-            await originalFile.rename(targetPath);
-          } catch (e) {
-            await originalFile.copy(targetPath);
-            originalFile.delete();
-          }
-
-          updateMediaList(targetPath);
-        } else {
-          updateMediaList(e.filePath);
-        }
-      }
-    } on PlatformException catch (e) {
-      if (kDebugMode) {
-        print('Camera opening failed: $e');
-      }
-      Get.dialog(ErrorDialog(title: 'Error', subTitle: e.message));
-    }
-  }
-
-  void changeCameraMode(CameraModeEnum selectedMode) {
-    tempCameraMode = selectedMode;
-    videoCount = null;
-    imageCount = null;
-    mediaCount = null;
-    videoDuration = null;
-    update(['camera_mode']);
-  }
-
-  CameraMode getCameraMode() {
-    if (cameraMode == CameraModeEnum.video) {
-      return CameraMode.video(
-        videoMaxCount: videoCount,
-        durationLimit: videoDuration,
-      );
-    } else if (cameraMode == CameraModeEnum.image) {
-      return CameraMode.image(imageMaxCount: imageCount);
-    } else if (cameraMode == CameraModeEnum.singleVideo) {
-      return CameraMode.singleVideo(durationLimit: videoDuration);
-    } else if (cameraMode == CameraModeEnum.singleImage) {
-      return CameraMode.singleImage();
-    } else if (cameraMode == CameraModeEnum.singleMedia) {
-      return CameraMode.singleMedia(
-        mediaCount: mediaCount,
-        durationLimit: videoDuration,
-      );
-    } else if (cameraMode == CameraModeEnum.singleVideoAndImage) {
-      return CameraMode.singleVideoOrImage(durationLimit: videoDuration);
-    } else {
-      return CameraMode.videoAndImage(
-        videoMaxCount: videoCount,
-        imageMaxCount: imageCount,
-        durationLimit: videoDuration,
-      );
-    }
-  }
+  // CameraMode getCameraMode() {
+  //   if (cameraMode == CameraModeEnum.video) {
+  //     return CameraMode.video(
+  //       videoMaxCount: videoCount,
+  //       durationLimit: videoDuration,
+  //     );
+  //   } else if (cameraMode == CameraModeEnum.image) {
+  //     return CameraMode.image(imageMaxCount: imageCount);
+  //   } else if (cameraMode == CameraModeEnum.singleVideo) {
+  //     return CameraMode.singleVideo(durationLimit: videoDuration);
+  //   } else if (cameraMode == CameraModeEnum.singleImage) {
+  //     return CameraMode.singleImage();
+  //   } else if (cameraMode == CameraModeEnum.singleMedia) {
+  //     return CameraMode.singleMedia(
+  //       mediaCount: mediaCount,
+  //       durationLimit: videoDuration,
+  //     );
+  //   } else if (cameraMode == CameraModeEnum.singleVideoAndImage) {
+  //     return CameraMode.singleVideoOrImage(durationLimit: videoDuration);
+  //   } else {
+  //     return CameraMode.videoAndImage(
+  //       videoMaxCount: videoCount,
+  //       imageMaxCount: imageCount,
+  //       durationLimit: videoDuration,
+  //     );
+  //   }
+  // }
 
   Future<(String metadata, String creationDate)?> getMediaMetadata(
     String path,
@@ -633,9 +677,8 @@ class GalleryController extends GetxController {
       if (kIsWeb && path.startsWith('web_media_')) {
         // Web: Get metadata from stored media item
         final id = path.replaceFirst('web_media_', '');
-        final allMedia = _webStorage.getAllMedia();
-        final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
-        
+        final mediaItem = _webStorage.getMediaItem(id);
+
         if (mediaItem == null) return null;
 
         String metadata = '';
@@ -663,7 +706,13 @@ class GalleryController extends GetxController {
       } else {
         // Mobile/Desktop: Use file system
         final extension = path.toLowerCase().split('.').last;
-        final isImage = ['jpg', 'jpeg', 'png'].contains(extension);
+        final isImage = [
+          'jpg',
+          'jpeg',
+          'png',
+          'heic',
+          'heif',
+        ].contains(extension);
         final isVideo = ['mp4', 'mkv', 'mov', 'webm'].contains(extension);
 
         String metadata = '';
@@ -673,12 +722,18 @@ class GalleryController extends GetxController {
           final res = ImageSizeGetter.getSizeResult(FileInput(File(path)));
           metadata = 'Resolution: ${res.size.width}x${res.size.height}';
         } else if (isVideo) {
-          final mediaInfo = MediaInfo();
-          final info = await mediaInfo.getMediaInfo(path);
+          // final mediaInfo = MediaInfo();
+          // final info = await mediaInfo.getMediaInfo(path);
+          //
+          // final durationMs = info['durationMs'] as int?;
+          //
+          // final duration = Duration(milliseconds: durationMs ?? 0);
+          // metadata = 'Duration: ${duration.toString().split('.').first}';
 
-          final durationMs = info['durationMs'] as int?;
+          final info = await video_info.VideoCompress.getMediaInfo(path);
+          final durationMs = info.duration;
 
-          final duration = Duration(milliseconds: durationMs ?? 0);
+          final duration = Duration(milliseconds: durationMs?.toInt() ?? 0);
           metadata = 'Duration: ${duration.toString().split('.').first}';
         }
         creationDate = await getFileCreationTime(path);
@@ -703,8 +758,7 @@ class GalleryController extends GetxController {
     if (kIsWeb && path.startsWith('web_media_')) {
       // Web: Get from stored media item
       final id = path.replaceFirst('web_media_', '');
-      final allMedia = _webStorage.getAllMedia();
-      final mediaItem = allMedia.firstWhereOrNull((item) => item.id == id);
+      final mediaItem = _webStorage.getMediaItem(id);
       if (mediaItem != null) {
         return formatDate(mediaItem.createdAt.toString());
       }

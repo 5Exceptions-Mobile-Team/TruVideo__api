@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -34,10 +32,14 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
           ),
         ),
       ),
-      body: InteractiveViewer(
-        minScale: 0.5,
-        maxScale: 4.0,
-        child: _buildImage(),
+      body: SafeArea(
+        child: Center(
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: _buildImage(),
+          ),
+        ),
       ),
     );
   }

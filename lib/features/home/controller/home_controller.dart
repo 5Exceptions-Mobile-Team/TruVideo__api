@@ -1,8 +1,6 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
-import 'package:truvideo_core_sdk/truvideo_core_sdk.dart';
 
 class HomeController extends GetxController {
   RxBool isFullyAuthenticated = false.obs; // BO and Mobile

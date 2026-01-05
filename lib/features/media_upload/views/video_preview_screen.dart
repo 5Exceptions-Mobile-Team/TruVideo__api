@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
+import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPreviewScreen extends StatefulWidget {
@@ -66,17 +67,17 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
         final bytes = await _webStorage.getMediaBytes(id);
 
         if (bytes != null) {
-          // Creating a data URI for small videos might work
-          // final uri = Uri.dataFromBytes(bytes, mimeType: 'video/mp4'); // Assume mp4
-          // _videoPlayerController = VideoPlayerController.networkUrl(uri);
+          // Use BlobUrlHelper to create a temporary URL instantly from bytes.
+          // This avoids the expensive Base64 encoding + Data URI creation which freezes the UI.
+          final blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+          _videoPlayerController = VideoPlayerController.networkUrl(
+            Uri.parse(blobUrl),
+          );
 
-          // Warning: Data URIs for large videos will crash.
-          // Better to skip web video preview from bytes for this iteration if it's complex,
-          // or use a simple hack.
-
-          // Let's try the networkUrl with a Data URI for now, assuming small videos for sample app.
-          final uri = Uri.dataFromBytes(bytes, mimeType: 'video/mp4');
-          _videoPlayerController = VideoPlayerController.networkUrl(uri);
+          // Note: The controller will hold the URL roughly until disposed.
+          // We should ideally revoke it, but video_player might need it.
+          // We can let garbage collection handle it or just leave it for this session.
+          // For valid cleanup, we could wrap dispose.
         } else {
           throw Exception("Could not load video data");
         }

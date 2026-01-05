@@ -6,8 +6,6 @@ import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/auth/widgets/authenticate_card.dart';
 import 'package:media_upload_sample_app/features/auth/widgets/authenticated_widget.dart';
-import 'package:media_upload_sample_app/features/auth/widgets/payload_card.dart';
-import 'package:media_upload_sample_app/features/auth/widgets/signature_card.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_app_bar.dart';
 import 'package:media_upload_sample_app/features/common/widgets/gradient_background.dart';
@@ -37,7 +35,7 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: CommonAppBar(
-          title: 'Core Module',
+          title: 'Authentication',
           leading: Semantics(
             identifier: 'back_button',
             label: 'back_button',
@@ -102,17 +100,17 @@ class _AuthScreenState extends State<AuthScreen> {
                           ).animate().fadeIn(delay: 500.ms).scale()
                         : Column(
                             children: [
-                              PayloadCard(
-                                title: 'Payload',
-                              ).animate().fadeIn(delay: 500.ms).slideX(),
-                              const SizedBox(height: 16),
-                              SignatureCard(
-                                title: 'Signature',
-                              ).animate().fadeIn(delay: 600.ms).slideX(),
-                              const SizedBox(height: 16),
-                              AuthenticateCard(
-                                title: 'Authenticate',
-                              ).animate().fadeIn(delay: 700.ms).slideX(),
+                              // PayloadCard(
+                              //   title: 'Payload',
+                              // ).animate().fadeIn(delay: 500.ms).slideX(),
+                              // const SizedBox(height: 16),
+                              // SignatureCard(
+                              //   title: 'Signature',
+                              // ).animate().fadeIn(delay: 600.ms).slideX(),
+                              // const SizedBox(height: 16),
+                              // AuthenticateCard(
+                              //   title: 'Authenticate',
+                              // ).animate().fadeIn(delay: 700.ms).slideX(),
                             ],
                           ),
                   ],

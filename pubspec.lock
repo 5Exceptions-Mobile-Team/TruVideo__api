@@ -186,7 +186,7 @@ packages:
     source: hosted
     version: "3.1.2"
   cross_file:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cross_file
       sha256: "701dcfc06da0882883a2657c445103380e53e647060ad8d9dfb710c100996608"
@@ -909,22 +909,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
-  truvideo_camera_sdk:
-    dependency: "direct main"
-    description:
-      name: truvideo_camera_sdk
-      sha256: ea122ae5f9a4f79b67faff984c215af8db60d9c92345e68180b92f008d65923d
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.3-beta.3"
-  truvideo_core_sdk:
-    dependency: "direct main"
-    description:
-      name: truvideo_core_sdk
-      sha256: f1f091ca5c791c0c8ca758f63312015549f9f29137f2461b0873ea4ed3fae85d
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.3-beta.2"
   typed_data:
     dependency: transitive
     description:
@@ -1013,6 +997,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  video_compress:
+    dependency: "direct main"
+    description:
+      name: video_compress
+      sha256: "31bc5cdb9a02ba666456e5e1907393c28e6e0e972980d7d8d619a7beda0d4f20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.4"
   video_player:
     dependency: "direct main"
     description:
