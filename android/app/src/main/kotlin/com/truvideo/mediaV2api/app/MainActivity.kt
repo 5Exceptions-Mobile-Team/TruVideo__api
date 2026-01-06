@@ -1,4 +1,4 @@
-package com.example.media_upload_sample_app
+package com.truvideo.mediaV2api.app
 
 import io.flutter.embedding.android.FlutterActivity
 
