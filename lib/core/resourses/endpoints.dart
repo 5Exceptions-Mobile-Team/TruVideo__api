@@ -1,6 +1,5 @@
 class Endpoints {
   // Login API uses the SDK Mobile API
-  // static const loginBaseUrl = 'https://upload-api.truvideo.com/';
   // static const loginBaseUrl = 'https://sdk-mobile-api-rc.truvideo.com';
   static const loginBaseUrl = 'https://sdk-mobile-api.truvideo.com';
   static const login = '/api/login';

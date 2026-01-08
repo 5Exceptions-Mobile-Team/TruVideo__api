@@ -582,8 +582,6 @@ class MediaUploadController extends GetxController {
         token: token,
         baseUrl: Endpoints.uploadBaseUrl,
       );
-      print('/////////////////////////////');
-      print(response);
 
       if (response != null) {
         _processInitializeResponse(response);
