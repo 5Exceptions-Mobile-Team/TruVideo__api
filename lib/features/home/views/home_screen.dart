@@ -44,8 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Expanded(
                       child: Semantics(
-                        identifier: 'core',
-                        label: 'Core Module',
+                        identifier: 'auth',
+                        label: 'Auth Module',
                         child: FeatureCard(
                           onTap: () => Get.to(
                             () => AuthScreen(
@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Pallet.primaryColor,
                             size: 48,
                           ),
-                          title: 'Core',
+                          title: 'Authentication',
                         ),
                       ),
                     ).animate().fadeIn(delay: 100.ms).slideX(),

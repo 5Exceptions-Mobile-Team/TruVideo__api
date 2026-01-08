@@ -32,7 +32,7 @@ class ApiService {
         responseHeader: true,
         responseBody: logBody,
         error: true,
-        logPrint: (obj) => debugPrint('API LOG: $obj'),
+        // logPrint: (obj) => debugPrint('API LOG: $obj'),
       ),
     );
 
