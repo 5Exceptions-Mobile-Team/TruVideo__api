@@ -100453,7 +100453,7 @@ case 1:return s
 case 5:return"Request cancel while communicating to server"
 default:return"Something went wrong, Try again later."}}}
 A.a8G.prototype={
-Cy(a,b,c){var s,r,q=null,p=a==null?"https://sdk-mobile-api-rc.truvideo.com":a
+Cy(a,b,c){var s,r,q=null,p=a==null?"https://upload-api.truvideo.com/":a
 p=A.b1b(p,c!=null?A.af(["Authorization","Bearer "+c],t.N,t.z):q)
 s=new A.Sb(A.b([B.ED],t.i6))
 s.R(s,B.Ms)
@@ -101929,7 +101929,7 @@ if(s==null)s=$.cE=B.aN
 this.d=s.jQ(0,null,t.J9)
 this.aD()},
 G(a){var s=this,r=null,q="testing_mode",p=t.p
-return new A.mQ(A.np(B.GV,B.t,A.fG(!0,A.pD(A.bY(A.b([A.d2(A.b([A.aNv(A.ef(A.e_(A.fh(A.aF(r,r,new A.CU(A.cV(B.Jt,B.bZ,r,48),"Core",new A.aBR(s),r),!1,r,r,!1,r,r,r,"core",r,r,"Core Module",r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r),1,r)),A.bC(1e5,0,0),r)),B.Xd,A.aNv(A.ef(A.e_(A.fh(A.aF(r,r,new A.CU(A.cV(B.Js,B.ad,r,48),"Gallery",new A.aBS(s,a),r),!1,r,r,!1,r,r,r,"gallery_screen",r,r,"Gallery Button",r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r),1,r)),A.bC(2e5,0,0),r))],p),B.C,B.r,B.x,0),B.dB,A.kF(A.ef(A.e_(A.iO(A.d2(A.b([A.b_("Testing/QA Mode",r,r,r,r,A.dZ().$2$fontSize$fontWeight(16,B.a0),r,r),A.aF(r,r,new A.dC(new A.aBT(s),r),!1,r,r,!1,r,r,r,q,r,r,q,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r)],p),B.C,B.cg,B.x,0),B.Iv)),A.bC(3e5,0,0),r),0.2,r),B.dB,A.ef(A.e_(A.b_("Authentication Status",r,r,r,r,A.dZ().$2$fontSize$fontWeight(18,B.bu),r,r)),A.bC(4e5,0,0),r),B.mz,A.kF(A.ef(A.e_(A.iO(new A.dC(new A.aBU(s),r),B.b8)),A.bC(5e5,0,0),r),0.2,r)],p),B.a_,B.r,B.x,0,B.E),r,B.A,B.b8,r,B.ab),B.K,!0),r,r,r),r)},
+return new A.mQ(A.np(B.GV,B.t,A.fG(!0,A.pD(A.bY(A.b([A.d2(A.b([A.aNv(A.ef(A.e_(A.fh(A.aF(r,r,new A.CU(A.cV(B.Jt,B.bZ,r,48),"Authentication",new A.aBR(s),r),!1,r,r,!1,r,r,r,"auth",r,r,"Auth Module",r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r),1,r)),A.bC(1e5,0,0),r)),B.Xd,A.aNv(A.ef(A.e_(A.fh(A.aF(r,r,new A.CU(A.cV(B.Js,B.ad,r,48),"Gallery",new A.aBS(s,a),r),!1,r,r,!1,r,r,r,"gallery_screen",r,r,"Gallery Button",r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r),1,r)),A.bC(2e5,0,0),r))],p),B.C,B.r,B.x,0),B.dB,A.kF(A.ef(A.e_(A.iO(A.d2(A.b([A.b_("Testing/QA Mode",r,r,r,r,A.dZ().$2$fontSize$fontWeight(16,B.a0),r,r),A.aF(r,r,new A.dC(new A.aBT(s),r),!1,r,r,!1,r,r,r,q,r,r,q,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r)],p),B.C,B.cg,B.x,0),B.Iv)),A.bC(3e5,0,0),r),0.2,r),B.dB,A.ef(A.e_(A.b_("Authentication Status",r,r,r,r,A.dZ().$2$fontSize$fontWeight(18,B.bu),r,r)),A.bC(4e5,0,0),r),B.mz,A.kF(A.ef(A.e_(A.iO(new A.dC(new A.aBU(s),r),B.b8)),A.bC(5e5,0,0),r),0.2,r)],p),B.a_,B.r,B.x,0,B.E),r,B.A,B.b8,r,B.ab),B.K,!0),r,r,r),r)},
 RK(a,b,c){var s=null
 return A.d2(A.b([A.b_(a,s,s,s,s,A.dZ().$2$color$fontSize(B.ht,14),s,s),A.aF(s,s,A.b_(b,s,s,s,s,A.dZ().$2$fontSize$fontWeight(14,B.aB),s,s),!1,s,s,!1,s,s,s,c,s,s,a,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s)],t.p),B.C,B.cg,B.x,0)}}
 A.aBR.prototype={
@@ -112559,7 +112559,7 @@ return new A.awz(l,(40*h[0]+20*h[1]+h[2])/20*k,k,k,a1,1,q,m,A.ND(m,0.25),1.48+e)
 s($,"bf1","aY1",()=>{var q=null,p=A.aUg(q),o=A.aQe(B.t,!0,q,q,0,B.JB,A.dZ().$3$color$fontSize$fontWeight(B.c9,20,B.aB)),n=A.b1p(q,B.k2,0,B.K,q,A.b6m(A.dF(20),B.v),q),m=A.a8Q(B.hf),l=A.a8Q(B.lS),k=A.a8Q(B.bZ)
 return p.auE(o,n,B.FJ,B.HP,B.JE,A.aS7(m,q,B.Iw,q,l,A.a8Q(B.jQ),B.k2,!0,k,A.dZ().$1$color(B.k6),A.dZ().$1$color(B.k6)),B.bZ,B.Uz,B.t,A.b5v(A.aUg(q).ok).asN(B.c9,B.c9))})
 s($,"bf0","qy",()=>{var q=new A.a8G()
-q.a=q.Ls("https://sdk-mobile-api-rc.truvideo.com")
+q.a=q.Ls("https://upload-api.truvideo.com/")
 return q})
 s($,"bfe","a7Z",()=>{var q=$.aQP
 return new A.abb(q==null?$.aQP=new A.ab8():q)})
