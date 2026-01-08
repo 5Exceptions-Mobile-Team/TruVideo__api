@@ -100453,7 +100453,7 @@ case 1:return s
 case 5:return"Request cancel while communicating to server"
 default:return"Something went wrong, Try again later."}}}
 A.a8G.prototype={
-Cy(a,b,c){var s,r,q=null,p=a==null?"https://upload-api.truvideo.com/":a
+Cy(a,b,c){var s,r,q=null,p=a==null?"https://sdk-mobile-api.truvideo.com":a
 p=A.b1b(p,c!=null?A.af(["Authorization","Bearer "+c],t.N,t.z):q)
 s=new A.Sb(A.b([B.ED],t.i6))
 s.R(s,B.Ms)
@@ -102266,7 +102266,7 @@ d=A.c7(J.aX(f.dz$,"bo_token"))
 k=d==null?"":d
 f=t.a
 s=8
-return A.o($.qy().aBS("https://upload-api-rc.truvideo.com",l,"/upload/start",k,f),$async$xU)
+return A.o($.qy().aBS("https://upload-api.truvideo.com",l,"/upload/start",k,f),$async$xU)
 case 8:j=a1
 if(j!=null){e=j
 c=J.ao(e)
@@ -102582,7 +102582,7 @@ m.x2.sm(0,k)
 d=m.aI
 d.toString
 j=A.f8("/upload/{uploadId}/complete","{uploadId}",d)
-i=$.qy().Ls("https://upload-api-rc.truvideo.com")
+i=$.qy().Ls("https://upload-api.truvideo.com")
 d=t.N
 c=t.z
 s=8
@@ -102645,7 +102645,7 @@ m=a0==null?"":a0
 b=n.aI
 b.toString
 l=A.f8("/upload/{uploadId}","{uploadId}",b)
-k=$.qy().Ls("https://upload-api-rc.truvideo.com")
+k=$.qy().Ls("https://upload-api.truvideo.com")
 a1=A.tr(A.af(["Authorization","Bearer "+A.k(m)],h,g))
 a1.a="GET"
 s=10
@@ -112559,7 +112559,7 @@ return new A.awz(l,(40*h[0]+20*h[1]+h[2])/20*k,k,k,a1,1,q,m,A.ND(m,0.25),1.48+e)
 s($,"bf1","aY1",()=>{var q=null,p=A.aUg(q),o=A.aQe(B.t,!0,q,q,0,B.JB,A.dZ().$3$color$fontSize$fontWeight(B.c9,20,B.aB)),n=A.b1p(q,B.k2,0,B.K,q,A.b6m(A.dF(20),B.v),q),m=A.a8Q(B.hf),l=A.a8Q(B.lS),k=A.a8Q(B.bZ)
 return p.auE(o,n,B.FJ,B.HP,B.JE,A.aS7(m,q,B.Iw,q,l,A.a8Q(B.jQ),B.k2,!0,k,A.dZ().$1$color(B.k6),A.dZ().$1$color(B.k6)),B.bZ,B.Uz,B.t,A.b5v(A.aUg(q).ok).asN(B.c9,B.c9))})
 s($,"bf0","qy",()=>{var q=new A.a8G()
-q.a=q.Ls("https://upload-api.truvideo.com/")
+q.a=q.Ls("https://sdk-mobile-api.truvideo.com")
 return q})
 s($,"bfe","a7Z",()=>{var q=$.aQP
 return new A.abb(q==null?$.aQP=new A.ab8():q)})
