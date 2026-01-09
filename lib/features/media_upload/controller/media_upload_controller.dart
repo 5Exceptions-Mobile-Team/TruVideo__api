@@ -775,7 +775,8 @@ class MediaUploadController extends GetxController {
   Future<void> _uploadSinglePart(File file, int totalSize) async {
     currentUploadPart.value = 1;
 
-    final dioInstance = ApiService().createDio();
+    // Use logBody: false to prevent Dio from logging entire file bytes which blocks UI
+    final dioInstance = ApiService().createDio(logBody: false);
     final response = await dioInstance.put(
       uploadPresignedUrl!,
       data: file.openRead(),
@@ -812,7 +813,8 @@ class MediaUploadController extends GetxController {
   Future<void> _uploadSinglePartWeb(Uint8List bytes, int totalSize) async {
     currentUploadPart.value = 1;
 
-    final dioInstance = ApiService().createDio();
+    // Use logBody: false to prevent Dio from logging entire file bytes which blocks UI
+    final dioInstance = ApiService().createDio(logBody: false);
     final response = await dioInstance.put(
       uploadPresignedUrl!,
       data: bytes,
