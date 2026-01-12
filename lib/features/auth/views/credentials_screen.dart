@@ -39,7 +39,7 @@ class CredentialsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionHeader(
-                    'Back Office Credentials',
+                    'Credentials',
                   ).animate().fadeIn(delay: 100.ms),
                   const SizedBox(height: 10),
                   _buildCredentialCard(
