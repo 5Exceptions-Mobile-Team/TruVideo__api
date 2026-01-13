@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:media_upload_sample_app/features/auth/models/credentials_model.dart';
 
@@ -12,10 +13,26 @@ class LocalDatabase {
   }
 
   Future<void> openLocalDB() async {
-    credentialsBox = await Hive.openBox(
-      'credentials_box',
-      compactionStrategy: (entries, deletedEntries) => deletedEntries > 10,
-    );
+    try {
+      credentialsBox = await Hive.openBox<CredentialsModel>(
+        'credentials_box',
+        compactionStrategy: (entries, deletedEntries) => deletedEntries > 10,
+      );
+      
+      // Ensure data is persisted on web
+      if (kIsWeb && credentialsBox != null) {
+        await credentialsBox!.flush();
+      }
+      
+      if (kDebugMode) {
+        print('LocalDatabase opened successfully. Items: ${credentialsBox?.length ?? 0}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error opening LocalDatabase: $e');
+      }
+      rethrow;
+    }
   }
 
   Future<void> closeLocalDb() async {

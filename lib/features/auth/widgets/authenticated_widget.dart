@@ -44,7 +44,7 @@ class AuthenticatedWidget extends StatelessWidget {
                 }
               },
               text: 'Clear Authentication',
-              backgroundColor: Pallet.errorColor,
+              backgroundColor: Pallet.primaryColor,
             ),
           ),
         ],

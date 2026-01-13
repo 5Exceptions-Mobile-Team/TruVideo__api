@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:video_compress/video_compress.dart' as video_info;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -16,6 +17,8 @@ import 'package:media_upload_sample_app/core/services/web_media_storage_service.
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart' as get_thumbnail;
+import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import '../../common/widgets/error_widget.dart';
 import '../../common/widgets/common_dialog.dart';
 import '../widgets/loading_file_widget.dart';
@@ -63,7 +66,17 @@ class GalleryController extends GetxController {
   @override
   void onInit() {
     if (kIsWeb) {
-      _webStorage.init().then((_) => getMediaPath());
+      // Ensure web storage is initialized before loading media
+      _webStorage.init().then((_) {
+        if (kDebugMode) {
+          print('GalleryController: Web storage initialized, loading media paths');
+        }
+        getMediaPath();
+      }).catchError((e) {
+        if (kDebugMode) {
+          print('GalleryController: Error initializing web storage: $e');
+        }
+      });
     } else {
       getMediaPath();
       requestPermission();
@@ -370,8 +383,56 @@ class GalleryController extends GetxController {
           );
         }
       } else if (type == 'VIDEO') {
-        // For web videos, we can't generate thumbnails easily, show icon
-        // No need to load bytes!
+        // For web videos, generate thumbnail using get_thumbnail_video
+        try {
+          final bytes = await _webStorage.getMediaBytes(id);
+          if (bytes != null) {
+            // Create blob URL from bytes for get_thumbnail_video
+            String? blobUrl;
+            try {
+              blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+              
+              // Use get_thumbnail_video for web video thumbnails
+              final thumbnailBytes = await get_thumbnail.VideoThumbnail.thumbnailData(
+                video: blobUrl,
+                maxWidth: 128,
+                quality: 75,
+              );
+              
+              if (thumbnailBytes.isNotEmpty) {
+                return Image.memory(
+                  thumbnailBytes,
+                  height: 45,
+                  width: 45,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 45,
+                      width: 45,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Pallet.secondaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.video_camera_front_rounded, size: 30),
+                    );
+                  },
+                );
+              }
+            } finally {
+              // Clean up blob URL
+              if (blobUrl != null) {
+                BlobUrlHelper.revokeBlobUrl(blobUrl);
+              }
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error generating web video thumbnail: $e');
+          }
+        }
+        
+        // Fallback to icon if thumbnail generation fails
         return Container(
           height: 45,
           width: 45,
@@ -464,7 +525,10 @@ class GalleryController extends GetxController {
   }
 
   void deleteMedia() async {
-    if (selectedMedia.isEmpty) return;
+    if (selectedMedia.isEmpty) {
+      Utils.showToast('Please select media');
+      return;
+    }
 
     // Show confirmation dialog
     Get.dialog(

@@ -15,6 +15,8 @@ import 'package:media_upload_sample_app/features/media_upload/widgets/metadata_s
 import 'package:media_upload_sample_app/features/media_upload/widgets/number_of_parts_selector_widget.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/tags_section_widget.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/upload_stepper_widget.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/upload_flow_explainer.dart';
+import 'package:media_upload_sample_app/features/common/widgets/generic_api_request_display.dart';
 
 class MediaUploadMobileView extends StatelessWidget {
   final MediaUploadController controller;
@@ -43,6 +45,13 @@ class MediaUploadMobileView extends StatelessWidget {
               filePath: path,
               controller: controller,
             ).animate().fadeIn(duration: 400.ms).scale(),
+            const SizedBox(height: 24),
+
+            // Educational Explainer
+            const UploadFlowExplainer()
+                .animate()
+                .fadeIn(delay: 200.ms)
+                .slideY(begin: 0.1),
             const SizedBox(height: 24),
 
             // Form Section
@@ -151,47 +160,66 @@ class MediaUploadMobileView extends StatelessWidget {
 
   Widget _buildApiResponsesDisplay() {
     return Obx(() {
-      if (!homeController.testingMode.value) {
-        return const SizedBox.shrink();
-      }
-
       final widgets = <Widget>[];
 
-      // Initialize API
-      _addApiSection(
-        widgets,
-        controller.initializePayload.value,
-        controller.initializeResponse.value,
-        'Initialize API',
-      );
+      // Initialize API - Only show if we have data
+      if (controller.initializePayload.value != null ||
+          controller.initializeResponse.value != null) {
+        widgets.add(
+          _buildApiSection(
+            '1. Initialize Upload',
+            'POST',
+            controller.initializePayload.value ?? {},
+            controller.initializeResponse.value,
+            '/upload/start',
+          ),
+        );
+      }
 
-      // Upload API
-      _addApiSection(
-        widgets,
-        controller.uploadPayload.value,
-        controller.uploadResponse.value,
-        'Upload API',
-      );
+      // Upload API - Only show after response is received as requested
+      if (controller.uploadResponse.value != null) {
+        widgets.add(
+          _buildApiSection(
+            '2. Secure Transfer (Direct to S3)',
+            'PUT',
+            {}, // Hide request body
+            controller.uploadResponse.value,
+            'S3 Presigned URL',
+            showRequest: false,
+          ),
+        );
+      }
 
       // Finalize API
-      _addApiSection(
-        widgets,
-        controller.finalizePayload.value,
-        controller.finalizeResponse.value,
-        'Finalize API',
-      );
+      if (controller.finalizePayload.value != null ||
+          controller.finalizeResponse.value != null) {
+        widgets.add(
+          _buildApiSection(
+            '3. Complete Upload',
+            'POST',
+            controller.finalizePayload.value ?? {},
+            controller.finalizeResponse.value,
+            '/upload/{id}/complete',
+          ),
+        );
+      }
 
       // Poll Status API
-      _addApiSection(
-        widgets,
-        null,
-        controller.pollStatusResponse.value,
-        'Poll Status API',
-      );
+      if (controller.pollStatusPayload.value != null ||
+          controller.pollStatusResponse.value != null) {
+        widgets.add(
+          _buildApiSection(
+            '4. Verification Status',
+            'GET',
+            controller.pollStatusPayload.value ?? {},
+            controller.pollStatusResponse.value,
+            '/upload/{id}',
+          ),
+        );
+      }
 
       if (widgets.isEmpty) return const SizedBox.shrink();
 
-      // Wrap API Response section in Glass for consistency
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -199,7 +227,7 @@ class MediaUploadMobileView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 10),
             child: Text(
-              'API Requests & Responses',
+              'Request Timeline',
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -213,33 +241,45 @@ class MediaUploadMobileView extends StatelessWidget {
     });
   }
 
-  void _addApiSection(
-    List<Widget> widgets,
-    Map<String, dynamic>? payload,
-    Map<String, dynamic>? response,
-    String apiName,
-  ) {
-    if (payload == null && response == null) return;
-
-    if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 15));
-
-    if (payload != null) {
-      widgets.add(
-        EnhancedJsonViewerWidget(
-          jsonData: payload,
-          title: '$apiName Request Body',
+  Widget _buildApiSection(
+    String title,
+    String method,
+    Map<String, dynamic> requestBody,
+    Map<String, dynamic>? responseBody,
+    String endpoint, {
+    bool showRequest = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Pallet.textSecondary,
+          ),
         ),
-      );
-    }
-
-    if (response != null) {
-      if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 10));
-      widgets.add(
-        EnhancedJsonViewerWidget(
-          jsonData: response,
-          title: '$apiName Response',
-        ),
-      );
-    }
+        const SizedBox(height: 8),
+        if (showRequest) ...[
+          GenericApiRequestDisplay(
+            title: '$title Request',
+            requestMethod: method,
+            endpoint: endpoint,
+            requestHeaders: const {}, // Headers handled in controller if needed
+            requestBody: requestBody,
+          ),
+        ],
+        if (responseBody != null) ...[
+          if (showRequest) const SizedBox(height: 8),
+          EnhancedJsonViewerWidget(
+            jsonData: responseBody,
+            title: '$title Response',
+            isDark: true,
+          ),
+        ],
+      ],
+    );
   }
 }

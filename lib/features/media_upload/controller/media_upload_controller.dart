@@ -76,6 +76,7 @@ class MediaUploadController extends GetxController {
   Rx<Map<String, dynamic>?> initializePayload = Rx<Map<String, dynamic>?>(null);
   Rx<Map<String, dynamic>?> uploadPayload = Rx<Map<String, dynamic>?>(null);
   Rx<Map<String, dynamic>?> finalizePayload = Rx<Map<String, dynamic>?>(null);
+  Rx<Map<String, dynamic>?> pollStatusPayload = Rx<Map<String, dynamic>?>(null);
 
   // Store upload response headers (for multipart uploads)
   List<Map<String, dynamic>> uploadResponseHeaders = [];
@@ -472,9 +473,10 @@ class MediaUploadController extends GetxController {
             : 0,
         "resolution": resolution.value,
         "tags": {
-          for (var tag in tagControllers)
-            if (tag['key']!.text.isNotEmpty)
-              tag['key']!.text: tag['value']!.text,
+          for (var i = 0; i < tagControllers.length; i++)
+            if (tagControllers[i]['key']?.text.isNotEmpty == true)
+              tagControllers[i]['key']!.text:
+                  tagControllers[i]['value']?.text ?? '',
         },
         "insights": {
           "includeInReport": includeInReport.value,
@@ -621,27 +623,31 @@ class MediaUploadController extends GetxController {
   }
 
   void _storeUploadPayload() {
+    // For educational purposes, show what's happening in the S3 upload
     if (uploadParts.length > 1) {
       uploadPayload.value = {
-        'type': 'multipart',
-        'totalParts': uploadParts.length,
-        'presignedUrls': uploadParts
-            .map(
-              (part) => {
-                'partNumber':
-                    part['partNumber'] ?? (uploadParts.indexOf(part) + 1),
-                'url': part['presignedUrl'],
-              },
-            )
-            .toList(),
+        'message': 'Uploading file parts directly to S3',
+        'transfers': uploadParts.map((part) {
+          return {
+            'partNumber': part['partNumber'] ?? (uploadParts.indexOf(part) + 1),
+            'action': 'PUT',
+            'url': 'Pre-signed S3 URL (Hidden for security)',
+            'headers': {'Content-Type': getMimeType()},
+            'body': '<Binary File Chunk Data>',
+          };
+        }).toList(),
       };
     } else {
-      final url = uploadParts.isNotEmpty
-          ? uploadParts[0]['presignedUrl']
-          : uploadPresignedUrl;
-      if (url != null) {
-        uploadPayload.value = {'type': 'single', 'presignedUrl': url};
-      }
+      uploadPayload.value = {
+        'message': 'Uploading single file directly to S3',
+        'action': 'PUT',
+        'url': 'Pre-signed S3 URL (Hidden for security)',
+        'headers': {
+          'Content-Type': getMimeType(),
+          'Content-Length': sizeInBytes.value.toString(),
+        },
+        'body': '<Binary File Data>',
+      };
     }
   }
 
@@ -679,9 +685,9 @@ class MediaUploadController extends GetxController {
       final headers = headerData['headers'] as Map<String, String>;
       final etag = headers['etag'] ?? headers['ETag'] ?? '';
       uploadResponse.value = {
-        'partNumber': headerData['partNumber'],
-        'etag': etag.replaceAll('"', ''),
+        'status': 'Uploaded Successfully',
         'statusCode': headerData['statusCode'],
+        'responseHeaders': {'ETag': etag.replaceAll('"', '')},
       };
     } else {
       final parts = uploadResponseHeaders.map((headerData) {
@@ -689,11 +695,15 @@ class MediaUploadController extends GetxController {
         final etag = headers['etag'] ?? headers['ETag'] ?? '';
         return {
           'partNumber': headerData['partNumber'],
-          'etag': etag.replaceAll('"', ''),
           'statusCode': headerData['statusCode'],
+          'etag': etag.replaceAll('"', ''),
         };
       }).toList();
-      uploadResponse.value = {'parts': parts};
+      uploadResponse.value = {
+        'status': 'Multipart Upload Complete',
+        'totalParts': parts.length,
+        'parts': parts,
+      };
     }
   }
 
@@ -1075,7 +1085,7 @@ class MediaUploadController extends GetxController {
       };
     }
     // Don't mark as complete yet - need to poll for status
-    Utils.showToast('Upload finalization accepted, checking status...');
+    Utils.showToast('Upload completed, Checking status now');
   }
 
   // Step 3: Finalize Upload
@@ -1174,6 +1184,17 @@ class MediaUploadController extends GetxController {
         final dioInstance = ApiService().createDio(
           baseUrl: Endpoints.uploadBaseUrl,
         );
+
+        // Store request details for display
+        pollStatusPayload.value = {
+          'method': 'GET',
+          'url': url,
+          'headers': {
+            'Authorization': 'Bearer ${token.isNotEmpty ? '***' : ''}',
+          },
+          'body': null, // GET request has no body
+        };
+
         final response = await dioInstance.get(
           url,
           options: Options(headers: {'Authorization': 'Bearer $token'}),

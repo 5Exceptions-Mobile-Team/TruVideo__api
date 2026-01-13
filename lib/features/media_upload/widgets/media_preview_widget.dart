@@ -47,13 +47,7 @@ class MediaPreviewWidget extends StatelessWidget {
             decoration: BoxDecoration(
               // Simple clean decoration, image speaks for itself
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
+              border: Border.all(color: Colors.grey, width: 0.5),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),

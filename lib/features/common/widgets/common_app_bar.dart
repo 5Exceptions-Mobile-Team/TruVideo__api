@@ -14,7 +14,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.backgroundColor,
     this.leading,
-    this.centerTitle = true,
+    this.centerTitle = false,
   });
 
   @override

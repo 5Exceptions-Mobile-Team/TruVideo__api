@@ -21,10 +21,21 @@ class WebMediaStorageService {
       try {
         _mediaBox = await Hive.openBox<MediaItemModel>(_boxName);
         _bytesBox = await Hive.openLazyBox<Uint8List>(_bytesBoxName);
+        
+        // Ensure data is persisted on web
+        if (_mediaBox != null) {
+          await _mediaBox!.flush();
+        }
+        
+        if (kDebugMode) {
+          print('WebMediaStorageService initialized. Media items: ${_mediaBox?.length ?? 0}');
+        }
       } catch (e) {
         if (kDebugMode) {
           print('Error opening web media box: $e');
         }
+        // Re-throw to ensure we know if initialization failed
+        rethrow;
       }
     }
   }
@@ -57,6 +68,9 @@ class WebMediaStorageService {
 
     // Save metadata to standard Box (fast synchronous access)
     await _mediaBox!.put(id, mediaItem);
+    
+    // Flush to ensure persistence on web
+    await _mediaBox!.flush();
 
     // Save heavy bytes to LazyBox (async on-demand access)
     await _bytesBox!.put(id, fileBytes);

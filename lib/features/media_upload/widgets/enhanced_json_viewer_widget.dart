@@ -11,12 +11,14 @@ class EnhancedJsonViewerWidget extends StatefulWidget {
   final Map<String, dynamic>? jsonData;
   final String? jsonString;
   final String title;
+  final bool isDark;
 
   const EnhancedJsonViewerWidget({
     super.key,
     this.jsonData,
     this.jsonString,
     this.title = 'API Response',
+    this.isDark = false,
   }) : assert(
          jsonData != null || jsonString != null,
          'Either jsonData or jsonString must be provided',
@@ -66,8 +68,20 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
     return Container(
       margin: const EdgeInsets.only(top: 20),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        color: widget.isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        border: Border.all(
+          color: widget.isDark ? const Color(0xFF45475A) : Colors.grey[300]!,
+        ),
         borderRadius: BorderRadius.circular(8),
+        boxShadow: widget.isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +89,9 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Pallet.secondaryColor.withValues(alpha: 0.1),
+              color: widget.isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Pallet.secondaryColor.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 topRight: Radius.circular(8),
@@ -83,7 +99,13 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
             ),
             child: Row(
               children: [
-                Icon(Icons.code, color: Pallet.secondaryDarkColor, size: 20),
+                Icon(
+                  Icons.code,
+                  color: widget.isDark
+                      ? Colors.blue[300]
+                      : Pallet.secondaryDarkColor,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -91,7 +113,9 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Pallet.secondaryDarkColor,
+                      color: widget.isDark
+                          ? Colors.white
+                          : Pallet.secondaryDarkColor,
                     ),
                   ),
                 ),
@@ -102,7 +126,9 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
                     icon: Icon(
                       Icons.copy,
                       size: 22,
-                      color: Pallet.secondaryColor,
+                      color: widget.isDark
+                          ? Colors.white70
+                          : Pallet.secondaryColor,
                     ),
                     onPressed: () {
                       try {
@@ -110,6 +136,7 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
                         Clipboard.setData(
                           ClipboardData(text: jsonEncode(data)),
                         );
+                        Utils.showToast('JSON copied to clipboard');
                       } catch (e) {
                         Utils.showToast('Failed to copy JSON');
                       }
@@ -221,7 +248,9 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
                         style: TextStyle(
                           fontFamily: 'monospace',
                           fontSize: 12,
-                          color: Colors.blue[700],
+                          color: widget.isDark
+                              ? Colors.blue[300]
+                              : Colors.blue[700],
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -477,11 +506,17 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
   }
 
   Color _getValueColor(dynamic value) {
-    if (value is String) return Colors.green[700]!;
-    if (value is num) return Colors.orange[700]!;
-    if (value is bool) return Colors.purple[700]!;
+    if (value is String) {
+      return widget.isDark ? Colors.green[300]! : Colors.green[700]!;
+    }
+    if (value is num) {
+      return widget.isDark ? Colors.orange[300]! : Colors.orange[700]!;
+    }
+    if (value is bool) {
+      return widget.isDark ? Colors.purple[300]! : Colors.purple[700]!;
+    }
     if (value == null) return Colors.grey;
-    return Colors.black87;
+    return widget.isDark ? Colors.white70 : Colors.black87;
   }
 }
 

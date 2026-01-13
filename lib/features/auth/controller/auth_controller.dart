@@ -56,6 +56,13 @@ class AuthController extends GetxController {
     null,
   );
 
+  // Store request details for UI display
+  Rx<Map<String, dynamic>?> requestBody = Rx<Map<String, dynamic>?>(null);
+  Rx<Map<String, String>?> requestHeaders = Rx<Map<String, String>?>(null);
+  RxString generatedTimestamp = ''.obs;
+  RxString generatedSignature = ''.obs;
+  RxString apiEndpoint = ''.obs;
+
   @override
   void onInit() {
     boApiKeyController = TextEditingController();
@@ -118,6 +125,8 @@ class AuthController extends GetxController {
     bool forBackOffice = false,
   }) async {
     if (forBackOffice) {
+      homeController.clearBackOfficeAuth();
+      resetDisplayData();
       boApiKeyController.text = credentials.apiKey!;
       boSecretKeyController.text = credentials.secret!;
       boExternalIdController.text = credentials.externalId!;
@@ -153,7 +162,9 @@ class AuthController extends GetxController {
 
     try {
       boLoading.value = true;
-      String timestamp = DateTime.now().toIso8601String();
+      // Get UTC time and format it to match the technical documentation example (3 decimal places for ms + Z)
+      DateTime now = DateTime.now().toUtc();
+      String timestamp = "${now.toIso8601String().substring(0, 23)}Z";
 
       Map<String, dynamic> jsonBody = {'timestamp': timestamp};
       String compactJson = jsonEncode(jsonBody);
@@ -163,6 +174,17 @@ class AuthController extends GetxController {
       Hmac hmac = Hmac(sha256, keyBytes);
       Digest digest = hmac.convert(messageBytes);
       String signature = digest.toString();
+
+      // Store request details for UI display
+      apiEndpoint.value = '${Endpoints.loginBaseUrl}${Endpoints.login}';
+      generatedTimestamp.value = timestamp;
+      generatedSignature.value = signature;
+      requestBody.value = jsonBody;
+      requestHeaders.value = {
+        'x-authentication-api-key': boApiKeyController.text,
+        'x-multitenant-external-id': boExternalIdController.text,
+        'x-authentication-signature': signature,
+      };
 
       if (kDebugMode) {
         print('Login URL: ${Endpoints.loginBaseUrl}${Endpoints.login}');
@@ -376,5 +398,15 @@ class AuthController extends GetxController {
   void clearAuth() async {
     homeController.clearBackOfficeAuth();
     homeController.clearMobileAuth();
+    resetDisplayData();
+  }
+
+  void resetDisplayData() {
+    requestBody.value = null;
+    requestHeaders.value = null;
+    backOfficeAuthResponse.value = null;
+    generatedTimestamp.value = '';
+    generatedSignature.value = '';
+    apiEndpoint.value = '';
   }
 }

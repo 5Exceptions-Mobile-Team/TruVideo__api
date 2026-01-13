@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get_storage/get_storage.dart';
@@ -11,13 +12,37 @@ import 'features/gallery/models/media_item_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
-  await Hive.initFlutter();
 
-  Hive.registerAdapter(CredentialsModelAdapter());
-  Hive.registerAdapter(MediaItemModelAdapter());
-  await LocalDatabase().openLocalDB();
-  await WebMediaStorageService().init();
+  try {
+    // Initialize GetStorage for web persistence
+    await GetStorage.init();
+
+    // Initialize Hive - initFlutter works on web too with hive_flutter
+    if (kIsWeb) {
+      // For web, ensure proper initialization
+      await Hive.initFlutter();
+    } else {
+      await Hive.initFlutter();
+    }
+
+    // Register adapters
+    Hive.registerAdapter(CredentialsModelAdapter());
+    Hive.registerAdapter(MediaItemModelAdapter());
+
+    // Open databases
+    await LocalDatabase().openLocalDB();
+    await WebMediaStorageService().init();
+
+    if (kDebugMode) {
+      print('Storage initialized successfully');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error initializing storage: $e');
+    }
+    // Continue anyway - app should still work
+  }
+
   runApp(const MyApp());
 }
 
@@ -36,3 +61,4 @@ class MyApp extends StatelessWidget {
 }
 
 //  https://5Exceptions-Mobile-Team.github.io/TruVideo__api/
+//  flutter run -d chrome --web-port=3000 --web-hostname=localhost

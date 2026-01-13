@@ -23,9 +23,13 @@ class Pallet {
 
   // Text Colors (High Contrast for Light Mode)
   static const Color textMain = Color(0xFF1E293B); // Slate 800
+  static const Color textPrimary = textMain; // Alias for textMain
   static const Color textSecondary = Color(0xFF64748B); // Slate 500
   static const Color whiteColor = Colors.white;
   static const Color greyColor = Color(0xFF94A3B8); // Slate 400
+
+  // Glass/Frost Colors (Additional)
+  static const Color glassWhiteLow = Color(0x33FFFFFF); // 20% White
 
   // Functional
   static const Color errorColor = Color(0xFFEF4444);
