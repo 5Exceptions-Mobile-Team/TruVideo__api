@@ -123,6 +123,7 @@ class AuthController extends GetxController {
   void useSavedCredentials(
     CredentialsModel credentials, {
     bool forBackOffice = false,
+    bool fromDropdown = false,
   }) async {
     if (forBackOffice) {
       homeController.clearBackOfficeAuth();
@@ -142,7 +143,10 @@ class AuthController extends GetxController {
       // authSignatureController.text = signatureController.text;
       // authExternalIdController.text = credentials.externalId!;
     }
-    Get.back();
+    // Only navigate back if not called from dropdown
+    if (!fromDropdown) {
+      Get.back();
+    }
   }
 
   void backOfficeAuthentication() async {
@@ -176,7 +180,10 @@ class AuthController extends GetxController {
       String signature = digest.toString();
 
       // Store request details for UI display
-      apiEndpoint.value = '${Endpoints.loginBaseUrl}${Endpoints.login}';
+      final baseUrl = homeController.testingMode.value
+          ? 'https://sdk-mobile-api-rc.truvideo.com'
+          : 'https://sdk-mobile-api.truvideo.com';
+      apiEndpoint.value = '$baseUrl${Endpoints.login}';
       generatedTimestamp.value = timestamp;
       generatedSignature.value = signature;
       requestBody.value = jsonBody;
