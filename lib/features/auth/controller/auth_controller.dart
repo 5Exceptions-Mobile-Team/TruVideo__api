@@ -180,9 +180,7 @@ class AuthController extends GetxController {
       String signature = digest.toString();
 
       // Store request details for UI display
-      final baseUrl = homeController.testingMode.value
-          ? 'https://sdk-mobile-api-rc.truvideo.com'
-          : 'https://sdk-mobile-api.truvideo.com';
+      final baseUrl = 'https://sdk-mobile-api.truvideo.com';
       apiEndpoint.value = '$baseUrl${Endpoints.login}';
       generatedTimestamp.value = timestamp;
       generatedSignature.value = signature;

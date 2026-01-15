@@ -8,7 +8,6 @@ import 'package:media_upload_sample_app/features/auth/controller/auth_controller
 import 'package:media_upload_sample_app/features/auth/models/credentials_model.dart';
 import 'package:media_upload_sample_app/features/auth/views/save_update_credentials.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_app_bar.dart';
-import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
 import 'package:media_upload_sample_app/features/common/widgets/gradient_background.dart';
 
 class CredentialsScreen extends StatelessWidget {
@@ -34,14 +33,14 @@ class CredentialsScreen extends StatelessWidget {
         body: Obx(
           () => SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionHeader(
                     'Credentials',
                   ).animate().fadeIn(delay: 100.ms),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 24),
                   _buildCredentialCard(
                     context,
                     authController,
@@ -81,7 +80,12 @@ class CredentialsScreen extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+      style: GoogleFonts.inter(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: Pallet.textPrimary,
+        letterSpacing: -0.5,
+      ),
     );
   }
 
@@ -97,19 +101,49 @@ class CredentialsScreen extends StatelessWidget {
       return Semantics(
         label: 'add_credentials',
         identifier: 'add_credentials',
+        child: Material(
+          color: Colors.transparent,
         child: InkWell(
           onTap: () => Get.to(
             () => SaveUpdateCredentials(targetId: targetId, title: title),
           ),
-          child: GlassContainer(
-            padding: const EdgeInsets.all(20),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Pallet.cardBackground,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Pallet.primaryColor.withOpacity(0.15),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
             child: Center(
-              child: Text(
-                '+ Add Credentials',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_rounded,
+                      color: Pallet.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Add Credentials',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   color: Pallet.primaryColor,
                   fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -168,29 +202,73 @@ class CredentialsScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: GlassContainer(
-          padding: EdgeInsets.zero,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Pallet.cardBackgroundAlt,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Pallet.secondaryColor.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Semantics(
             identifier: 'credentials_button',
             label: 'credentials_button',
-            child: ListTile(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
               onTap: () => authController.useSavedCredentials(
                 credentials,
                 forBackOffice: title == 'Back Office',
               ),
-              contentPadding: const EdgeInsets.symmetric(
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
                 horizontal: 20,
-                vertical: 8,
+                    vertical: 16,
               ),
-              title: Text(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                 credentials.apiKey ?? '',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Pallet.textPrimary,
+                              ),
               ),
-              subtitle: Text(
+                            const SizedBox(height: 4),
+                            Text(
                 credentials.secret ?? '',
-                style: GoogleFonts.inter(),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Pallet.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
               ),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Pallet.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),

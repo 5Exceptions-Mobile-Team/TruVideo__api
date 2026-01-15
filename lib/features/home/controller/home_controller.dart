@@ -8,12 +8,9 @@ class HomeController extends GetxController {
   RxBool boAuthenticated = false.obs; // Back Office Auth
   RxBool boExpired = false.obs; // Back Office Auth
   RxBool isAuthExpired = false.obs; // Mobile Auth
-  RxBool testingMode =
-      false.obs; // Testing Mode - controls JSON response display
 
   static const String BO_TOKEN_KEY = 'bo_token';
   static const String BO_TOKEN_TIMESTAMP_KEY = 'bo_token_timestamp';
-  static const String TESTING_MODE_KEY = 'testing_mode';
 
   bool enableTruVideoSdk = false;
 
@@ -23,8 +20,6 @@ class HomeController extends GetxController {
   void onInit() {
     // checkAuthStatus();
     checkBackOfficeValidity();
-    // Load testing mode preference from storage
-    testingMode.value = storage.read(TESTING_MODE_KEY) ?? false;
     Get.put(GalleryController());
     super.onInit();
   }

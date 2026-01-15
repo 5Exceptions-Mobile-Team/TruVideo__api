@@ -66,9 +66,9 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 20),
+      margin: const EdgeInsets.only(top: 0),
       decoration: BoxDecoration(
-        color: widget.isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: widget.isDark ? const Color(0xFF1E1E1E) : Colors.white,
         border: Border.all(
           color: widget.isDark ? const Color(0xFF45475A) : Colors.grey[300]!,
         ),

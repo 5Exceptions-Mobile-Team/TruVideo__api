@@ -19,9 +19,9 @@ import 'package:video_player/video_player.dart';
 
 class MediaUploadController extends GetxController {
   GetStorage storage = GetStorage();
-  final String filePath;
+  final String? filePath;
 
-  MediaUploadController(this.filePath);
+  MediaUploadController([this.filePath]);
 
   // Constants
   static const int _minFileSizeForMultipartMB = 10;
@@ -252,10 +252,11 @@ class MediaUploadController extends GetxController {
   }
 
   void _initializeMediaInfo() async {
+    if (filePath == null) return; // No file selected yet
     try {
-      if (kIsWeb && filePath.startsWith('web_media_')) {
+      if (kIsWeb && filePath!.startsWith('web_media_')) {
         // Web: Get from Hive storage
-        final id = filePath.replaceFirst('web_media_', '');
+        final id = filePath!.replaceFirst('web_media_', '');
 
         // Optimize: Fetch item once
         final mediaItem = _webStorage.getMediaItem(id);
@@ -301,17 +302,17 @@ class MediaUploadController extends GetxController {
         }
       } else {
         // Mobile/Desktop: Use file system
-        final file = File(filePath);
+        final file = File(filePath!);
         if (!await file.exists()) return;
 
         sizeInBytes.value = await file.length();
         fileSize.value = _formatBytes(sizeInBytes.value);
         _adjustNumberOfParts();
-        mediaType.value = galleryController.getMediaType(filePath);
+        mediaType.value = galleryController.getMediaType(filePath!);
 
         if (mediaType.value == 'VIDEO') {
-          await _extractVideoDuration(filePath);
-          await _generateVideoThumbnail(filePath);
+          await _extractVideoDuration(filePath!);
+          await _generateVideoThumbnail(filePath!);
         } else {
           duration.value = '0';
         }
@@ -379,16 +380,130 @@ class MediaUploadController extends GetxController {
     }
   }
 
+  // Method to load a file path (called after file picker or gallery selection)
+  Future<void> loadFilePath(String path) async {
+    // Update the filePath - we need to recreate controller or use a different approach
+    // For now, we'll reset state and reload
+    _resetUploadState();
+    // Note: filePath is final, so we'll need to handle this differently
+    // We'll store it in a reactive variable instead
+  }
+
+  Rx<String?> currentFilePath = Rx<String?>(null);
+
+  void setFilePath(String path) {
+    currentFilePath.value = path;
+    _resetUploadState();
+    _initializeMediaInfoForPath(path);
+  }
+
+  String? get activeFilePath {
+    final current = currentFilePath.value;
+    if (current != null && current.isNotEmpty) return current;
+    return filePath;
+  }
+
+  void _initializeMediaInfoForPath(String path) async {
+    try {
+      if (kIsWeb && path.startsWith('web_media_')) {
+        // Web: Get from Hive storage
+        final id = path.replaceFirst('web_media_', '');
+
+        // Optimize: Fetch item once
+        final mediaItem = _webStorage.getMediaItem(id);
+
+        if (mediaItem == null) return;
+
+        // Use data from mediaItem directly
+        sizeInBytes.value = mediaItem.fileSize;
+        fileSize.value = _formatBytes(sizeInBytes.value);
+        _adjustNumberOfParts();
+        mediaType.value = mediaItem.mediaType;
+
+        if (mediaType.value == 'VIDEO') {
+          // For web videos, get duration using Blob URL
+          duration.value = '0'; // Default
+
+          final bytes = await _webStorage.getMediaBytes(id);
+          if (bytes != null) {
+            String? blobUrl;
+            VideoPlayerController? tempController;
+            try {
+              blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+              tempController = VideoPlayerController.networkUrl(
+                Uri.parse(blobUrl),
+              );
+              await tempController.initialize();
+              final d = tempController.value.duration;
+              duration.value = d.toString().split('.').first.padLeft(8, "0");
+            } catch (e) {
+              if (kDebugMode) print("Error getting duration: $e");
+            } finally {
+              tempController?.dispose();
+              if (blobUrl != null) BlobUrlHelper.revokeBlobUrl(blobUrl);
+            }
+
+            // Generate Thumbnail
+            thumbnailBytes.value = await BlobUrlHelper.generateVideoThumbnail(
+              bytes,
+            );
+          }
+        } else {
+          duration.value = '0';
+        }
+      } else {
+        // Mobile/Desktop: Use file system
+        final file = File(path);
+        if (!await file.exists()) return;
+
+        sizeInBytes.value = await file.length();
+        fileSize.value = _formatBytes(sizeInBytes.value);
+        _adjustNumberOfParts();
+        mediaType.value = galleryController.getMediaType(path);
+
+        if (mediaType.value == 'VIDEO') {
+          await _extractVideoDuration(path);
+          await _generateVideoThumbnail(path);
+        } else {
+          duration.value = '0';
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing media info: $e');
+      }
+    }
+  }
+
+  void _resetUploadState() {
+    isInitializeComplete.value = false;
+    isUploadComplete.value = false;
+    isFinalizeComplete.value = false;
+    initializeResponse.value = null;
+    uploadResponse.value = null;
+    finalizeResponse.value = null;
+    pollStatusResponse.value = null;
+    initializePayload.value = null;
+    uploadPayload.value = null;
+    finalizePayload.value = null;
+    pollStatusPayload.value = null;
+    uploadId = null;
+    uploadParts.clear();
+    uploadedParts.clear();
+  }
+
   String getMimeType() {
     String extension = 'UNKNOWN';
-    if (kIsWeb && filePath.startsWith('web_media_')) {
-      final id = filePath.replaceFirst('web_media_', '');
+    final path = activeFilePath;
+    if (path == null) return 'application/octet-stream';
+    if (kIsWeb && path.startsWith('web_media_')) {
+      final id = path.replaceFirst('web_media_', '');
       final mediaItem = _webStorage.getMediaItem(id);
       if (mediaItem != null && mediaItem.fileName.contains('.')) {
         extension = mediaItem.fileName.split('.').last.toLowerCase();
       }
-    } else if (filePath.contains('.')) {
-      extension = filePath.split('.').last.toLowerCase();
+    } else if (path.contains('.')) {
+      extension = path.split('.').last.toLowerCase();
     }
 
     switch (extension) {
@@ -437,15 +552,17 @@ class MediaUploadController extends GetxController {
   Map<String, dynamic> generatePayload() {
     // Get file extension for fileType
     String fileExtension = 'UNKNOWN';
-    if (kIsWeb && filePath.startsWith('web_media_')) {
+    final path = activeFilePath;
+    if (path == null) return {};
+    if (kIsWeb && path.startsWith('web_media_')) {
       // Web: Get extension from stored media item
-      final id = filePath.replaceFirst('web_media_', '');
+      final id = path.replaceFirst('web_media_', '');
       final mediaItem = _webStorage.getMediaItem(id);
       if (mediaItem != null && mediaItem.fileName.contains('.')) {
         fileExtension = mediaItem.fileName.split('.').last.toUpperCase();
       }
-    } else if (filePath.contains('.')) {
-      fileExtension = filePath.split('.').last.toUpperCase();
+    } else if (path.contains('.')) {
+      fileExtension = path.split('.').last.toUpperCase();
     }
 
     // Build metadata object from metadataControllers
@@ -957,9 +1074,14 @@ class MediaUploadController extends GetxController {
       int totalSize;
       Uint8List? webBytes;
 
-      if (kIsWeb && filePath.startsWith('web_media_')) {
+      final path = activeFilePath;
+      if (path == null) {
+        throw Exception('No file selected');
+      }
+
+      if (kIsWeb && path.startsWith('web_media_')) {
         // Web: Get bytes from storage
-        final id = filePath.replaceFirst('web_media_', '');
+        final id = path.replaceFirst('web_media_', '');
         webBytes = await _webStorage.getMediaBytes(id);
         if (webBytes == null) {
           throw Exception('Failed to load file from storage');
@@ -967,7 +1089,7 @@ class MediaUploadController extends GetxController {
         totalSize = webBytes.length;
       } else {
         // Mobile/Desktop: Use file system
-        final file = File(filePath);
+        final file = File(path);
         totalSize = await file.length();
       }
 
@@ -989,7 +1111,7 @@ class MediaUploadController extends GetxController {
             );
           } else {
             await _uploadMultipartPart(
-              File(filePath),
+              File(path),
               i,
               uploadParts.length,
               totalSize,
@@ -1004,7 +1126,7 @@ class MediaUploadController extends GetxController {
         if (kIsWeb && webBytes != null) {
           await _uploadSinglePartWeb(webBytes, totalSize);
         } else {
-          await _uploadSinglePart(File(filePath), totalSize);
+          await _uploadSinglePart(File(path), totalSize);
         }
       }
 
@@ -1125,8 +1247,7 @@ class MediaUploadController extends GetxController {
           response.statusCode == 200 ||
           response.statusCode == 201) {
         _processFinalizeResponse(response);
-        // Start polling for completion status
-        await _pollUploadStatus();
+        // Status should be checked manually via Step 4 "Check Status" button
       } else {
         Get.dialog(
           ErrorDialog(
@@ -1162,8 +1283,67 @@ class MediaUploadController extends GetxController {
     }
   }
 
-  // Poll upload status until completion
-  Future<void> _pollUploadStatus() async {
+  // Single status check (for Step 4 manual polling)
+  Future<void> checkUploadStatusOnce() async {
+    if (uploadId == null) {
+      Utils.showToast('No upload ID available');
+      return;
+    }
+
+    isStepLoading.value = true;
+    currentStep.value = 3;
+
+    try {
+      final token = storage.read<String>(_boTokenKey) ?? '';
+      final url = Endpoints.getUploadStatus.replaceAll('{uploadId}', uploadId!);
+
+      final dioInstance = ApiService().createDio(
+        baseUrl: Endpoints.uploadBaseUrl,
+      );
+
+      pollStatusPayload.value = {
+        'method': 'GET',
+        'url': url,
+        'headers': {'Authorization': 'Bearer ${token.isNotEmpty ? '***' : ''}'},
+      };
+
+      final response = await dioInstance.get(
+        url,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 && response.data is Map) {
+        pollStatusResponse.value = Map<String, dynamic>.from(response.data);
+        final status = response.data['status'] as String?;
+
+        if (status == 'COMPLETED') {
+          isFinalizeComplete.value = true;
+          Utils.showToast('Upload completed successfully!');
+        } else if (status == 'FAILED') {
+          Get.dialog(
+            ErrorDialog(
+              title: 'Upload Failed',
+              subTitle:
+                  response.data['failureReason'] as String? ??
+                  'Upload processing failed.',
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      Get.dialog(
+        ErrorDialog(
+          title: 'Status Check Failed',
+          subTitle: 'Failed to check upload status. Please try again.',
+        ),
+      );
+    } finally {
+      isStepLoading.value = false;
+    }
+  }
+
+  // Poll upload status until completion (for automatic polling after finalize)
+  Future<void> pollUploadStatus() async {
     const maxAttempts =
         30; // Maximum 30 attempts (1 minute with 2-second intervals)
     const pollInterval = Duration(seconds: 2);

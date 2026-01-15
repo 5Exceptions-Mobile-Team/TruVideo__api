@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/utils/utils.dart';
-import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
+import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/enhanced_json_viewer_widget.dart';
 
 class GenericApiRequestDisplay extends StatelessWidget {
@@ -30,9 +30,23 @@ class GenericApiRequestDisplay extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return GlassContainer(
-      color: const Color(0xFF1E1E2E),
-      borderColor: const Color(0xFF45475A),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF45475A),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,7 +58,7 @@ class GenericApiRequestDisplay extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
+                  color: Pallet.successColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -52,7 +66,7 @@ class GenericApiRequestDisplay extends StatelessWidget {
                   style: GoogleFonts.firaCode(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.green[400],
+                    color: Pallet.successColor,
                   ),
                 ),
               ),

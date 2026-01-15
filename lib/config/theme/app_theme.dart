@@ -3,26 +3,23 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 
 class AppTheme {
-  static InputBorder _border([Color color = Pallet.glassBorder]) =>
+  static InputBorder _border([Color? color]) =>
       OutlineInputBorder(
-        borderSide: BorderSide(color: color, width: 1.5),
-        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: color ?? Pallet.glassBorder,
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
       );
 
   static final ThemeData darkTheme = ThemeData.light().copyWith(
-    // We use light base but name it darkTheme in code to replace existing usage seamlessly
-    // or we can rename it. Let's stick to modifying the existing static (or rename variable to lightTheme but keep it assigned where needed)
-    // Actually, user won't change main.dart likely, so I'll keep the variable name consistent or update main.dart.
-    // Let's check main.dart usage. It uses AppTheme.darkTheme. I will update main.dart too if I rename it.
-    // For now, I'll return the new theme in the existing variable or create a new one.
-    // The previous plan didn't mention updating main.dart, but it's cleaner to just update the content of this variable to be "Light Mode"
     scaffoldBackgroundColor:
         Colors.transparent, // Important for GradientBackground
     primaryColor: Pallet.primaryColor,
     colorScheme: const ColorScheme.light(
       primary: Pallet.primaryColor,
       secondary: Pallet.secondaryColor,
-      surface: Pallet.glassWhite, // Glassy surface
+      surface: Pallet.cardBackground,
       error: Pallet.errorColor,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
@@ -30,44 +27,91 @@ class AppTheme {
       onError: Colors.white,
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: Colors.transparent, // Full transparency
+      backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
       iconTheme: const IconThemeData(color: Pallet.textMain),
       titleTextStyle: GoogleFonts.inter(
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: FontWeight.w600,
         color: Pallet.textMain,
+        letterSpacing: -0.3,
       ),
     ),
     cardTheme: CardThemeData(
-      color: Pallet.glassWhite,
+      color: Pallet.cardBackground,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Pallet.glassBorder,
+          width: 1,
+        ),
+      ),
       margin: EdgeInsets.zero,
     ),
-    dividerTheme: const DividerThemeData(
+    dividerTheme: DividerThemeData(
       color: Pallet.glassBorder,
       thickness: 1,
+      space: 1,
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: Pallet.primaryColor,
     ),
     iconTheme: const IconThemeData(color: Pallet.textSecondary),
     inputDecorationTheme: InputDecorationTheme(
-      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       filled: true,
-      fillColor: Pallet.glassWhite,
+      fillColor: Pallet.cardBackground,
       border: _border(),
-      enabledBorder: _border(Colors.grey),
+      enabledBorder: _border(Pallet.glassBorder),
       focusedBorder: _border(Pallet.primaryColor),
       errorBorder: _border(Pallet.errorColor),
-      hintStyle: GoogleFonts.inter(color: Pallet.greyColor),
-      labelStyle: GoogleFonts.inter(color: Pallet.greyColor),
+      hintStyle: GoogleFonts.inter(
+        color: Pallet.greyColor,
+        fontSize: 15,
+      ),
+      labelStyle: GoogleFonts.inter(
+        color: Pallet.textSecondary,
+        fontSize: 14,
+      ),
     ),
     textTheme: GoogleFonts.interTextTheme(
       ThemeData.light().textTheme,
-    ).apply(bodyColor: Pallet.textMain, displayColor: Pallet.textMain),
-    // Switch to light theme text colors
+    ).apply(
+      bodyColor: Pallet.textMain,
+      displayColor: Pallet.textMain,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Pallet.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Pallet.primaryColor.withOpacity(0.2),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Pallet.primaryColor,
+        side: BorderSide(color: Pallet.primaryColor, width: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
   );
 }

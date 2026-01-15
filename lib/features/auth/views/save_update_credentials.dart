@@ -62,9 +62,7 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: CommonAppBar(
-          title: widget.forUpdate
-              ? 'Update ${widget.title ?? "Credentials"}'
-              : 'Create ${widget.title ?? "Credentials"}',
+          title: widget.forUpdate ? 'Update Credentials' : 'Save Credentials',
           leading: Semantics(
             identifier: 'back_button',
             label: 'back_button',
@@ -79,7 +77,7 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
             identifier: 'save_credentials',
             label: 'Save or update credentials',
             child: AppButton(
-              text: widget.forUpdate ? 'Update' : 'Create',
+              text: widget.forUpdate ? 'Update' : 'Save',
               onTap: () => authController.saveUpdateCredentials(
                 widget.forUpdate,
                 apiKeyController.text.trim(),
@@ -91,6 +89,7 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
               backgroundColor: Pallet.primaryDarkColor,
             ),
           ),
+          SizedBox(height: 5),
         ],
         body: SafeArea(
           child: SingleChildScrollView(

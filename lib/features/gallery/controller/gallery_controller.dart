@@ -173,14 +173,50 @@ class GalleryController extends GetxController {
     return 'UNKNOWN';
   }
 
+  // Supported file types according to TruVideo API docs
+  static const List<String> supportedVideoExtensions = [
+    'mp4',
+    'mov',
+    'avi',
+    'mkv',
+    'flv',
+    'wmv',
+    '3gpp',
+    'webm',
+  ];
+  static const List<String> supportedImageExtensions = [
+    'jpg',
+    'jpeg',
+    'png',
+    'svg',
+  ];
+  static const List<String> supportedAudioExtensions = [
+    'mp3',
+    'wav',
+    'aac',
+    'flac',
+  ];
+  static const List<String> supportedDocumentExtensions = [
+    'pdf',
+  ];
+
+  bool _isSupportedFileType(String extension) {
+    final ext = extension.toLowerCase();
+    return supportedVideoExtensions.contains(ext) ||
+        supportedImageExtensions.contains(ext) ||
+        supportedAudioExtensions.contains(ext) ||
+        supportedDocumentExtensions.contains(ext);
+  }
+
   String _getMediaTypeFromExtension(String extension) {
-    if (['png', 'jpeg', 'jpg', 'heic', 'heif'].contains(extension)) {
+    final ext = extension.toLowerCase();
+    if (supportedImageExtensions.contains(ext)) {
       return 'IMAGE';
-    } else if (['mp4', 'mov', 'mkv', 'webm'].contains(extension)) {
+    } else if (supportedVideoExtensions.contains(ext)) {
       return 'VIDEO';
-    } else if (['mp3', 'aac', 'wav', 'm4a'].contains(extension)) {
+    } else if (supportedAudioExtensions.contains(ext)) {
       return 'AUDIO';
-    } else if (['pdf', 'doc', 'docx', 'txt'].contains(extension)) {
+    } else if (supportedDocumentExtensions.contains(ext)) {
       return 'DOCUMENT';
     } else {
       return 'UNKNOWN';
@@ -239,25 +275,19 @@ class GalleryController extends GetxController {
 
         if (await galleryDir.exists()) {
           galleryDir.listSync().forEach((file) {
-            if (file is File &&
-                [
-                  'png',
-                  'jpeg',
-                  'jpg',
-                  'heic',
-                  'heif',
-                ].contains(file.path.split('.').last.toLowerCase()) &&
-                !file.path.contains('thumbnail')) {
+            if (file is File && !file.path.contains('thumbnail') && !file.path.contains('edited')) {
+              final extension = file.path.split('.').last.toLowerCase();
+              final mediaType = _getMediaTypeFromExtension(extension);
+              
+              if (mediaType == 'IMAGE') {
               imagePaths.add(file.path);
-            } else if (file is File &&
-                [
-                  'mp4',
-                  'mov',
-                  'mkv',
-                  'webm',
-                ].contains(file.path.split('.').last.toLowerCase()) &&
-                !file.path.contains('edited')) {
+              } else if (mediaType == 'VIDEO') {
               videoPaths.add(file.path);
+              } else if (mediaType == 'AUDIO') {
+                audioPaths.add(file.path);
+              } else if (mediaType == 'DOCUMENT') {
+                documentPaths.add(file.path);
+              }
             }
           });
         }
@@ -369,11 +399,9 @@ class GalleryController extends GetxController {
       if (type == 'IMAGE') {
         final bytes = await _webStorage.getMediaBytes(id);
         if (bytes != null) {
-          return Image.memory(bytes, height: 45, width: 45, fit: BoxFit.cover);
+          return Image.memory(bytes, fit: BoxFit.cover);
         } else {
           return Container(
-            height: 45,
-            width: 45,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Pallet.secondaryColor,
@@ -395,20 +423,16 @@ class GalleryController extends GetxController {
               // Use get_thumbnail_video for web video thumbnails
               final thumbnailBytes = await get_thumbnail.VideoThumbnail.thumbnailData(
                 video: blobUrl,
-                maxWidth: 128,
-                quality: 75,
+                maxWidth: 400,
+                quality: 90,
               );
               
               if (thumbnailBytes.isNotEmpty) {
                 return Image.memory(
                   thumbnailBytes,
-                  height: 45,
-                  width: 45,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      height: 45,
-                      width: 45,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: Pallet.secondaryColor,
@@ -434,8 +458,6 @@ class GalleryController extends GetxController {
         
         // Fallback to icon if thumbnail generation fails
         return Container(
-          height: 45,
-          width: 45,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Pallet.secondaryColor,
@@ -443,10 +465,26 @@ class GalleryController extends GetxController {
           ),
           child: Icon(Icons.video_camera_front_rounded, size: 30),
         );
+      } else if (type == 'AUDIO') {
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Pallet.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.audiotrack_rounded, size: 30, color: Pallet.primaryColor),
+        );
+      } else if (type == 'DOCUMENT') {
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Pallet.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.description_rounded, size: 30, color: Pallet.primaryColor),
+        );
       } else {
         return Container(
-          height: 45,
-          width: 45,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Pallet.secondaryColor,
@@ -458,25 +496,21 @@ class GalleryController extends GetxController {
     } else {
       // Mobile/Desktop: Use file system
       if (type == 'IMAGE') {
-        return Image.file(File(path), height: 45, width: 45, fit: BoxFit.cover);
+        return Image.file(File(path), fit: BoxFit.cover);
       } else if (type == 'VIDEO') {
         final thumbnailBytes = await VideoThumbnail.thumbnailData(
           video: path,
-          maxWidth: 300,
-          quality: 20,
+          maxWidth: 400,
+          quality: 90,
         );
 
         if (thumbnailBytes != null) {
           return Image.memory(
             thumbnailBytes,
-            height: 45,
-            width: 45,
             fit: BoxFit.cover,
           );
         } else {
           return Container(
-            height: 45,
-            width: 45,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Pallet.secondaryColor,
@@ -485,10 +519,26 @@ class GalleryController extends GetxController {
             child: Icon(Icons.video_camera_front_rounded, size: 30),
           );
         }
+      } else if (type == 'AUDIO') {
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Pallet.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.audiotrack_rounded, size: 30, color: Pallet.primaryColor),
+        );
+      } else if (type == 'DOCUMENT') {
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Pallet.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(Icons.description_rounded, size: 30, color: Pallet.primaryColor),
+        );
       } else {
         return Container(
-          height: 45,
-          width: 45,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Pallet.secondaryColor,
@@ -508,8 +558,9 @@ class GalleryController extends GetxController {
         selectedMedia.add(path);
       }
     } else {
+      // User can open media for viewing or go to upload screen
+      // For now, navigate to upload screen with the selected file
       try {
-        // Navigate to Media Upload Screen as per new requirement
         Get.to(() => MediaUploadScreen(path: path));
       } catch (e) {
         if (kDebugMode) {
@@ -558,6 +609,8 @@ class GalleryController extends GetxController {
             }
             await Future.wait(futures);
           }
+          // Clear selection before refreshing
+          selectedMedia.clear();
           allMediaPaths.clear();
           imagePaths.clear();
           videoPaths.clear();
@@ -565,6 +618,7 @@ class GalleryController extends GetxController {
           documentPaths.clear();
           selectEnabled.value = false;
           getMediaPath();
+          Utils.showToast('Media deleted successfully');
         },
       ),
     );
@@ -586,36 +640,47 @@ class GalleryController extends GetxController {
           withData: kIsWeb, // Need data for web
         );
       } else {
+        // Combine all supported extensions
+        final allSupportedExtensions = [
+          ...supportedVideoExtensions,
+          ...supportedImageExtensions,
+          ...supportedAudioExtensions,
+          ...supportedDocumentExtensions,
+        ];
+        
         result = await FilePicker.platform.pickFiles(
           type: Platform.isIOS ? FileType.media : FileType.custom,
           withData: kIsWeb, // Need data for web
-          allowedExtensions: Platform.isIOS
-              ? null
-              : [
-                  'png',
-                  'jpeg',
-                  'jpg',
-                  'heic',
-                  'heif',
-                  'mp4',
-                  'mov',
-                  'mkv',
-                  'webm',
-                ],
+          allowedExtensions: Platform.isIOS ? null : allSupportedExtensions,
         );
       }
 
       if (result != null) {
+        final file = result.files.single;
+        final fileName = file.name;
+        final extension = fileName.split('.').last.toLowerCase();
+        
+        // Validate file type
+        if (!_isSupportedFileType(extension)) {
+          Get.back(); // Close loading dialog
+          Get.dialog(
+            ErrorDialog(
+              title: 'Unsupported File Type',
+              subTitle:
+                  'This file type is not supported. Please choose a video, image, audio, or PDF file.\n\nSupported formats:\n• Videos: MP4, MOV, AVI, MKV, FLV, WMV, 3GPP, WEBM\n• Images: JPG, JPEG, PNG, SVG\n• Audio: MP3, WAV, AAC, FLAC\n• Documents: PDF',
+            ),
+          );
+          return;
+        }
+        
         if (kIsWeb) {
           // Web: Store file bytes in Hive
-          final file = result.files.single;
           if (file.bytes != null) {
             // Determine media type from file name extension
-            final extension = file.name.split('.').last.toLowerCase();
             final mediaType = _getMediaTypeFromExtension(extension);
 
             final displayPath = await _webStorage.saveMedia(
-              fileName: file.name,
+              fileName: fileName,
               mediaType: mediaType,
               fileBytes: file.bytes!,
             );
@@ -634,10 +699,10 @@ class GalleryController extends GetxController {
             await galleryDir.create(recursive: true);
           }
 
-          File file = File(result.files.single.path!);
-          String newPath = '$galleryPath/${result.files.single.name}';
+          File fileObj = File(result.files.single.path!);
+          String newPath = '$galleryPath/$fileName';
 
-          await File(file.path).copy(newPath);
+          await fileObj.copy(newPath);
           await File(newPath).setLastModified(DateTime.now());
 
           updateMediaList(newPath);
@@ -653,12 +718,12 @@ class GalleryController extends GetxController {
             await galleryDir.create(recursive: true);
           }
 
-          File file = File(result.files.single.path!);
-          String newPath = '$galleryPath/${result.files.single.name}';
+          File fileObj = File(result.files.single.path!);
+          String newPath = '$galleryPath/$fileName';
           try {
-            await file.rename(newPath);
+            await fileObj.rename(newPath);
           } catch (e) {
-            await file.copy(newPath);
+            await fileObj.copy(newPath);
           }
           updateMediaList(newPath);
           Get.back();

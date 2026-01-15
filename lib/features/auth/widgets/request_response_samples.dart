@@ -1,12 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
-import 'package:media_upload_sample_app/core/utils/utils.dart';
 import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
-import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/enhanced_json_viewer_widget.dart';
 
 class RequestResponseSamples extends StatefulWidget {
@@ -17,8 +14,8 @@ class RequestResponseSamples extends StatefulWidget {
 }
 
 class _RequestResponseSamplesState extends State<RequestResponseSamples> {
-  bool _requestExpanded = false;
-  bool _responseExpanded = false;
+  bool _requestExpanded = true;
+  bool _responseExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +25,22 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Request Sample Section
-        GlassContainer(
-          padding: EdgeInsets.zero,
+        Container(
+          decoration: BoxDecoration(
+            color: Pallet.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Pallet.primaryColor.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             children: [
               InkWell(
@@ -42,12 +53,12 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.1),
+                          color: Pallet.primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           Icons.send_rounded,
-                          color: Colors.blue[700],
+                          color: Pallet.primaryColor,
                           size: 20,
                         ),
                       ),
@@ -104,8 +115,22 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
         const SizedBox(height: 16),
         
         // Response Sample Section
-        GlassContainer(
-          padding: EdgeInsets.zero,
+        Container(
+          decoration: BoxDecoration(
+            color: Pallet.cardBackgroundAlt,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Pallet.successColor.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             children: [
               InkWell(
@@ -118,12 +143,12 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
+                          color: Pallet.successColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           Icons.check_circle_outline_rounded,
-                          color: Colors.green[700],
+                          color: Pallet.successColor,
                           size: 20,
                         ),
                       ),
@@ -199,17 +224,8 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
   }
 
   Widget _buildDefaultRequestSample(AuthController authController) {
-    final baseUrl = authController.homeController.testingMode.value
-        ? 'https://sdk-mobile-api-rc.truvideo.com'
-        : 'https://sdk-mobile-api.truvideo.com';
+    final baseUrl = 'https://sdk-mobile-api.truvideo.com';
     final endpoint = '$baseUrl/api/login';
-    
-    final defaultCurl = '''curl --location '$endpoint' \\
---header 'x-authentication-api-key: YOUR_API_KEY' \\
---header 'x-multitenant-external-id: YOUR_EXTERNAL_ID' \\
---header 'x-authentication-signature: GENERATED_SIGNATURE' \\
---header 'Content-Type: application/json' \\
---data '{"timestamp": "2024-09-06T05:36:25.966Z"}' ''';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,24 +260,38 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildSectionTitle('cURL Command'),
-        const SizedBox(height: 8),
-        _buildCodeBlock(defaultCurl),
-        const SizedBox(height: 16),
-        _buildSectionTitle('Request Body'),
-        const SizedBox(height: 8),
-        EnhancedJsonViewerWidget(
-          jsonData: {'timestamp': '2024-09-06T05:36:25.966Z'},
-          title: '',
-          isDark: true,
-        ),
-        const SizedBox(height: 8),
-        _buildCopyButton(
-          'Copy Example cURL',
-          () {
-            Clipboard.setData(ClipboardData(text: defaultCurl));
-            Utils.showToast('Example cURL copied to clipboard');
-          },
+        _buildSectionTitle('API Call Example'),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Pallet.glassBorder,
+              width: 1,
+            ),
+          ),
+          child: SelectableText(
+            '''POST $endpoint
+
+Headers:
+  x-authentication-api-key: YOUR_API_KEY
+  x-multitenant-external-id: YOUR_EXTERNAL_ID
+  x-authentication-signature: GENERATED_SIGNATURE
+  Content-Type: application/json
+
+Body:
+  {
+    "timestamp": "2024-09-06T05:36:25.966Z"
+  }''',
+            style: GoogleFonts.firaCode(
+              fontSize: 13,
+              color: const Color(0xFFD4D4D4),
+              height: 1.6,
+            ),
+          ),
         ),
       ],
     );
@@ -311,16 +341,6 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           title: 'Response Body',
           isDark: true,
         ),
-        const SizedBox(height: 8),
-        _buildCopyButton(
-          'Copy Example Response',
-          () {
-            Clipboard.setData(
-              ClipboardData(text: jsonEncode(defaultResponse)),
-            );
-            Utils.showToast('Example response copied to clipboard');
-          },
-        ),
       ],
     );
   }
@@ -330,110 +350,69 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
     final body = authController.requestBody.value ?? {};
     final endpoint = authController.apiEndpoint.value;
 
+    if (endpoint.isEmpty || headers.isEmpty || body.isEmpty) {
+      return _buildEmptyState('No request data available.');
+    }
+
+    // Build a formatted code example
+    final codeExample = _buildCodeExample(endpoint, headers, body);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Endpoint
-        if (endpoint.isNotEmpty) ...[
-          _buildSectionTitle('Endpoint'),
-          const SizedBox(height: 8),
-          _buildCodeBlock(endpoint),
-          const SizedBox(height: 16),
-        ],
-        
-        // Headers
-        if (headers.isNotEmpty) ...[
-          _buildSectionTitle('Headers'),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Pallet.glassBorder,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: headers.entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          entry.key,
-                          style: GoogleFonts.firaCode(
-                            fontSize: 11,
-                            color: Pallet.primaryColor,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          ':',
-                          style: GoogleFonts.firaCode(
-                            fontSize: 11,
-                            color: Pallet.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          entry.value.length > 50
-                              ? '${entry.value.substring(0, 50)}...'
-                              : entry.value,
-                          style: GoogleFonts.firaCode(
-                            fontSize: 11,
-                            color: Pallet.textPrimary,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: entry.value));
-                          Utils.showToast('Copied to clipboard');
-                        },
-                        icon: Icon(
-                          Icons.copy_rounded,
-                          size: 14,
-                          color: Pallet.textSecondary,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+        _buildSectionTitle('API Call Example'),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Pallet.glassBorder,
+              width: 1,
             ),
           ),
-          const SizedBox(height: 16),
-        ],
-        
-        // Request Body
-        if (body.isNotEmpty) ...[
-          _buildSectionTitle('Request Body'),
-          const SizedBox(height: 8),
-          EnhancedJsonViewerWidget(
-            jsonData: body,
-            title: '',
-            isDark: true,
+          child: SelectableText(
+            codeExample,
+            style: GoogleFonts.firaCode(
+              fontSize: 13,
+              color: const Color(0xFFD4D4D4),
+              height: 1.6,
+            ),
           ),
-          const SizedBox(height: 8),
-          _buildCopyButton(
-            'Copy Request as cURL',
-            () => _copyAsCurl(endpoint, headers, body),
-          ),
-        ],
+        ),
       ],
     );
+  }
+
+  String _buildCodeExample(String endpoint, Map<String, String> headers, Map<String, dynamic> body) {
+    final buffer = StringBuffer();
+    
+    // Method and URL
+    buffer.writeln('POST $endpoint');
+    buffer.writeln('');
+    
+    // Headers
+    buffer.writeln('Headers:');
+    headers.forEach((key, value) {
+      buffer.writeln('  $key: $value');
+    });
+    buffer.writeln('');
+    
+    // Body
+    buffer.writeln('Body:');
+    final jsonBody = jsonEncode(body);
+    // Format JSON with indentation
+    try {
+      final decoded = jsonDecode(jsonBody);
+      final formatted = const JsonEncoder.withIndent('  ').convert(decoded);
+      buffer.writeln(formatted);
+    } catch (e) {
+      buffer.writeln('  $jsonBody');
+    }
+    
+    return buffer.toString();
   }
 
   Widget _buildResponseDisplay(AuthController authController) {
@@ -482,16 +461,6 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           title: 'Response Body',
           isDark: true,
         ),
-        const SizedBox(height: 8),
-        _buildCopyButton(
-          'Copy Response JSON',
-          () {
-            Clipboard.setData(
-              ClipboardData(text: jsonEncode(response)),
-            );
-            Utils.showToast('Response copied to clipboard');
-          },
-        ),
       ],
     );
   }
@@ -507,79 +476,4 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
     );
   }
 
-  Widget _buildCodeBlock(String code) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Pallet.glassBorder,
-          width: 1,
-        ),
-      ),
-      child: SelectableText(
-        code,
-        style: GoogleFonts.firaCode(
-          fontSize: 12,
-          color: Pallet.primaryColor,
-          height: 1.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCopyButton(String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.blue.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Colors.blue.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.copy_rounded,
-              size: 16,
-              color: Colors.blue[700],
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.blue[700],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _copyAsCurl(String endpoint, Map<String, String> headers, Map<String, dynamic> body) {
-    final buffer = StringBuffer();
-    buffer.writeln("curl --location '$endpoint' \\");
-    
-    headers.forEach((key, value) {
-      buffer.writeln("--header '$key: $value' \\");
-    });
-    
-    buffer.writeln("--header 'Content-Type: application/json' \\");
-    
-    final jsonBody = jsonEncode(body);
-    buffer.write("--data '$jsonBody'");
-    
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
-    Utils.showToast('Copied as cURL command');
-  }
 }

@@ -8,8 +8,8 @@ import 'package:media_upload_sample_app/features/media_upload/views/media_upload
 import 'package:media_upload_sample_app/features/media_upload/views/media_upload_mobile_view.dart';
 
 class MediaUploadScreen extends StatefulWidget {
-  final String path;
-  const MediaUploadScreen({super.key, required this.path});
+  final String? path;
+  const MediaUploadScreen({super.key, this.path});
 
   @override
   State<MediaUploadScreen> createState() => _MediaUploadScreenState();
@@ -22,6 +22,9 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
   @override
   void initState() {
     controller = Get.put(MediaUploadController(widget.path));
+    if (widget.path != null) {
+      controller.setFilePath(widget.path!);
+    }
     homeController = Get.find<HomeController>();
     super.initState();
   }
@@ -49,13 +52,11 @@ class _MediaUploadScreenState extends State<MediaUploadScreen> {
                 return MediaUploadDesktopView(
                   controller: controller,
                   homeController: homeController,
-                  path: widget.path,
                 );
               } else {
                 return MediaUploadMobileView(
                   controller: controller,
                   homeController: homeController,
-                  path: widget.path,
                 );
               }
             },

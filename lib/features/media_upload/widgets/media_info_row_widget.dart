@@ -10,19 +10,12 @@ class MediaInfoRowWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
+      () => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Type: ${controller.mediaType.value}'),
-              Text('Size: ${controller.getFileSizeString()}'),
-              Text(
-                'Duration: ${controller.mediaType.value == 'VIDEO' ? controller.duration.value : 0}',
-              ),
-            ],
-          ),
+          if (controller.mediaType.value == 'VIDEO' && controller.duration.value != '0')
+            Text('Duration: ${controller.duration.value}'),
         ],
       ),
     );

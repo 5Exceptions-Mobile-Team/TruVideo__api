@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart'; // Add Animation
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 
@@ -36,33 +36,27 @@ class _AppButtonState extends State<AppButton> {
 
   @override
   Widget build(BuildContext context) {
-    // Gradient Button Style
+    final bgColor = widget.backgroundColor ?? Pallet.primaryColor;
+    
     return GestureDetector(
           onTapDown: (_) => setState(() => isPressed = true),
           onTapUp: (_) => setState(() => isPressed = false),
           onTapCancel: () => setState(() => isPressed = false),
           onTap: widget.showLoading ? null : widget.onTap,
           child: AnimatedScale(
-            scale: isPressed ? 0.95 : 1.0,
+        scale: isPressed ? 0.98 : 1.0,
             duration: const Duration(milliseconds: 100),
             child: Container(
               width: widget.buttonSize?.width ?? double.maxFinite,
               height: widget.buttonSize?.height ?? 50,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: widget.backgroundColor != null
-                      ? [widget.backgroundColor!, widget.backgroundColor!]
-                      : [Pallet.secondaryColor, Pallet.primaryColor],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(widget.borderRadius ?? 16),
+            color: bgColor,
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
                 boxShadow: [
                   BoxShadow(
-                    color: (widget.backgroundColor ?? Pallet.primaryColor)
-                        .withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                color: bgColor.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -90,6 +84,7 @@ class _AppButtonState extends State<AppButton> {
                             fontSize: widget.fontSize ?? 16,
                             fontWeight: FontWeight.w600,
                             color: widget.fontColor ?? Colors.white,
+                        letterSpacing: -0.2,
                           ),
                         ),
                       ],
@@ -99,6 +94,6 @@ class _AppButtonState extends State<AppButton> {
         )
         .animate()
         .fadeIn(duration: 300.ms)
-        .slideY(begin: 0.2, end: 0); // Entrance animation
+        .slideY(begin: 0.1, end: 0);
   }
 }

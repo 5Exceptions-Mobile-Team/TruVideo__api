@@ -26,11 +26,9 @@ class TestableHomeController extends GetxController {
   RxBool mobileAuthenticated = false.obs;
   RxBool boAuthenticated = false.obs;
   RxBool isAuthExpired = false.obs;
-  RxBool testingMode = false.obs;
 
   static const String BO_TOKEN_KEY = 'bo_token';
   static const String BO_TOKEN_TIMESTAMP_KEY = 'bo_token_timestamp';
-  static const String TESTING_MODE_KEY = 'testing_mode';
 
   final MockGetStorage storage = MockGetStorage();
 
@@ -40,7 +38,6 @@ class TestableHomeController extends GetxController {
 
   @override
   void onInit() {
-    testingMode.value = storage.read(TESTING_MODE_KEY) ?? false;
     super.onInit();
   }
 
@@ -94,10 +91,6 @@ class TestableHomeController extends GetxController {
     checkAuthStatus(skipMobile: true);
   }
 
-  void setTestingMode(bool value) {
-    testingMode.value = value;
-    storage.write(TESTING_MODE_KEY, value);
-  }
 }
 
 void main() {
@@ -129,14 +122,6 @@ void main() {
       expect(controller.mobileAuthenticated.value, false);
       expect(controller.boAuthenticated.value, false);
       expect(controller.isAuthExpired.value, false);
-      expect(controller.testingMode.value, false);
-    });
-
-    test('should load testing mode from storage', () async {
-      controller.storage.write(TestableHomeController.TESTING_MODE_KEY, true);
-      controller.onInit();
-
-      expect(controller.testingMode.value, true);
     });
   });
 
@@ -144,7 +129,6 @@ void main() {
     test('should have correct constant values', () {
       expect(HomeController.BO_TOKEN_KEY, 'bo_token');
       expect(HomeController.BO_TOKEN_TIMESTAMP_KEY, 'bo_token_timestamp');
-      expect(HomeController.TESTING_MODE_KEY, 'testing_mode');
     });
   });
 
@@ -316,22 +300,4 @@ void main() {
     });
   });
 
-  group('Testing Mode', () {
-    test('should toggle testing mode', () {
-      controller.setTestingMode(true);
-      expect(controller.testingMode.value, true);
-
-      controller.setTestingMode(false);
-      expect(controller.testingMode.value, false);
-    });
-
-    test('should persist testing mode to storage', () {
-      controller.setTestingMode(true);
-
-      expect(
-        controller.storage.read(TestableHomeController.TESTING_MODE_KEY),
-        true,
-      );
-    });
-  });
 }

@@ -145,9 +145,6 @@ class TestHomeController extends GetxController implements HomeController {
   RxBool mobileAuthenticated = false.obs;
 
   @override
-  RxBool testingMode = false.obs;
-
-  @override
   bool enableTruVideoSdk = false;
 
   @override

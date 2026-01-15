@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -61,6 +62,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildDesktopLayout() {
+    final useAnimations = !kIsWeb;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -72,17 +74,20 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const ParameterDescriptionCard()
-                    .animate()
-                    .fadeIn(delay: 100.ms)
-                    .slideX(begin: -0.2),
+                if (useAnimations)
+                  const ParameterDescriptionCard()
+                      .animate()
+                      .fadeIn(delay: 100.ms)
+                      .slideX(begin: -0.2)
+                else
+                  const ParameterDescriptionCard(),
               ],
             ),
           ),
         ),
 
         // Divider
-        Container(width: 1, color: Pallet.glassBorder),
+        Container(width: 1, color: Pallet.glassBorder.withOpacity(0.3)),
 
         // Right Panel - Interactive Console & Request/Response Samples
         Expanded(
@@ -92,12 +97,18 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const InteractiveApiConsole()
-                    .animate()
-                    .fadeIn(delay: 200.ms)
-                    .slideX(begin: 0.2),
+                if (useAnimations)
+                  const InteractiveApiConsole()
+                      .animate()
+                      .fadeIn(delay: 200.ms)
+                      .slideX(begin: 0.2)
+                else
+                  const InteractiveApiConsole(),
                 const SizedBox(height: 24),
-                const RequestResponseSamples().animate().fadeIn(delay: 300.ms),
+                if (useAnimations)
+                  const RequestResponseSamples().animate().fadeIn(delay: 300.ms)
+                else
+                  const RequestResponseSamples(),
               ],
             ),
           ),
@@ -107,27 +118,37 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildMobileLayout() {
+    final useAnimations = !kIsWeb;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Parameter Descriptions
-          const ParameterDescriptionCard()
-              .animate()
-              .fadeIn(delay: 100.ms)
-              .slideY(begin: -0.1),
+          if (useAnimations)
+            const ParameterDescriptionCard()
+                .animate()
+                .fadeIn(delay: 100.ms)
+                .slideY(begin: -0.1)
+          else
+            const ParameterDescriptionCard(),
           const SizedBox(height: 24),
 
           // Interactive Console
-          const InteractiveApiConsole()
-              .animate()
-              .fadeIn(delay: 200.ms)
-              .slideY(begin: 0.1),
+          if (useAnimations)
+            const InteractiveApiConsole()
+                .animate()
+                .fadeIn(delay: 200.ms)
+                .slideY(begin: 0.1)
+          else
+            const InteractiveApiConsole(),
           const SizedBox(height: 24),
 
           // Request/Response Samples
-          const RequestResponseSamples().animate().fadeIn(delay: 300.ms),
+          if (useAnimations)
+            const RequestResponseSamples().animate().fadeIn(delay: 300.ms)
+          else
+            const RequestResponseSamples(),
         ],
       ),
     );

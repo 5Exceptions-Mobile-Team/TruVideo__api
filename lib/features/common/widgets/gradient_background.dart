@@ -16,7 +16,7 @@ class GradientBackground extends StatelessWidget {
           stops: [0.0, 0.5, 1.0],
         ),
       ),
-      child: child, // Ensure child takes up space/scaffold works
+      child: child,
     );
   }
 }

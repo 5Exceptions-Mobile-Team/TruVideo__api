@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/auth/views/auth_screen.dart';
-import 'package:media_upload_sample_app/features/common/widgets/common_app_bar.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
-import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
-import 'package:media_upload_sample_app/features/common/widgets/gradient_background.dart';
 import 'package:media_upload_sample_app/features/gallery/views/gallery_screen.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
-import 'package:media_upload_sample_app/features/home/widgets/feature_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,325 +24,59 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: const CommonAppBar(
-          title: 'Media Upload Sample App',
-          centerTitle: true,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Semantics(
-                        identifier: 'auth',
-                        label: 'Auth Module',
-                        child: FeatureCard(
-                          onTap: () => Get.to(
-                            () => AuthScreen(
-                              isAuthenticated:
-                                  (homeController.mobileAuthenticated.value &&
-                                  !homeController.isAuthExpired.value),
-                            ),
-                          ),
-                          icon: Icon(
-                            Icons.lock_outline_rounded,
-                            color: Pallet.primaryColor,
-                            size: 48,
-                          ),
-                          title: 'Authentication',
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 100.ms).slideX(),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Semantics(
-                        identifier: 'gallery_screen',
-                        label: 'Gallery Button',
-                        child: FeatureCard(
-                          onTap: () {
-                            if (homeController.isFullyAuthenticated.value) {
-                              Get.to(() => GalleryScreen(onSelect: (_) {}));
-                            } else {
-                              showDialog(
-                                context: context,
-                                builder: (context) => const ErrorDialog(),
-                              );
-                            }
-                          },
-                          icon: Icon(
-                            Icons.camera_alt_outlined,
-                            color: Pallet.secondaryColor,
-                            size: 48,
-                          ),
-                          title: 'Gallery',
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 200.ms).slideX(),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                GlassContainer(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Testing/QA Mode',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Semantics(
-                        identifier: 'testing_mode',
-                        label: 'testing_mode',
-                        child: Obx(
-                          () => Switch(
-                            value: homeController.testingMode.value,
-                            onChanged: (value) {
-                              homeController.testingMode.value = value;
-                              homeController.storage.write(
-                                HomeController.TESTING_MODE_KEY,
-                                value,
-                              );
-                            },
-                            activeThumbColor: Pallet.primaryColor,
-                            inactiveThumbColor: Pallet.greyColor,
-                            activeTrackColor: Pallet.primaryColor.withValues(
-                              alpha: 0.4,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
-                const SizedBox(height: 24),
-                Text(
-                  'Authentication Status',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ).animate().fadeIn(delay: 400.ms),
-                const SizedBox(height: 12),
-                GlassContainer(
-                  child: Obx(
-                    () => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusRow(
-                          'Is Authenticated',
-                          homeController.isFullyAuthenticated.value.toString(),
-                          'auth_status',
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Divider(height: 1),
-                        ),
-                        _buildStatusRow(
-                          'Is Authentication Expired',
-                          homeController.boExpired.value.toString(),
-                          'auth_expired',
-                        ),
-                      ],
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 900;
+
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Hero Banner
+                  _buildHeroBanner(isDesktop),
+
+                  // Main Content
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isDesktop ? 32 : 20,
+                      vertical: isDesktop ? 32 : 24,
                     ),
+                    child: isDesktop
+                        ? _buildDesktopLayout()
+                        : _buildMobileLayout(),
                   ),
-                ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
-                const SizedBox(height: 24),
-                _buildAppInfoContainer(),
-              ],
-            ),
-          ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildAppInfoContainer() {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  color: Colors.blue,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Getting Started',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Pallet.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildFlowStep(
-            step: 1,
-            icon: Icons.lock_rounded,
-            title: 'Complete Authentication',
-            description:
-                'Start by authenticating using your API credentials. Navigate to the Authentication section and enter your API Key and Secret Key to get your access token.',
-            color: Colors.blue,
-          ),
-          _buildFlowConnector(),
-          _buildFlowStep(
-            step: 2,
-            icon: Icons.photo_library_rounded,
-            title: 'Pick Media from Device',
-            description:
-                'Access the Gallery to browse and select media files (videos and images) from your device that you want to upload.',
-            color: Colors.blue,
-          ),
-          _buildFlowConnector(),
-          _buildFlowStep(
-            step: 3,
-            icon: Icons.cloud_upload_rounded,
-            title: 'Upload',
-            description:
-                'Upload your selected media files using Upload API\'s. The API\'s supports secure, multipart file uploads for large files.',
-            color: Colors.blue,
-            isLast: true,
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.blue.withValues(alpha: 0.3),
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.api_rounded, color: Colors.blue, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'API Version: V3',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Pallet.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'This app uses TruVideo Upload V3 API\'s for media uploads.',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Pallet.textSecondary,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2);
-  }
-
-  Widget _buildFlowStep({
-    required int step,
-    required IconData icon,
-    required String title,
-    required String description,
-    required Color color,
-    bool isLast = false,
-  }) {
+  Widget _buildDesktopLayout() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
-          ),
-          child: Center(child: Icon(icon, color: color, size: 16)),
-        ),
-        const SizedBox(width: 12),
+        // Left Side - Getting Started / Info (40%)
+        Expanded(flex: 4, child: _buildGettingStartedSection()),
+        const SizedBox(width: 28),
+        // Right Side - Cards and Status (60%)
         Expanded(
+          flex: 6,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Step $step',
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Pallet.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: Pallet.textSecondary,
-                  height: 1.4,
-                ),
-              ),
+              _buildFeatureCard(isAuth: true),
+              const SizedBox(height: 20),
+              _buildFeatureCard(isAuth: false),
+              const SizedBox(height: 20),
+              _buildAuthStatusCard(),
+              const SizedBox(height: 20),
+              _buildWhyUseTruvideo(),
+              const SizedBox(height: 16),
+              _buildApiVersionBadge(),
             ],
           ),
         ),
@@ -356,41 +84,501 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFlowConnector() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, top: 4, bottom: 4),
-      child: Container(
-        width: 2,
-        height: 12,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Pallet.glassBorder,
-              Pallet.glassBorder.withValues(alpha: 0.3),
-            ],
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        _buildFeatureCard(isAuth: true),
+        const SizedBox(height: 16),
+        _buildFeatureCard(isAuth: false),
+        const SizedBox(height: 20),
+        _buildAuthStatusCard(),
+        const SizedBox(height: 20),
+        _buildWhyUseTruvideo(),
+        const SizedBox(height: 16),
+        _buildApiVersionBadge(),
+        const SizedBox(height: 24),
+        _buildGettingStartedSection(),
+      ],
+    );
+  }
+
+  Widget _buildHeroBanner(bool isDesktop) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 48 : 24,
+        vertical: isDesktop ? 32 : 24,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2196F3), Color(0xFF1976D2), Color(0xFF1565C0)],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome to Video Platform API',
+            style: GoogleFonts.inter(
+              fontSize: isDesktop ? 32 : 24,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
           ),
-          borderRadius: BorderRadius.circular(1),
+          const SizedBox(height: 8),
+          Text(
+            'Upload your media files securely using our Video Platform API.',
+            style: GoogleFonts.inter(
+              fontSize: isDesktop ? 15 : 13,
+              color: Colors.white.withOpacity(0.9),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthStatusCard() {
+    return Obx(
+      () => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Authentication Status',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Current authentication status',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: const Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: homeController.isFullyAuthenticated.value
+                    ? const Color(0xFFE8F5E9)
+                    : const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: homeController.isFullyAuthenticated.value
+                      ? const Color(0xFF4CAF50)
+                      : const Color(0xFFFF9800),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    homeController.isFullyAuthenticated.value
+                        ? Icons.check_circle_rounded
+                        : Icons.pending_rounded,
+                    size: 18,
+                    color: homeController.isFullyAuthenticated.value
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFFFF9800),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    homeController.isFullyAuthenticated.value
+                        ? 'Authenticated'
+                        : 'Not Authenticated',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: homeController.isFullyAuthenticated.value
+                          ? const Color(0xFF2E7D32)
+                          : const Color(0xFFE65100),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusRow(String label, String value, String identifier) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(color: Pallet.textSecondary, fontSize: 14),
+  Widget _buildWhyUseTruvideo() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFE082), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.lightbulb_outline_rounded,
+            size: 22,
+            color: Color(0xFFF9A825),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Why Use Video Platform APIs?',
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Secure cloud storage, fast uploads (even for large files), automatic file processing, and easy integration with your existing systems. Perfect for businesses that deal with lots of media files.',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: const Color(0xFF6B7280),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApiVersionBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4F8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.api_rounded, size: 18, color: Color(0xFF64748B)),
+          const SizedBox(width: 8),
+          Text(
+            'Powered by Video Platform APIs (Version - Upload V3)',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF64748B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard({required bool isAuth}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (isAuth) {
+            Get.to(
+              () => AuthScreen(
+                isAuthenticated:
+                    (homeController.mobileAuthenticated.value &&
+                    !homeController.isAuthExpired.value),
+              ),
+            );
+          } else {
+            if (homeController.isFullyAuthenticated.value) {
+              Get.to(() => GalleryScreen(onSelect: (_) {}));
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) => const ErrorDialog(),
+              );
+            }
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isAuth
+                      ? const Color(0xFFE3F2FD)
+                      : const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isAuth ? Icons.vpn_key_rounded : Icons.photo_library_rounded,
+                  size: 28,
+                  color: isAuth
+                      ? const Color(0xFF1976D2)
+                      : const Color(0xFF388E3C),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAuth ? 'Authentication' : 'Media Gallery',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isAuth
+                          ? 'Get your access pass to use the Video Platform API'
+                          : 'Browse, pick and upload your photos & videos',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: const Color(0xFF6B7280),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 24,
+                color: Color(0xFFBDBDBD),
+              ),
+            ],
+          ),
         ),
-        Semantics(
-          identifier: identifier,
-          label: label,
-          child: Text(
-            value,
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    );
+  }
+
+  Widget _buildGettingStartedSection() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.rocket_launch_rounded,
+                  size: 22,
+                  color: Color(0xFF1976D2),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                'Getting Started',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1A1A1A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'This app demonstrates how the Video Platform API works for uploading media files to the cloud. '
+            'Whether you\'re a business owner, developer, or just curious! '
+            'Simply follow the steps below to experience how easy it is to securely upload and manage your media files.',
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: const Color(0xFF6B7280),
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // What is TruVideo API section
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'What is TruVideo API?',
+                  style: GoogleFonts.inter(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Think of it like a secure delivery service for your files. You give us your photos or videos, '
+                  'and we safely store them in the cloud. Your files are protected, organized, and accessible whenever you need them. '
+                  'Businesses use this to manage large amounts of media content without worrying about storage or security.',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: const Color(0xFF6B7280),
+                    height: 1.6,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Steps header
+          Text(
+            'How It Works',
+            style: GoogleFonts.inter(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Steps
+          _buildStep(
+            1,
+            'Log In',
+            'Start by clicking on Authentication and entering your credentials (API Key and Secret Key). '
+                'The system will verify your identity and give you an access token - think of it as a temporary pass '
+                'that proves you\'re allowed to use the service. This token is valid for 24 hours.',
+          ),
+          const SizedBox(height: 18),
+          _buildStep(
+            2,
+            'Pick Media',
+            'Once logged in, head to the Media Gallery. Here you can browse through your device and select '
+                'the photos or videos you want to upload.',
+          ),
+          const SizedBox(height: 18),
+          _buildStep(
+            3,
+            'Upload',
+            'After selecting your files, upload your file and watch the magic happen! Your files are securely '
+                'transferred to cloud storage. The app shows you real-time '
+                'progress, and once complete, your media is safely stored and ready to access anytime.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep(int number, String title, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2196F3),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              '$number',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                description,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: const Color(0xFF343537),
+                  height: 1.5,
+                ),
+              ),
+            ],
           ),
         ),
       ],

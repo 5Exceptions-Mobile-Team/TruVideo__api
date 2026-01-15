@@ -42,10 +42,12 @@ class MediaPreviewWidget extends StatelessWidget {
             }
           },
           child: Container(
-            height: height, // Increased height for better visibility
-            width: double.infinity,
+            height: height,
+            constraints: BoxConstraints(
+              maxHeight: height,
+              maxWidth: double.infinity,
+            ),
             decoration: BoxDecoration(
-              // Simple clean decoration, image speaks for itself
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.grey, width: 0.5),
             ),
