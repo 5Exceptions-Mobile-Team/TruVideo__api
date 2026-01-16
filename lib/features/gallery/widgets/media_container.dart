@@ -275,16 +275,16 @@ class _MediaContainerState extends State<MediaContainer> {
                                 ],
                               ),
                             ),
-                            if (fileSize.value.isNotEmpty) ...[
-                              const Spacer(),
-                              Text(
-                                fileSize.value,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                            // if (fileSize.value.isNotEmpty) ...[
+                            //   const Spacer(),
+                            //   Text(
+                            //     fileSize.value,
+                            //     style: GoogleFonts.inter(
+                            //       fontSize: 11,
+                            //       color: Colors.white,
+                            //     ),
+                            //   ),
+                            // ],
                           ],
                         ),
                         if (resOrDuration.value.isNotEmpty ||

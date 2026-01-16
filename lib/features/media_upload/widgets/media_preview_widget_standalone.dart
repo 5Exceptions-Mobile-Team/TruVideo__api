@@ -14,10 +14,7 @@ import 'package:media_upload_sample_app/features/media_upload/views/video_previe
 class MediaPreviewWidgetStandalone extends StatelessWidget {
   final MediaUploadController controller;
 
-  const MediaPreviewWidgetStandalone({
-    super.key,
-    required this.controller,
-  });
+  const MediaPreviewWidgetStandalone({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +25,7 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
       }
 
       return Container(
-        margin: const EdgeInsets.only(bottom: 32),
+        margin: const EdgeInsets.only(bottom: 15),
         child: _buildPreviewContainer(context, filePath),
       );
     });
@@ -74,7 +71,8 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
       return _buildVideoPreview(filePath);
     } else if (mediaType == 'AUDIO') {
       return _buildAudioPreview();
-    } else if (mediaType == 'DOCUMENT' || filePath.toLowerCase().endsWith('.pdf')) {
+    } else if (mediaType == 'DOCUMENT' ||
+        filePath.toLowerCase().endsWith('.pdf')) {
       return _buildPdfPreview(filePath);
     } else {
       return _buildGenericPreview(mediaType);
@@ -95,10 +93,7 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
             return Stack(
               fit: StackFit.expand,
               children: [
-                Image.memory(
-                  snapshot.data!,
-                  fit: BoxFit.cover,
-                ),
+                Image.memory(snapshot.data!, fit: BoxFit.cover),
                 Positioned(
                   bottom: 12,
                   right: 12,
@@ -158,16 +153,11 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (thumbnail != null)
-            Image.memory(
-              thumbnail,
-              fit: BoxFit.cover,
-            )
+            Image.memory(thumbnail, fit: BoxFit.cover)
           else
             Container(
               color: Colors.black,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
           Center(
             child: Container(
@@ -220,11 +210,7 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.music_note_rounded,
-            color: Colors.white,
-            size: 60,
-          ),
+          Icon(Icons.music_note_rounded, color: Colors.white, size: 60),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -272,7 +258,7 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
   Widget _buildGenericPreview(String mediaType) {
     IconData icon;
     String label;
-    
+
     switch (mediaType.toUpperCase()) {
       case 'DOCUMENT':
         icon = Icons.description_rounded;
@@ -297,11 +283,7 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 64,
-          ),
+          Icon(icon, color: Colors.white, size: 64),
           const SizedBox(height: 16),
           Text(
             label,
@@ -320,11 +302,7 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
     return Container(
       color: Pallet.cardBackgroundAlt,
       child: const Center(
-        child: Icon(
-          Icons.broken_image,
-          size: 48,
-          color: Pallet.textSecondary,
-        ),
+        child: Icon(Icons.broken_image, size: 48, color: Pallet.textSecondary),
       ),
     );
   }
@@ -333,19 +311,20 @@ class MediaPreviewWidgetStandalone extends StatelessWidget {
     if (mediaType == 'IMAGE') {
       Get.to(
         () => ImagePreviewScreen(filePath: filePath),
-        transition: Transition.fadeIn,
+        transition: Transition.noTransition,
       );
     } else if (mediaType == 'VIDEO') {
       Get.to(
         () => VideoPreviewScreen(filePath: filePath),
-        transition: Transition.fadeIn,
+        transition: Transition.noTransition,
       );
     } else if (mediaType == 'AUDIO') {
       Get.dialog(
         AudioPlayerDialog(filePath: filePath),
         barrierDismissible: true,
       );
-    } else if (mediaType == 'DOCUMENT' || filePath.toLowerCase().endsWith('.pdf')) {
+    } else if (mediaType == 'DOCUMENT' ||
+        filePath.toLowerCase().endsWith('.pdf')) {
       // PDF preview can be opened in full screen if needed
       // For now, the preview widget handles it
     }

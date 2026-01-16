@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,6 +8,7 @@ import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/audio_player_helper.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AudioPlayerDialog extends StatefulWidget {
   final String filePath;
@@ -20,12 +23,14 @@ class AudioPlayerDialog extends StatefulWidget {
 }
 
 class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
-  dynamic _audioElement;
+  dynamic _audioElement; // For web
+  AudioPlayer? _audioPlayer; // For mobile
   bool _isPlaying = false;
   bool _isLoading = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
   String? _audioUrl;
+  String? _tempFilePath; // For mobile web media files
 
   @override
   void initState() {
@@ -37,6 +42,7 @@ class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
     setState(() => _isLoading = true);
     try {
       if (kIsWeb && widget.filePath.startsWith('web_media_')) {
+        // Web: Use HTML audio element
         final webStorage = WebMediaStorageService();
         final id = widget.filePath.replaceFirst('web_media_', '');
         final bytes = await webStorage.getMediaBytes(id);
@@ -84,14 +90,79 @@ class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
           }
         }
       } else {
-        // For mobile/desktop, show a message that audio playback requires web
-        setState(() => _isLoading = false);
+        // Mobile/Desktop: Use audioplayers package
+        _audioPlayer = AudioPlayer();
+        
+        String audioPath = widget.filePath;
+        
+        // If it's a web_media_ path on mobile (shouldn't happen, but handle it)
+        if (widget.filePath.startsWith('web_media_')) {
+          final webStorage = WebMediaStorageService();
+          final id = widget.filePath.replaceFirst('web_media_', '');
+          final bytes = await webStorage.getMediaBytes(id);
+          if (bytes != null) {
+            // Save to temporary file
+            final tempDir = await getTemporaryDirectory();
+            final tempFile = File('${tempDir.path}/audio_$id.mp3');
+            await tempFile.writeAsBytes(bytes);
+            audioPath = tempFile.path;
+            _tempFilePath = audioPath;
+          }
+        }
+        
+        // Set up event listeners
+        _audioPlayer!.onDurationChanged.listen((duration) {
+          if (mounted) {
+            setState(() {
+              _duration = duration;
+            });
+          }
+        });
+        
+        _audioPlayer!.onPositionChanged.listen((position) {
+          if (mounted) {
+            setState(() {
+              _position = position;
+            });
+          }
+        });
+        
+        _audioPlayer!.onPlayerStateChanged.listen((state) {
+          if (mounted) {
+            setState(() {
+              _isPlaying = state == PlayerState.playing;
+            });
+          }
+        });
+        
+        _audioPlayer!.onPlayerComplete.listen((_) {
+          if (mounted) {
+            setState(() {
+              _isPlaying = false;
+              _position = Duration.zero;
+            });
+          }
+        });
+        
+        // Load the audio file
+        await _audioPlayer!.setSource(DeviceFileSource(audioPath));
+        
+        // Get duration
+        final duration = await _audioPlayer!.getDuration();
+        if (duration != null && mounted) {
+          setState(() {
+            _duration = duration;
+            _isLoading = false;
+          });
+        } else if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     } catch (e) {
       if (mounted) {
         Get.snackbar(
           'Error',
-          'Failed to load audio file',
+          'Failed to load audio file: ${e.toString()}',
           backgroundColor: Pallet.errorColor,
           colorText: Colors.white,
         );
@@ -100,19 +171,35 @@ class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
     }
   }
 
-  void _togglePlayPause() {
-    if (_isLoading || _audioElement == null) return;
+  void _togglePlayPause() async {
+    if (_isLoading) return;
 
-    if (_isPlaying) {
-      AudioPlayerHelper.pause(_audioElement);
+    if (kIsWeb) {
+      if (_audioElement == null) return;
+      if (_isPlaying) {
+        AudioPlayerHelper.pause(_audioElement);
+      } else {
+        AudioPlayerHelper.play(_audioElement);
+      }
     } else {
-      AudioPlayerHelper.play(_audioElement);
+      if (_audioPlayer == null) return;
+      if (_isPlaying) {
+        await _audioPlayer!.pause();
+      } else {
+        await _audioPlayer!.resume();
+      }
     }
   }
   
-  void _seek(Duration position) {
-    if (_audioElement != null) {
-      AudioPlayerHelper.seek(_audioElement, position);
+  void _seek(Duration position) async {
+    if (kIsWeb) {
+      if (_audioElement != null) {
+        AudioPlayerHelper.seek(_audioElement, position);
+      }
+    } else {
+      if (_audioPlayer != null) {
+        await _audioPlayer!.seek(position);
+      }
     }
   }
   
@@ -131,11 +218,26 @@ class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
 
   @override
   void dispose() {
-    if (_audioElement != null) {
-      AudioPlayerHelper.dispose(_audioElement);
-    }
-    if (kIsWeb && _audioUrl != null) {
-      BlobUrlHelper.revokeBlobUrl(_audioUrl!);
+    if (kIsWeb) {
+      if (_audioElement != null) {
+        AudioPlayerHelper.dispose(_audioElement);
+      }
+      if (_audioUrl != null) {
+        BlobUrlHelper.revokeBlobUrl(_audioUrl!);
+      }
+    } else {
+      _audioPlayer?.dispose();
+      // Clean up temporary file if created
+      if (_tempFilePath != null) {
+        try {
+          final file = File(_tempFilePath!);
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
     }
     super.dispose();
   }
@@ -234,7 +336,7 @@ class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
             ),
             const SizedBox(height: 24),
             // Progress Bar
-            if (!_isLoading && _audioElement != null && _duration != Duration.zero && kIsWeb) ...[
+            if (!_isLoading && _duration != Duration.zero && ((kIsWeb && _audioElement != null) || (!kIsWeb && _audioPlayer != null))) ...[
               Slider(
                 value: _position.inSeconds.toDouble().clamp(0.0, _duration.inSeconds.toDouble()),
                 min: 0,
@@ -266,15 +368,6 @@ class _AudioPlayerDialogState extends State<AudioPlayerDialog> {
                     ),
                   ],
                 ),
-              ),
-            ] else if (!kIsWeb) ...[
-              Text(
-                'Audio playback is available on web platform',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: Pallet.textSecondary,
-                ),
-                textAlign: TextAlign.center,
               ),
             ],
             const SizedBox(height: 24),

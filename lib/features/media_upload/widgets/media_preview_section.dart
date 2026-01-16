@@ -36,16 +36,10 @@ class MediaPreviewSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Preview Container
-            Expanded(
-              flex: 1,
-              child: _buildPreviewContainer(context, filePath),
-            ),
+            Expanded(flex: 1, child: _buildPreviewContainer(context, filePath)),
             const SizedBox(width: 16),
             // File Details Container
-            Expanded(
-              flex: 1,
-              child: _buildFileDetailsContainer(filePath),
-            ),
+            Expanded(flex: 1, child: _buildFileDetailsContainer(filePath)),
           ],
         ),
       );
@@ -91,7 +85,8 @@ class MediaPreviewSection extends StatelessWidget {
       return _buildVideoPreview(filePath);
     } else if (mediaType == 'AUDIO') {
       return _buildAudioPreview();
-    } else if (mediaType == 'DOCUMENT' || filePath.toLowerCase().endsWith('.pdf')) {
+    } else if (mediaType == 'DOCUMENT' ||
+        filePath.toLowerCase().endsWith('.pdf')) {
       return _buildPdfPreview(filePath);
     } else {
       return _buildGenericPreview(mediaType);
@@ -112,10 +107,7 @@ class MediaPreviewSection extends StatelessWidget {
             return Stack(
               fit: StackFit.expand,
               children: [
-                Image.memory(
-                  snapshot.data!,
-                  fit: BoxFit.cover,
-                ),
+                Image.memory(snapshot.data!, fit: BoxFit.cover),
                 Positioned(
                   bottom: 12,
                   right: 12,
@@ -175,16 +167,11 @@ class MediaPreviewSection extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (thumbnail != null)
-            Image.memory(
-              thumbnail,
-              fit: BoxFit.cover,
-            )
+            Image.memory(thumbnail, fit: BoxFit.cover)
           else
             Container(
               color: Colors.black,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
           Center(
             child: Container(
@@ -237,11 +224,7 @@ class MediaPreviewSection extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.music_note_rounded,
-            color: Colors.white,
-            size: 60,
-          ),
+          Icon(Icons.music_note_rounded, color: Colors.white, size: 60),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -289,7 +272,7 @@ class MediaPreviewSection extends StatelessWidget {
   Widget _buildGenericPreview(String mediaType) {
     IconData icon;
     String label;
-    
+
     switch (mediaType.toUpperCase()) {
       case 'DOCUMENT':
         icon = Icons.description_rounded;
@@ -314,11 +297,7 @@ class MediaPreviewSection extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 64,
-          ),
+          Icon(icon, color: Colors.white, size: 64),
           const SizedBox(height: 16),
           Text(
             label,
@@ -337,11 +316,7 @@ class MediaPreviewSection extends StatelessWidget {
     return Container(
       color: Pallet.cardBackgroundAlt,
       child: const Center(
-        child: Icon(
-          Icons.broken_image,
-          size: 48,
-          color: Pallet.textSecondary,
-        ),
+        child: Icon(Icons.broken_image, size: 48, color: Pallet.textSecondary),
       ),
     );
   }
@@ -468,10 +443,7 @@ class MediaPreviewSection extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: Pallet.textSecondary,
-            ),
+            style: GoogleFonts.inter(fontSize: 13, color: Pallet.textSecondary),
           ),
         ),
         Expanded(
@@ -503,19 +475,20 @@ class MediaPreviewSection extends StatelessWidget {
     if (mediaType == 'IMAGE') {
       Get.to(
         () => ImagePreviewScreen(filePath: filePath),
-        transition: Transition.fadeIn,
+        transition: Transition.noTransition,
       );
     } else if (mediaType == 'VIDEO') {
       Get.to(
         () => VideoPreviewScreen(filePath: filePath),
-        transition: Transition.fadeIn,
+        transition: Transition.noTransition,
       );
     } else if (mediaType == 'AUDIO') {
       Get.dialog(
         AudioPlayerDialog(filePath: filePath),
         barrierDismissible: true,
       );
-    } else if (mediaType == 'DOCUMENT' || filePath.toLowerCase().endsWith('.pdf')) {
+    } else if (mediaType == 'DOCUMENT' ||
+        filePath.toLowerCase().endsWith('.pdf')) {
       // PDF preview can be opened in full screen if needed
       // For now, the preview widget handles it
     }

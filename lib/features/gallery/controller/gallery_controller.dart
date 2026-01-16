@@ -423,8 +423,8 @@ class GalleryController extends GetxController {
               // Use get_thumbnail_video for web video thumbnails
               final thumbnailBytes = await get_thumbnail.VideoThumbnail.thumbnailData(
                 video: blobUrl,
-                maxWidth: 400,
-                quality: 90,
+                maxWidth: 800,
+                quality: 100,
               );
               
               if (thumbnailBytes.isNotEmpty) {

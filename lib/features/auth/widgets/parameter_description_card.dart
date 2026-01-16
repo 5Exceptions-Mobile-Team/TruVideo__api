@@ -130,10 +130,9 @@ class ParameterDescriptionCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'This is the first and most important step before you can use any feature of the Video Platform API. Think of it like checking in at a secure building - you need to prove who you are before you can enter.'
-                'When you call this API, you provide your credentials (API Key and Secret Key) to prove your identity. If everything checks out, the system gives you a special access token - think of it as a temporary ID badge or pass.\n\n'
-                'This token is your proof of identity for all future actions. Every time you want to upload a file, check status, or do anything else, you\'ll include this token with your request. It tells the system "I\'ve already proven who I am, so you can trust this request." '
-                'For security, tokens expire after 24 hours. This means even if someone else gets your token, they can only use it for a limited time. When it expires, simply call this API again to get a fresh token.',
+                'This is the first step before you can use the Video Platform API. Think of it like checking in at a secure building - you need to prove who you are before you can enter.\n\n'
+                'When you call this API, you provide your credentials (API Key and Secret Key) to prove your identity. If everything checks out, the system gives you an access token - think of it as a temporary ID badge that lasts for 24 hours.\n\n'
+                'This token is your proof of identity for all future actions. Every time you want to upload a file or check status, you\'ll include this token with your request. For security, tokens expire after 24 hours, so you\'ll need to call this API again to get a fresh token when it expires.',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Pallet.textPrimary,

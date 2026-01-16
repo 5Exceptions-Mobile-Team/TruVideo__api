@@ -5,6 +5,7 @@ import 'package:media_upload_sample_app/features/auth/views/auth_screen.dart';
 import 'package:media_upload_sample_app/features/common/widgets/authentication_required_dialog.dart';
 import 'package:media_upload_sample_app/features/gallery/views/gallery_screen.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
+import 'package:media_upload_sample_app/features/home/widgets/demo_video_player.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -61,7 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Left Side - Getting Started / Info (40%)
-        Expanded(flex: 4, child: _buildGettingStartedSection()),
+        Expanded(
+          flex: 4,
+          child: Column(
+            children: [
+              _buildGettingStartedSection(),
+              const SizedBox(height: 20),
+              _buildApiVersionBadge(),
+            ],
+          ),
+        ),
         const SizedBox(width: 28),
         // Right Side - Cards and Status (60%)
         Expanded(
@@ -75,8 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildAuthStatusCard(),
               const SizedBox(height: 20),
               _buildWhyUseTruvideo(),
-              const SizedBox(height: 16),
-              _buildApiVersionBadge(),
+              const SizedBox(height: 20),
+              const DemoVideoPlayer(),
             ],
           ),
         ),
@@ -96,6 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildWhyUseTruvideo(),
         const SizedBox(height: 24),
         _buildGettingStartedSection(),
+        const SizedBox(height: 24),
+        const DemoVideoPlayer(),
         const SizedBox(height: 24),
         _buildApiVersionBadge(),
       ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
@@ -29,45 +28,33 @@ class MediaUploadDesktopView extends StatelessWidget {
     final galleryController = Get.find<GalleryController>();
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         // Left Panel - Media Preview (Full Width), Step Descriptions (40%)
-        Expanded(
+          Expanded(
           flex: 2,
-          child: SingleChildScrollView(
+            child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Media Preview Widget (Full Width)
                 MediaPreviewWidgetStandalone(
                   controller: controller,
-                ).animate().fadeIn(delay: 50.ms).slideY(begin: -0.1),
+                        ),
                 const SizedBox(height: 32),
-                StepDescriptions.step1()
-                    .animate()
-                    .fadeIn(delay: 100.ms)
-                    .slideX(begin: -0.2),
+                StepDescriptions.step1(),
                 const SizedBox(height: 32),
-                StepDescriptions.step2()
-                    .animate()
-                    .fadeIn(delay: 200.ms)
-                    .slideX(begin: -0.2),
+                StepDescriptions.step2(),
                 const SizedBox(height: 32),
-                StepDescriptions.step3()
-                    .animate()
-                    .fadeIn(delay: 300.ms)
-                    .slideX(begin: -0.2),
+                StepDescriptions.step3(),
                 const SizedBox(height: 32),
-                StepDescriptions.step4()
-                    .animate()
-                    .fadeIn(delay: 400.ms)
-                    .slideX(begin: -0.2),
-                const SizedBox(height: 50),
-              ],
+                StepDescriptions.step4(),
+                  const SizedBox(height: 50),
+                ],
+              ),
             ),
           ),
-        ),
 
         // Divider
         Container(width: 1, color: Pallet.glassBorder.withOpacity(0.3)),
@@ -84,13 +71,13 @@ class MediaUploadDesktopView extends StatelessWidget {
                 FileDetailsContainer(
                   controller: controller,
                   galleryController: galleryController,
-                ).animate().fadeIn(delay: 50.ms).slideY(begin: -0.1),
+          ),
                 const SizedBox(height: 32),
                 // Step 1: Start Upload
                 Step1StartUploadConsole(
                   controller: controller,
                   homeController: homeController,
-                ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.2),
+                    ),
                 // Step 1 Request/Response - Full width
                 Obx(() {
                   final statusCodeValue = controller.initializeStatusCode.value;
@@ -119,7 +106,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                 // Step 2: Upload Parts
                 Step2UploadPartsConsole(
                   controller: controller,
-                ).animate().fadeIn(delay: 250.ms).slideX(begin: 0.2),
+                ),
                 // Divider after Step 2 console
                 const SizedBox(height: 32),
 
@@ -127,7 +114,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                 Step3CompleteUploadConsole(
                   controller: controller,
                   homeController: homeController,
-                ).animate().fadeIn(delay: 350.ms).slideX(begin: 0.2),
+          ),
                 // Step 3 Request/Response - Full width
                 Obx(() {
                   final uploadId = controller.isInitializeComplete.value
@@ -155,7 +142,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                 Step4CheckStatusConsole(
                   controller: controller,
                   homeController: homeController,
-                ).animate().fadeIn(delay: 450.ms).slideX(begin: 0.2),
+                ),
                 // Step 4 Request/Response - Full width
                 Obx(() {
                   final uploadId = controller.isInitializeComplete.value
@@ -216,7 +203,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                 }),
                 const SizedBox(height: 50),
               ],
-            ),
+          ),
           ),
         ),
       ],

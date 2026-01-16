@@ -26,7 +26,7 @@ class FileDetailsContainer extends StatelessWidget {
       }
 
       return Container(
-        margin: const EdgeInsets.only(bottom: 32),
+        margin: const EdgeInsets.only(bottom: 15),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Pallet.cardBackgroundAlt,
@@ -147,10 +147,7 @@ class FileDetailsContainer extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: Pallet.textSecondary,
-            ),
+            style: GoogleFonts.inter(fontSize: 13, color: Pallet.textSecondary),
           ),
         ),
         Expanded(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
@@ -36,24 +35,19 @@ class MediaUploadMobileView extends StatelessWidget {
           // Media Preview Widget
           MediaPreviewWidgetStandalone(
             controller: controller,
-          ).animate().fadeIn(delay: 50.ms).slideY(begin: -0.1),
-          const SizedBox(height: 20),
+          ),
           // File Details Container
           FileDetailsContainer(
             controller: controller,
             galleryController: galleryController,
-          ).animate().fadeIn(delay: 75.ms).slideY(begin: -0.1),
-          const SizedBox(height: 32),
+          ),
           // Step 1: Start Upload
-          StepDescriptions.step1()
-              .animate()
-              .fadeIn(delay: 100.ms)
-              .slideY(begin: 0.1),
+          StepDescriptions.step1(),
           const SizedBox(height: 16),
           Step1StartUploadConsole(
             controller: controller,
             homeController: homeController,
-          ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.1),
+          ),
           // Step 1 Request/Response
           Obx(() {
             final statusCodeValue = controller.initializeStatusCode.value;
@@ -89,14 +83,11 @@ class MediaUploadMobileView extends StatelessWidget {
           ),
 
           // Step 2: Upload Parts
-          StepDescriptions.step2()
-              .animate()
-              .fadeIn(delay: 200.ms)
-              .slideY(begin: 0.1),
+          StepDescriptions.step2(),
           const SizedBox(height: 16),
           Step2UploadPartsConsole(
             controller: controller,
-          ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
+          ),
           // Divider after Step 2 console
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
@@ -107,15 +98,12 @@ class MediaUploadMobileView extends StatelessWidget {
           ),
 
           // Step 3: Complete Upload
-          StepDescriptions.step3()
-              .animate()
-              .fadeIn(delay: 300.ms)
-              .slideY(begin: 0.1),
+          StepDescriptions.step3(),
           const SizedBox(height: 16),
           Step3CompleteUploadConsole(
             controller: controller,
             homeController: homeController,
-          ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1),
+          ),
           // Step 3 Request/Response
           Obx(() {
             final uploadId = controller.isInitializeComplete.value
@@ -150,15 +138,12 @@ class MediaUploadMobileView extends StatelessWidget {
           ),
 
           // Step 4: Check Status
-          StepDescriptions.step4()
-              .animate()
-              .fadeIn(delay: 400.ms)
-              .slideY(begin: 0.1),
+          StepDescriptions.step4(),
           const SizedBox(height: 16),
           Step4CheckStatusConsole(
             controller: controller,
             homeController: homeController,
-          ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.1),
+          ),
           // Step 4 Request/Response
           Obx(() {
             final uploadId = controller.isInitializeComplete.value

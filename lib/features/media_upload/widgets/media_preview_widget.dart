@@ -32,12 +32,12 @@ class MediaPreviewWidget extends StatelessWidget {
             if (controller.mediaType.value == 'IMAGE') {
               Get.to(
                 () => ImagePreviewScreen(filePath: filePath),
-                transition: Transition.fadeIn,
+                transition: Transition.noTransition,
               );
             } else if (controller.mediaType.value == 'VIDEO') {
               Get.to(
                 () => VideoPreviewScreen(filePath: filePath),
-                transition: Transition.fadeIn,
+                transition: Transition.noTransition,
               );
             }
           },

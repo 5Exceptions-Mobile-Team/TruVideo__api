@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PdfPreviewWidget extends StatelessWidget {
@@ -129,24 +131,48 @@ class PdfPreviewWidget extends StatelessWidget {
   Future<void> _openPdf(BuildContext context) async {
     try {
       if (kIsWeb && filePath.startsWith('web_media_')) {
+        // Web: Create blob URL and open in new tab
         final webStorage = WebMediaStorageService();
         final id = filePath.replaceFirst('web_media_', '');
         final bytes = await webStorage.getMediaBytes(id);
         if (bytes != null) {
-          // Create blob URL with PDF MIME type and open in new tab
           final url = BlobUrlHelper.createBlobUrl(bytes, mimeType: 'application/pdf');
           await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         }
       } else {
-        // For mobile/desktop, try to open with system default app
-        final file = File(filePath);
+        // Mobile/Desktop: Use open_filex to open with system default app
+        String pdfPath = filePath;
+        
+        // If it's a web_media_ path on mobile (shouldn't happen, but handle it)
+        if (filePath.startsWith('web_media_')) {
+          final webStorage = WebMediaStorageService();
+          final id = filePath.replaceFirst('web_media_', '');
+          final bytes = await webStorage.getMediaBytes(id);
+          if (bytes != null) {
+            // Save to temporary file
+            final tempDir = await getTemporaryDirectory();
+            final tempFile = File('${tempDir.path}/pdf_$id.pdf');
+            await tempFile.writeAsBytes(bytes);
+            pdfPath = tempFile.path;
+          }
+        }
+        
+        final file = File(pdfPath);
         if (await file.exists()) {
-          // Use url_launcher or platform-specific method
-          // For now, show a message
+          final result = await OpenFilex.open(pdfPath);
+          if (result.type != ResultType.done) {
+            Get.snackbar(
+              'Error',
+              'Could not open PDF file: ${result.message}',
+              backgroundColor: Pallet.errorColor,
+              colorText: Colors.white,
+            );
+          }
+        } else {
           Get.snackbar(
-            'PDF',
-            'Opening PDF file...',
-            backgroundColor: Pallet.primaryColor,
+            'Error',
+            'PDF file not found',
+            backgroundColor: Pallet.errorColor,
             colorText: Colors.white,
           );
         }
@@ -154,7 +180,7 @@ class PdfPreviewWidget extends StatelessWidget {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Could not open PDF file',
+        'Could not open PDF file: ${e.toString()}',
         backgroundColor: Pallet.errorColor,
         colorText: Colors.white,
       );
