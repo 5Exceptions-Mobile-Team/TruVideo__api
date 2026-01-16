@@ -78,6 +78,10 @@ class MediaUploadController extends GetxController {
   Rx<Map<String, dynamic>?> finalizePayload = Rx<Map<String, dynamic>?>(null);
   Rx<Map<String, dynamic>?> pollStatusPayload = Rx<Map<String, dynamic>?>(null);
 
+  // API Status codes storage
+  Rx<int?> initializeStatusCode = Rx<int?>(null);
+  Rx<int?> uploadStatusCode = Rx<int?>(null);
+
   // Store upload response headers (for multipart uploads)
   List<Map<String, dynamic>> uploadResponseHeaders = [];
 
@@ -278,7 +282,10 @@ class MediaUploadController extends GetxController {
             String? blobUrl;
             VideoPlayerController? tempController;
             try {
-              blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+              blobUrl = BlobUrlHelper.createBlobUrl(
+                bytes,
+                mimeType: 'video/mp4',
+              );
               tempController = VideoPlayerController.networkUrl(
                 Uri.parse(blobUrl),
               );
@@ -429,7 +436,10 @@ class MediaUploadController extends GetxController {
             String? blobUrl;
             VideoPlayerController? tempController;
             try {
-              blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+              blobUrl = BlobUrlHelper.createBlobUrl(
+                bytes,
+                mimeType: 'video/mp4',
+              );
               tempController = VideoPlayerController.networkUrl(
                 Uri.parse(blobUrl),
               );
@@ -705,6 +715,8 @@ class MediaUploadController extends GetxController {
       if (response != null) {
         _processInitializeResponse(response);
         initializeResponse.value = response;
+        // Store status code (assuming 200 for successful response from ApiService)
+        initializeStatusCode.value = 200;
         isInitializeComplete.value = true;
         currentStep.value = 1;
         Utils.showToast('Initialize completed successfully!');
@@ -1132,6 +1144,14 @@ class MediaUploadController extends GetxController {
 
       _buildUploadResponse();
 
+      // Store status code from upload response (200 for successful upload)
+      if (uploadResponseHeaders.isNotEmpty) {
+        final statusCode = uploadResponseHeaders.first['statusCode'];
+        uploadStatusCode.value = statusCode is int ? statusCode : 200;
+      } else {
+        uploadStatusCode.value = 200; // Default to 200 for successful upload
+      }
+
       isUploadComplete.value = true;
       currentStep.value = 2;
       uploadProgress.value = 100.0;
@@ -1247,6 +1267,8 @@ class MediaUploadController extends GetxController {
           response.statusCode == 200 ||
           response.statusCode == 201) {
         _processFinalizeResponse(response);
+        // Mark as complete when API call succeeds (even though processing is async)
+        isFinalizeComplete.value = true;
         // Status should be checked manually via Step 4 "Check Status" button
       } else {
         Get.dialog(

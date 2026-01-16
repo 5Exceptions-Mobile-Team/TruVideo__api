@@ -108,20 +108,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
           ),
         ),
-        // persistentFooterButtons: [
-        //   if (widget.forVideo && !widget.singleVideo)
-        //     Semantics(
-        //       identifier: 'select_media',
-        //       label: 'Select media button',
-        //       child: AppButton(
-        //         text: 'Select',
-        //         onTap: () {
-        //           Get.back();
-        //           widget.onSelect(List.from(galleryController.selectedMedia));
-        //         },
-        //       ),
-        //     ),
-        // ],
         body: SafeArea(
           child: widget.forVideo
               ? Column(
@@ -156,7 +142,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           final videos = galleryController.videoPaths.length;
                           final audio = galleryController.audioPaths.length;
                           final docs = galleryController.documentPaths.length;
-                          
+
                           return Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -166,7 +152,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Media Library',
@@ -273,7 +260,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.video_camera_back_rounded, size: 18),
+                                  const Icon(
+                                    Icons.video_camera_back_rounded,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text('Videos'),
                                 ],
@@ -287,7 +277,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.audiotrack_rounded, size: 18),
+                                  const Icon(
+                                    Icons.audiotrack_rounded,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text('Audio'),
                                 ],
@@ -301,7 +294,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.description_rounded, size: 18),
+                                  const Icon(
+                                    Icons.description_rounded,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text('Documents'),
                                 ],
@@ -360,10 +356,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

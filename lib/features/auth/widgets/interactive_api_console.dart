@@ -389,7 +389,6 @@ class InteractiveApiConsole extends StatelessWidget {
             hintText: 'Enter your API Key',
           ),
           const SizedBox(height: 20),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

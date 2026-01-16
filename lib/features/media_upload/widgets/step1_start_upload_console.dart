@@ -7,11 +7,10 @@ import 'package:media_upload_sample_app/features/common/widgets/app_button.dart'
 import 'package:media_upload_sample_app/features/common/widgets/common_textfield.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
-import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
-import 'package:media_upload_sample_app/features/gallery/views/gallery_screen.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/checkboxes_row_widget.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/metadata_section_widget.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/number_of_parts_selector_widget.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/step_header_widget.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/tags_section_widget.dart';
 
 class Step1StartUploadConsole extends StatelessWidget {
@@ -31,10 +30,7 @@ class Step1StartUploadConsole extends StatelessWidget {
       decoration: BoxDecoration(
         color: Pallet.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Pallet.glassBorder,
-          width: 1,
-        ),
+        border: Border.all(color: Pallet.glassBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -46,34 +42,26 @@ class Step1StartUploadConsole extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Step Heading
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Pallet.primaryColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Pallet.primaryColor.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  'Step 1: Start Upload',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+          // Step Heading (hidden on mobile)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+              if (isMobile) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                children: [
+                  StepHeaderWidget(
+                    stepNumber: 1,
+                    stepTitle: 'Start Upload',
+                    icon: Icons.play_arrow_rounded,
                     color: Pallet.primaryColor,
                   ),
-                ),
-              ),
-            ],
+                  const SizedBox(height: 20),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 20),
           // Header
           Text(
             'API Endpoint',
@@ -126,134 +114,6 @@ class Step1StartUploadConsole extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
-          // File Selection Section
-          Obx(() {
-            final hasFile = controller.activeFilePath != null;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Select File',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Pallet.textPrimary,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (!hasFile) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton(
-                          onTap: () async {
-                            // Use gallery controller's pickFile method which handles everything
-                            final galleryController = Get.find<GalleryController>();
-                            final previousCount = galleryController.allMediaPaths.length;
-                            galleryController.pickFile();
-                            // After picking, get the latest file from gallery
-                            await Future.delayed(const Duration(milliseconds: 1000));
-                            // Refresh media list
-                            galleryController.getMediaPath();
-                            // Get the most recent file from all media paths
-                            await Future.delayed(const Duration(milliseconds: 200));
-                            if (galleryController.allMediaPaths.length > previousCount) {
-                              final latestPath = galleryController.allMediaPaths.first;
-                              controller.setFilePath(latestPath);
-                            }
-                          },
-                          text: 'Pick File',
-                          showLoading: false,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AppButton(
-                          onTap: () {
-                            Get.to(() => GalleryScreen(
-                              onSelect: (paths) {
-                                if (paths != null && paths.isNotEmpty) {
-                                  controller.setFilePath(paths.first);
-                                  Get.back();
-                                }
-                              },
-                            ));
-                          },
-                          text: 'From Gallery',
-                          showLoading: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Pallet.successColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Pallet.successColor.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.check_circle_rounded,
-                          color: Pallet.successColor,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'File Selected',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Pallet.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                controller.activeFilePath ?? '',
-                                style: GoogleFonts.firaCode(
-                                  fontSize: 11,
-                                  color: Pallet.textSecondary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 24),
-              ],
-            );
-          }),
-
-          // Form Fields
-          Text(
-            'Request Body',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Pallet.textPrimary,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Amount of Parts
-          _buildLabel('Number of Parts', isRequired: false),
           NumberOfPartsSelectorWidget(controller: controller),
           const SizedBox(height: 20),
 
@@ -295,22 +155,33 @@ class Step1StartUploadConsole extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Action Button
-          Obx(
-            () => AppButton(
-              onTap: controller.isInitializeComplete.value
+          Obx(() {
+            final isComplete = controller.isInitializeComplete.value;
+            final isLoading =
+                controller.isStepLoading.value &&
+                controller.currentStep.value == 0;
+            return AppButton(
+              onTap: isComplete
                   ? () {}
-                  : controller.isStepLoading.value &&
-                          controller.currentStep.value == 0
-                      ? () {}
-                      : controller.onInitialize,
-              text: controller.isStepLoading.value &&
-                      controller.currentStep.value == 0
+                  : isLoading
+                  ? () {}
+                  : controller.onInitialize,
+              text: isLoading
                   ? 'Initializing...'
-                  : 'Initialize Upload',
-              showLoading: controller.isStepLoading.value &&
-                  controller.currentStep.value == 0,
-            ),
-          ),
+                  : isComplete
+                  ? 'Upload Started'
+                  : 'Start Upload',
+              showLoading: isLoading,
+              backgroundColor: isComplete ? Pallet.successColor : null,
+              buttonIcon: isComplete
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    )
+                  : null,
+            );
+          }),
           const SizedBox(height: 24),
 
           // Request Display (sample or actual)
@@ -337,11 +208,9 @@ class Step1StartUploadConsole extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.blue.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -379,10 +248,7 @@ class Step1StartUploadConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''POST $endpoint
@@ -431,9 +297,7 @@ Body:
           decoration: BoxDecoration(
             color: Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.green.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.green.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -471,10 +335,7 @@ Body:
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''POST $endpoint

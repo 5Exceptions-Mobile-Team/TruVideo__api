@@ -44,7 +44,8 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           child: Column(
             children: [
               InkWell(
-                onTap: () => setState(() => _requestExpanded = !_requestExpanded),
+                onTap: () =>
+                    setState(() => _requestExpanded = !_requestExpanded),
                 borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -64,15 +65,18 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          'REQUEST SAMPLE',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Pallet.textPrimary,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
+                        child: Obx(() {
+                          final hasRequest = authController.requestBody.value != null;
+                          return Text(
+                            hasRequest ? 'REQUEST' : 'REQUEST SAMPLE',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Pallet.textPrimary,
+                              letterSpacing: 1.0,
+                            ),
+                          );
+                        }),
                       ),
                       AnimatedRotation(
                         turns: _requestExpanded ? 0.5 : 0,
@@ -113,7 +117,7 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Response Sample Section
         Container(
           decoration: BoxDecoration(
@@ -134,7 +138,8 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           child: Column(
             children: [
               InkWell(
-                onTap: () => setState(() => _responseExpanded = !_responseExpanded),
+                onTap: () =>
+                    setState(() => _responseExpanded = !_responseExpanded),
                 borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -154,15 +159,43 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          'RESPONSE SAMPLE',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Pallet.textPrimary,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
+                        child: Obx(() {
+                          final hasResponse = authController.backOfficeAuthResponse.value != null;
+                          return Row(
+                            children: [
+                              Text(
+                                hasResponse ? 'RESPONSE' : 'RESPONSE SAMPLE',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Pallet.textPrimary,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              if (hasResponse) ...[
+                                const SizedBox(width: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Pallet.successColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '200',
+                                    style: GoogleFonts.firaCode(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Pallet.successColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          );
+                        }),
                       ),
                       AnimatedRotation(
                         turns: _responseExpanded ? 0.5 : 0,
@@ -235,9 +268,7 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           decoration: BoxDecoration(
             color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.blue.withValues(alpha: 0.3),
-            ),
+            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -268,10 +299,7 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Pallet.glassBorder,
-              width: 1,
-            ),
+            border: Border.all(color: Pallet.glassBorder, width: 1),
           ),
           child: SelectableText(
             '''POST $endpoint
@@ -299,8 +327,8 @@ Body:
 
   Widget _buildDefaultResponseSample() {
     final defaultResponse = {
-      'accessToken': 'eyJhbfIWOJnewIUzI1NiJ9.eWIiOiJhZG1pbiIsImV4cCI6MTcyMTEzNjc0MCwiYXV0aCI6IkFETUlOIEJBQ0tPRkZJQ0UiLCJpYXQiOjE3MjEwNTAzNDAsImRldmljZUlkIjoiLTEifQ.bosYs82RrGsqx6we_MFrcebIhh6d5hUMWaecbCiySDU',
-      'refreshToken': 'eyJhbfIWOJnewIUzI1NiJ9.eiOiJhZG1pbiIsImV4cCI6MTcyMTY1NTE0MCwiYXV0aCI6IkFETUlOIEJBQ0tPRkZJQ0UiLCJpYXQiOjE3MjEwNTAzNDAsImRldmljZUlkIjoiLTEifQ.77odDiZJ7CWjGHM7yNSRU4b8ycqzkPzPwUKXi0aEAOU',
+      'accessToken': 'eyJhbfIWOJnewIUzI1NiJ9.eWIiOiJhZG1pbiIs...',
+      'refreshToken': 'eyJhbfIWOJnewIUzI1NiJ9.eiOiJhZG1pbiIsIm...',
     };
 
     return Column(
@@ -311,9 +339,7 @@ Body:
           decoration: BoxDecoration(
             color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.blue.withValues(alpha: 0.3),
-            ),
+            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -368,10 +394,7 @@ Body:
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Pallet.glassBorder,
-              width: 1,
-            ),
+            border: Border.all(color: Pallet.glassBorder, width: 1),
           ),
           child: SelectableText(
             codeExample,
@@ -386,20 +409,24 @@ Body:
     );
   }
 
-  String _buildCodeExample(String endpoint, Map<String, String> headers, Map<String, dynamic> body) {
+  String _buildCodeExample(
+    String endpoint,
+    Map<String, String> headers,
+    Map<String, dynamic> body,
+  ) {
     final buffer = StringBuffer();
-    
+
     // Method and URL
     buffer.writeln('POST $endpoint');
     buffer.writeln('');
-    
+
     // Headers
     buffer.writeln('Headers:');
     headers.forEach((key, value) {
       buffer.writeln('  $key: $value');
     });
     buffer.writeln('');
-    
+
     // Body
     buffer.writeln('Body:');
     final jsonBody = jsonEncode(body);
@@ -411,13 +438,13 @@ Body:
     } catch (e) {
       buffer.writeln('  $jsonBody');
     }
-    
+
     return buffer.toString();
   }
 
   Widget _buildResponseDisplay(AuthController authController) {
     final response = authController.backOfficeAuthResponse.value;
-    
+
     if (response == null) {
       return _buildEmptyState('No response data available.');
     }
@@ -430,9 +457,7 @@ Body:
           decoration: BoxDecoration(
             color: Colors.green.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.green.withValues(alpha: 0.3),
-            ),
+            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -475,5 +500,4 @@ Body:
       ),
     );
   }
-
 }

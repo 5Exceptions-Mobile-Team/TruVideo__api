@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/features/auth/views/auth_screen.dart';
-import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
+import 'package:media_upload_sample_app/features/common/widgets/authentication_required_dialog.dart';
 import 'package:media_upload_sample_app/features/gallery/views/gallery_screen.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 
@@ -94,10 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildAuthStatusCard(),
         const SizedBox(height: 20),
         _buildWhyUseTruvideo(),
-        const SizedBox(height: 16),
-        _buildApiVersionBadge(),
         const SizedBox(height: 24),
         _buildGettingStartedSection(),
+        const SizedBox(height: 24),
+        _buildApiVersionBadge(),
       ],
     );
   }
@@ -293,13 +293,18 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.api_rounded, size: 18, color: Color(0xFF64748B)),
-          const SizedBox(width: 8),
-          Text(
-            'Powered by Video Platform APIs (Version - Upload V3)',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF64748B),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              context.width < 600
+                  ? 'Powered by Video Platform APIs\n(Version - Upload V3)'
+                  : 'Powered by Video Platform APIs (Version - Upload V3)',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF64748B),
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -326,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
             } else {
               showDialog(
                 context: context,
-                builder: (context) => const ErrorDialog(),
+                builder: (context) => const AuthenticationRequiredDialog(),
               );
             }
           }
@@ -472,7 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'What is TruVideo API?',
+                  'What is Video Platform API?',
                   style: GoogleFonts.inter(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -519,7 +524,7 @@ class _HomeScreenState extends State<HomeScreen> {
             2,
             'Pick Media',
             'Once logged in, head to the Media Gallery. Here you can browse through your device and select '
-                'the photos or videos you want to upload.',
+                'the media files you want to upload.',
           ),
           const SizedBox(height: 18),
           _buildStep(

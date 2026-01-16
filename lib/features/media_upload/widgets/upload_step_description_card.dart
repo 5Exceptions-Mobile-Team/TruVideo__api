@@ -121,11 +121,15 @@ class UploadStepDescriptionCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  endpoint,
-                  style: GoogleFonts.firaCode(
-                    fontSize: 13,
-                    color: Pallet.textPrimary,
+                Flexible(
+                  child: Text(
+                    endpoint,
+                    style: GoogleFonts.firaCode(
+                      fontSize: 13,
+                      color: Pallet.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],

@@ -110,36 +110,41 @@ class _MediaContainerState extends State<MediaContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final showCheckbox =
-        galleryController.selectEnabled.value ||
-        (widget.forVideo && !widget.singleVideo);
-
-    return Obx(
-      () {
-        final isSelected = galleryController.selectedMedia.contains(widget.path);
-        return Semantics(
+    return Obx(() {
+      final isSelected = galleryController.selectedMedia.contains(widget.path);
+      return Semantics(
         identifier: 'open_select_media',
         label: 'Open or select media',
         child: GestureDetector(
           onTap: widget.forMedia
               ? null
+              : galleryController.selectEnabled.value
+              ? () {
+                  // When in selection mode, tapping anywhere on media toggles selection
+                  if (isSelected) {
+                    galleryController.selectedMedia.remove(widget.path);
+                  } else {
+                    galleryController.selectedMedia.add(widget.path);
+                  }
+                }
               : () => galleryController.openOrSelect(widget.path),
-              child: Container(
-                decoration: BoxDecoration(
+          child: Container(
+            decoration: BoxDecoration(
               color: Pallet.cardBackground,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                color: isSelected ? Pallet.primaryColor : Pallet.glassBorder,
-                width: isSelected ? 2 : 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                // Never show blue border - always use normal border
+                color: Pallet.glassBorder,
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
                   color: Colors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
+              ],
+            ),
             child: Stack(
               children: [
                 // Thumbnail/Preview
@@ -151,7 +156,7 @@ class _MediaContainerState extends State<MediaContainer> {
                           height: double.infinity,
                           color: Pallet.cardBackgroundSubtle,
                           child: leadingWidget is Image
-                      ? leadingWidget
+                              ? leadingWidget
                               : Center(child: leadingWidget),
                         )
                       : Container(
@@ -162,66 +167,56 @@ class _MediaContainerState extends State<MediaContainer> {
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Pallet.primaryColor,
-                    ),
-                  ),
+                            ),
+                          ),
                         ),
                 ),
 
-                // Selection overlay
-                if (isSelected)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Pallet.primaryColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-
-                // Top right checkbox
-                if (showCheckbox)
+                // Top right circular checkbox - Always visible when selection mode is enabled
+                if (galleryController.selectEnabled.value)
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Pallet.cardBackground,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (isSelected) {
+                          galleryController.selectedMedia.remove(widget.path);
+                        } else {
+                          galleryController.selectedMedia.add(widget.path);
+                        }
+                      },
+                      child: Container(
+                        width: 25,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Pallet.successColor
+                              : Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected
+                                ? Pallet.successColor
+                                : Colors.grey[400]!,
+                            width: isSelected ? 0 : 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: isSelected
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              )
+                            : null,
                       ),
-                    ],
+                    ),
                   ),
-                      child: Checkbox(
-                        value: isSelected,
-                        activeColor: Pallet.primaryColor,
-                          onChanged: (_) {
-                          if (galleryController.selectEnabled.value) {
-                            if (isSelected) {
-                              galleryController.selectedMedia.remove(
-                                widget.path,
-                              );
-                            } else {
-                              galleryController.selectedMedia.add(widget.path);
-                            }
-                          } else if (widget.forVideo) {
-                            if (isSelected) {
-                                galleryController.selectedMedia.remove(
-                                  widget.path,
-                                );
-                              } else {
-                              galleryController.selectedMedia.add(widget.path);
-                              }
-                            } else {
-                              galleryController.openOrSelect(widget.path);
-                            }
-                          },
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-              ),
-            ),
-          ),
 
                 // Bottom overlay with info
                 Positioned(
@@ -325,7 +320,6 @@ class _MediaContainerState extends State<MediaContainer> {
           ),
         ),
       );
-      },
-    );
+    });
   }
 }

@@ -9,6 +9,9 @@ import 'package:media_upload_sample_app/features/media_upload/widgets/step2_uplo
 import 'package:media_upload_sample_app/features/media_upload/widgets/step3_complete_upload_console.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step4_check_status_console.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step_request_response_display.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/media_preview_widget_standalone.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/file_details_container.dart';
+import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:get/get.dart';
 
 class MediaUploadMobileView extends StatelessWidget {
@@ -23,12 +26,24 @@ class MediaUploadMobileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final galleryController = Get.find<GalleryController>();
 
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Media Preview Widget
+          MediaPreviewWidgetStandalone(
+            controller: controller,
+          ).animate().fadeIn(delay: 50.ms).slideY(begin: -0.1),
+          const SizedBox(height: 20),
+          // File Details Container
+          FileDetailsContainer(
+            controller: controller,
+            galleryController: galleryController,
+          ).animate().fadeIn(delay: 75.ms).slideY(begin: -0.1),
+          const SizedBox(height: 32),
           // Step 1: Start Upload
           StepDescriptions.step1()
               .animate()
@@ -36,43 +51,52 @@ class MediaUploadMobileView extends StatelessWidget {
               .slideY(begin: 0.1),
           const SizedBox(height: 16),
           Step1StartUploadConsole(
-              controller: controller,
+            controller: controller,
             homeController: homeController,
           ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.1),
           // Step 1 Request/Response
-          Obx(() => StepRequestResponseDisplay(
-            requestPayload: controller.initializePayload.value,
-            responseData: controller.initializeResponse.value,
-            requestMethod: 'POST',
-            endpoint:
-                'https://upload-api.truvideo.com/upload/start',
-            requestHeaders: {
-              'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
-              'Content-Type': 'application/json',
-            },
-            stepNumber: 1,
-          )),
+          Obx(() {
+            final statusCodeValue = controller.initializeStatusCode.value;
+            final statusCode = statusCodeValue?.toString();
+            final statusMessage = statusCode != null
+                ? 'Success - Upload initialized'
+                : null;
+            return StepRequestResponseDisplay(
+              requestPayload: controller.initializePayload.value,
+              responseData: controller.initializeResponse.value,
+              requestMethod: 'POST',
+              endpoint: 'https://upload-api.truvideo.com/upload/start',
+              requestHeaders: {
+                'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
+                'Content-Type': 'application/json',
+              },
+              statusCode: statusCode,
+              statusMessage: statusMessage,
+              stepNumber: 1,
+            );
+          }),
           // Divider after Step 1 response
-          Obx(() => controller.initializeResponse.value != null
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Divider(
-                    color: Pallet.glassBorder.withOpacity(0.3),
-                    thickness: 1,
-                  ),
-                )
-              : const SizedBox(height: 32)),
+          Obx(
+            () => controller.initializeResponse.value != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Divider(
+                      color: Pallet.glassBorder.withOpacity(0.3),
+                      thickness: 1,
+                    ),
+                  )
+                : const SizedBox(height: 32),
+          ),
 
           // Step 2: Upload Parts
           StepDescriptions.step2()
-                .animate()
-                .fadeIn(delay: 200.ms)
-                .slideY(begin: 0.1),
-                  const SizedBox(height: 16),
-          Step2UploadPartsConsole(controller: controller)
               .animate()
-              .fadeIn(delay: 250.ms)
+              .fadeIn(delay: 200.ms)
               .slideY(begin: 0.1),
+          const SizedBox(height: 16),
+          Step2UploadPartsConsole(
+            controller: controller,
+          ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
           // Divider after Step 2 console
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
@@ -87,7 +111,7 @@ class MediaUploadMobileView extends StatelessWidget {
               .animate()
               .fadeIn(delay: 300.ms)
               .slideY(begin: 0.1),
-                  const SizedBox(height: 16),
+          const SizedBox(height: 16),
           Step3CompleteUploadConsole(
             controller: controller,
             homeController: homeController,
@@ -110,18 +134,20 @@ class MediaUploadMobileView extends StatelessWidget {
               statusCode: '202',
               statusMessage: 'Accepted - Processing asynchronously',
               stepNumber: 3,
-        );
+            );
           }),
           // Divider after Step 3 response
-          Obx(() => controller.finalizeResponse.value != null
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Divider(
-                    color: Pallet.glassBorder.withOpacity(0.3),
-                    thickness: 1,
-                  ),
-                )
-              : const SizedBox(height: 32)),
+          Obx(
+            () => controller.finalizeResponse.value != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Divider(
+                      color: Pallet.glassBorder.withOpacity(0.3),
+                      thickness: 1,
+                    ),
+                  )
+                : const SizedBox(height: 32),
+          ),
 
           // Step 4: Check Status
           StepDescriptions.step4()
@@ -142,7 +168,7 @@ class MediaUploadMobileView extends StatelessWidget {
             final requestPayload = controller.pollStatusPayload.value;
             String? statusCode;
             String? statusMessage;
-            
+
             if (response != null) {
               final status = response['status'] as String? ?? 'UNKNOWN';
               statusCode = '200';
@@ -160,7 +186,7 @@ class MediaUploadMobileView extends StatelessWidget {
                   statusMessage = 'Unknown Status';
               }
             }
-            
+
             // Build request payload for display
             Map<String, dynamic>? displayRequestPayload;
             if (requestPayload != null) {
@@ -177,23 +203,20 @@ class MediaUploadMobileView extends StatelessWidget {
                 'headers': {'Authorization': 'Bearer YOUR-ACCESS-TOKEN'},
               };
             }
-            
+
             return StepRequestResponseDisplay(
               requestPayload: displayRequestPayload,
               responseData: response,
               requestMethod: 'GET',
-              endpoint:
-                  'https://upload-api.truvideo.com/upload/$uploadId',
-              requestHeaders: {
-                'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
-              },
+              endpoint: 'https://upload-api.truvideo.com/upload/$uploadId',
+              requestHeaders: {'Authorization': 'Bearer YOUR-ACCESS-TOKEN'},
               statusCode: statusCode,
               statusMessage: statusMessage,
               stepNumber: 4,
             );
           }),
           const SizedBox(height: 50),
-      ],
+        ],
       ),
     );
   }

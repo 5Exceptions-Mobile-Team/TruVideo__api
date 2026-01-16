@@ -124,17 +124,17 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Parameter Descriptions
+          // About Login API Section
           if (useAnimations)
-            const ParameterDescriptionCard()
+            const ParameterDescriptionCard(showOnlyAboutSection: true)
                 .animate()
                 .fadeIn(delay: 100.ms)
                 .slideY(begin: -0.1)
           else
-            const ParameterDescriptionCard(),
+            const ParameterDescriptionCard(showOnlyAboutSection: true),
           const SizedBox(height: 24),
 
-          // Interactive Console
+          // Interactive Console (API Caller UI)
           if (useAnimations)
             const InteractiveApiConsole()
                 .animate()
@@ -149,6 +149,16 @@ class _AuthScreenState extends State<AuthScreen> {
             const RequestResponseSamples().animate().fadeIn(delay: 300.ms)
           else
             const RequestResponseSamples(),
+          const SizedBox(height: 24),
+
+          // Parameters and Other Sections
+          if (useAnimations)
+            const ParameterDescriptionCard(hideAboutSection: true)
+                .animate()
+                .fadeIn(delay: 400.ms)
+                .slideY(begin: 0.1)
+          else
+            const ParameterDescriptionCard(hideAboutSection: true),
         ],
       ),
     );

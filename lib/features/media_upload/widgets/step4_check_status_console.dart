@@ -5,6 +5,7 @@ import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/step_header_widget.dart';
 
 class Step4CheckStatusConsole extends StatelessWidget {
   final MediaUploadController controller;
@@ -23,10 +24,7 @@ class Step4CheckStatusConsole extends StatelessWidget {
       decoration: BoxDecoration(
         color: Pallet.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Pallet.glassBorder,
-          width: 1,
-        ),
+        border: Border.all(color: Pallet.glassBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -38,34 +36,26 @@ class Step4CheckStatusConsole extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Step Heading
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Pallet.primaryColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Pallet.primaryColor.withOpacity(0.3),
-                    width: 1,
+          // Step Heading (hidden on mobile)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+              if (isMobile) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                children: [
+                  StepHeaderWidget(
+                    stepNumber: 4,
+                    stepTitle: 'Check Status',
+                    icon: Icons.verified_rounded,
+                    color: Colors.blue,
                   ),
-                ),
-                child: Text(
-                  'Step 4: Check Status',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Pallet.primaryColor,
-                  ),
-                ),
-              ),
-            ],
+                  const SizedBox(height: 20),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 20),
           // Header
           Text(
             'API Endpoint',
@@ -84,46 +74,44 @@ class Step4CheckStatusConsole extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Pallet.glassBorder, width: 1),
             ),
-            child: Obx(
-              () {
-                // Watch isInitializeComplete to get uploadId
-                final uploadId = controller.isInitializeComplete.value
-                    ? (controller.uploadId ?? 'UPLOAD_ID')
-                    : 'UPLOAD_ID';
-                return Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'GET',
-                        style: GoogleFonts.firaCode(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue,
-                        ),
+            child: Obx(() {
+              // Watch isInitializeComplete to get uploadId
+              final uploadId = controller.isInitializeComplete.value
+                  ? (controller.uploadId ?? 'UPLOAD_ID')
+                  : 'UPLOAD_ID';
+              return Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'GET',
+                      style: GoogleFonts.firaCode(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'https://upload-api.truvideo.com/upload/$uploadId',
-                        style: GoogleFonts.firaCode(
-                          fontSize: 12,
-                          color: Pallet.textPrimary,
-                        ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'https://upload-api.truvideo.com/upload/$uploadId',
+                      style: GoogleFonts.firaCode(
+                        fontSize: 12,
+                        color: Pallet.textPrimary,
                       ),
                     ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            }),
           ),
           const SizedBox(height: 24),
 
@@ -162,27 +150,24 @@ class Step4CheckStatusConsole extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Action Button
-          Obx(
-            () {
-              // Watch isInitializeComplete to check if uploadId is available
-              final hasUploadId = controller.isInitializeComplete.value &&
-                  controller.uploadId != null;
-              return AppButton(
-                onTap: !hasUploadId
-                    ? () {}
-                    : controller.isStepLoading.value &&
-                            controller.currentStep.value == 3
-                        ? () {}
-                        : () => controller.checkUploadStatusOnce(),
-                text: controller.isStepLoading.value &&
-                        controller.currentStep.value == 3
-                    ? 'Checking...'
-                    : 'Check Status',
-                showLoading: controller.isStepLoading.value &&
-                    controller.currentStep.value == 3,
-              );
-            },
-          ),
+          Obx(() {
+            // Watch isInitializeComplete to check if uploadId is available
+            final hasUploadId =
+                controller.isInitializeComplete.value &&
+                controller.uploadId != null;
+            final isLoading =
+                controller.isStepLoading.value &&
+                controller.currentStep.value == 3;
+            return AppButton(
+              onTap: !hasUploadId
+                  ? () {}
+                  : isLoading
+                  ? () {}
+                  : () => controller.checkUploadStatusOnce(),
+              text: isLoading ? 'Checking...' : 'Check Status',
+              showLoading: isLoading,
+            );
+          }),
           const SizedBox(height: 24),
 
           // Request Display (sample or actual)
@@ -214,9 +199,7 @@ class Step4CheckStatusConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.blue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.blue.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -254,10 +237,7 @@ class Step4CheckStatusConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''GET $endpoint
@@ -292,9 +272,7 @@ Note: This is a GET request with no body. The response will show the current upl
           decoration: BoxDecoration(
             color: Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.green.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.green.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -332,10 +310,7 @@ Note: This is a GET request with no body. The response will show the current upl
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''GET $endpoint

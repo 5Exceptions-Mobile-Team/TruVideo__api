@@ -6,6 +6,7 @@ import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/step_header_widget.dart';
 
 class Step3CompleteUploadConsole extends StatelessWidget {
   final MediaUploadController controller;
@@ -24,10 +25,7 @@ class Step3CompleteUploadConsole extends StatelessWidget {
       decoration: BoxDecoration(
         color: Pallet.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Pallet.glassBorder,
-          width: 1,
-        ),
+        border: Border.all(color: Pallet.glassBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -39,34 +37,26 @@ class Step3CompleteUploadConsole extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Step Heading
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Pallet.primaryColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Pallet.primaryColor.withOpacity(0.3),
-                    width: 1,
+          // Step Heading (hidden on mobile)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+              if (isMobile) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                children: [
+                  StepHeaderWidget(
+                    stepNumber: 3,
+                    stepTitle: 'Complete Upload',
+                    icon: Icons.check_circle_outline_rounded,
+                    color: Pallet.successColor,
                   ),
-                ),
-                child: Text(
-                  'Step 3: Complete Upload',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Pallet.primaryColor,
-                  ),
-                ),
-              ),
-            ],
+                  const SizedBox(height: 20),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 20),
           // Header
           Text(
             'API Endpoint',
@@ -85,46 +75,44 @@ class Step3CompleteUploadConsole extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Pallet.glassBorder, width: 1),
             ),
-            child: Obx(
-              () {
-                // Watch isInitializeComplete to get uploadId
-                final uploadId = controller.isInitializeComplete.value
-                    ? (controller.uploadId ?? 'UPLOAD_ID')
-                    : 'UPLOAD_ID';
-                return Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Pallet.successColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'POST',
-                        style: GoogleFonts.firaCode(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Pallet.successColor,
-                        ),
+            child: Obx(() {
+              // Watch isInitializeComplete to get uploadId
+              final uploadId = controller.isInitializeComplete.value
+                  ? (controller.uploadId ?? 'UPLOAD_ID')
+                  : 'UPLOAD_ID';
+              return Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Pallet.successColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'POST',
+                      style: GoogleFonts.firaCode(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Pallet.successColor,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'https://upload-api.truvideo.com/upload/$uploadId/complete',
-                        style: GoogleFonts.firaCode(
-                          fontSize: 12,
-                          color: Pallet.textPrimary,
-                        ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'https://upload-api.truvideo.com/upload/$uploadId/complete',
+                      style: GoogleFonts.firaCode(
+                        fontSize: 12,
+                        color: Pallet.textPrimary,
                       ),
                     ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            }),
           ),
           const SizedBox(height: 24),
 
@@ -133,17 +121,14 @@ class Step3CompleteUploadConsole extends StatelessWidget {
             // Watch isUploadComplete to react when Step 2 completes
             final isUploadComplete = controller.isUploadComplete.value;
             final hasUploadedParts = controller.uploadedParts.isNotEmpty;
-            
+
             if (!isUploadComplete || !hasUploadedParts) {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Pallet.cardBackgroundSubtle,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Pallet.glassBorder,
-                    width: 1,
-                  ),
+                  border: Border.all(color: Pallet.glassBorder, width: 1),
                 ),
                 child: Center(
                   child: Text(
@@ -175,10 +160,7 @@ class Step3CompleteUploadConsole extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Pallet.cardBackgroundSubtle,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Pallet.glassBorder,
-                      width: 1,
-                    ),
+                    border: Border.all(color: Pallet.glassBorder, width: 1),
                   ),
                   child: Column(
                     children: controller.uploadedParts.map((part) {
@@ -213,26 +195,36 @@ class Step3CompleteUploadConsole extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Action Button
-          Obx(
-            () => AppButton(
-              onTap: !controller.isUploadComplete.value
+          Obx(() {
+            final isComplete = controller.isFinalizeComplete.value;
+            final isLoading =
+                controller.isStepLoading.value &&
+                controller.currentStep.value == 2;
+            final isUploadComplete = controller.isUploadComplete.value;
+            return AppButton(
+              onTap: !isUploadComplete
                   ? () {}
-                  : controller.isFinalizeComplete.value
-                      ? () {}
-                      : controller.isStepLoading.value &&
-                              controller.currentStep.value == 2
-                          ? () {}
-                          : controller.onFinalize,
-              text: controller.isStepLoading.value &&
-                      controller.currentStep.value == 2
+                  : isComplete
+                  ? () {}
+                  : isLoading
+                  ? () {}
+                  : controller.onFinalize,
+              text: isLoading
                   ? 'Finalizing...'
-                  : controller.isFinalizeComplete.value
-                      ? 'Finalized'
-                      : 'Complete Upload',
-              showLoading: controller.isStepLoading.value &&
-                  controller.currentStep.value == 2,
-            ),
-          ),
+                  : isComplete
+                  ? 'Completed'
+                  : 'Complete Upload',
+              showLoading: isLoading,
+              backgroundColor: isComplete ? Pallet.successColor : null,
+              buttonIcon: isComplete
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    )
+                  : null,
+            );
+          }),
           const SizedBox(height: 24),
 
           // Request Display (sample or actual)
@@ -264,9 +256,7 @@ class Step3CompleteUploadConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.blue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.blue.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -304,10 +294,7 @@ class Step3CompleteUploadConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''POST $endpoint
@@ -352,9 +339,7 @@ Body:
           decoration: BoxDecoration(
             color: Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.green.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.green.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -392,10 +377,7 @@ Body:
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''POST $endpoint

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/step_header_widget.dart';
 
 class Step2UploadPartsConsole extends StatelessWidget {
   final MediaUploadController controller;
@@ -29,34 +30,26 @@ class Step2UploadPartsConsole extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Step Heading
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Pallet.primaryColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Pallet.primaryColor.withOpacity(0.3),
-                    width: 1,
+          // Step Heading (hidden on mobile)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+              if (isMobile) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                children: [
+                  StepHeaderWidget(
+                    stepNumber: 2,
+                    stepTitle: 'Upload Parts',
+                    icon: Icons.cloud_upload_rounded,
+                    color: Colors.orange,
                   ),
-                ),
-                child: Text(
-                  'Step 2: Upload Parts',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Pallet.primaryColor,
-                  ),
-                ),
-              ),
-            ],
+                  const SizedBox(height: 20),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 20),
           // Header
           Text(
             'API Endpoint',
@@ -103,6 +96,8 @@ class Step2UploadPartsConsole extends StatelessWidget {
                       fontSize: 12,
                       color: Pallet.textPrimary,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -149,7 +144,9 @@ class Step2UploadPartsConsole extends StatelessWidget {
             // Watch isInitializeComplete to react when Step 1 completes
             final isInitialized = controller.isInitializeComplete.value;
             // Access uploadParts only when initialized (it's not reactive, so we check the reactive flag)
-            final uploadParts = isInitialized ? controller.uploadParts : <Map<String, dynamic>>[];
+            final uploadParts = isInitialized
+                ? controller.uploadParts
+                : <Map<String, dynamic>>[];
             final hasParts = uploadParts.isNotEmpty;
             final hasPresignedUrl = controller.uploadPresignedUrl != null;
 
@@ -226,9 +223,10 @@ class Step2UploadPartsConsole extends StatelessWidget {
                                   ),
                                 ),
                                 const Spacer(),
-                                if (isInitialized && controller.uploadedParts.any(
-                                  (p) => p['partNumber'] == '${index + 1}',
-                                ))
+                                if (isInitialized &&
+                                    controller.uploadedParts.any(
+                                      (p) => p['partNumber'] == '${index + 1}',
+                                    ))
                                   Icon(
                                     Icons.check_circle_rounded,
                                     size: 18,
@@ -336,28 +334,36 @@ class Step2UploadPartsConsole extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Action Button
-          Obx(
-            () => AppButton(
-              onTap: !controller.isInitializeComplete.value
+          Obx(() {
+            final isComplete = controller.isUploadComplete.value;
+            final isLoading =
+                controller.isStepLoading.value &&
+                controller.currentStep.value == 1;
+            final isInitialized = controller.isInitializeComplete.value;
+            return AppButton(
+              onTap: !isInitialized
                   ? () {}
-                  : controller.isUploadComplete.value
+                  : isComplete
                   ? () {}
-                  : controller.isStepLoading.value &&
-                        controller.currentStep.value == 1
+                  : isLoading
                   ? () {}
                   : controller.onUploadFile,
-              text:
-                  controller.isStepLoading.value &&
-                      controller.currentStep.value == 1
+              text: isLoading
                   ? 'Uploading...'
-                  : controller.isUploadComplete.value
+                  : isComplete
                   ? 'Upload Complete'
                   : 'Upload File',
-              showLoading:
-                  controller.isStepLoading.value &&
-                  controller.currentStep.value == 1,
-            ),
-          ),
+              showLoading: isLoading,
+              backgroundColor: isComplete ? Pallet.successColor : null,
+              buttonIcon: isComplete
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    )
+                  : null,
+            );
+          }),
           const SizedBox(height: 24),
 
           // Request Display (sample or actual)
@@ -371,9 +377,68 @@ class Step2UploadPartsConsole extends StatelessWidget {
           }),
           const SizedBox(height: 24),
 
+          // Status Code Display (before Uploaded Parts)
+          Obx(() {
+            final statusCodeValue = controller.uploadStatusCode.value;
+            if (statusCodeValue == null || !controller.isUploadComplete.value) {
+              return const SizedBox.shrink();
+            }
+            final statusCode = statusCodeValue;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF11111B),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFF45475A),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Pallet.successColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          statusCode.toString(),
+                          style: GoogleFonts.firaCode(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Pallet.successColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Success - File uploaded successfully',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            );
+          }),
+
           // Uploaded Parts Status
           Obx(() {
-            if (!controller.isUploadComplete.value || controller.uploadedParts.isEmpty) {
+            if (!controller.isUploadComplete.value ||
+                controller.uploadedParts.isEmpty) {
               return const SizedBox.shrink();
             }
             return Column(
@@ -455,9 +520,7 @@ class Step2UploadPartsConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.green.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.green.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -495,10 +558,7 @@ class Step2UploadPartsConsole extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''PUT https://s3.amazonaws.com/bucket/path/to/file
@@ -531,9 +591,7 @@ After upload, S3 returns an ETag in the response headers.''',
           decoration: BoxDecoration(
             color: Colors.blue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.blue.withOpacity(0.3),
-            ),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -571,10 +629,7 @@ After upload, S3 returns an ETag in the response headers.''',
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF45475A),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF45475A), width: 1),
           ),
           child: SelectableText(
             '''PUT https://s3.amazonaws.com/bucket/path/to/file

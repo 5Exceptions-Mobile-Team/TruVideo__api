@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 
 /// Web implementation using dart:html
 class BlobUrlHelper {
-  static String createBlobUrl(Uint8List bytes) {
-    final blob = html.Blob([bytes]);
+  static String createBlobUrl(Uint8List bytes, {String? mimeType}) {
+    final blob = html.Blob([bytes], mimeType ?? 'application/octet-stream');
     return html.Url.createObjectUrlFromBlob(blob);
   }
 

@@ -13,30 +13,28 @@ class ErrorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: GlassContainer(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            spacing: 20,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  title ?? 'Authentication Required',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          spacing: 20,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                title ?? 'Authentication Required',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-              Text(
-                subTitle ?? 'Please authenticate first to use other features.',
-              ),
-              AppButton(
-                onTap: () => Get.back(),
-                text: 'Back',
-                backgroundColor: Pallet.primaryDarkColor,
-              ),
-            ],
-          ),
+            ),
+            Text(
+              subTitle ?? 'Please authenticate first to use other features.',
+            ),
+            AppButton(
+              onTap: () => Get.back(),
+              text: 'Back',
+              backgroundColor: Pallet.primaryDarkColor,
+            ),
+          ],
         ),
       ),
     );

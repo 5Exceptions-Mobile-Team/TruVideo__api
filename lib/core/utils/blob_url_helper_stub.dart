@@ -4,7 +4,7 @@ import 'dart:typed_data';
 /// This should technically not be reached if guard clauses are correct,
 /// but provided for safety.
 class BlobUrlHelper {
-  static String createBlobUrl(Uint8List bytes) {
+  static String createBlobUrl(Uint8List bytes, {String? mimeType}) {
     throw UnimplementedError('Blob URLs are only supported on Web');
   }
 

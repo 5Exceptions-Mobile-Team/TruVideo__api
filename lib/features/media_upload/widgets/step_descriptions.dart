@@ -36,6 +36,13 @@ class StepDescriptions {
           color: Colors.purple,
         ),
         StepDetail(
+          title: 'Understanding File Parts',
+          description:
+              'When deciding how many parts to split your file into, remember: each part must be at least 5 MB (except the last part which can be smaller). Each part can be up to 600 MB maximum. You can split a file into a maximum of 120 parts. For example, a 50 MB file would use 1 part, a 500 MB file might use 10 parts (50 MB each), and a very large 5 GB file could use up to 120 parts.',
+          icon: Icons.settings_rounded,
+          color: Colors.amber,
+        ),
+        StepDetail(
           title: 'Adds File Information',
           description:
               'Provide details about your file: what type it is (video, image, etc.), a title, creator name, and optional tags. This helps organize and find your files later.',

@@ -69,7 +69,7 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
         if (bytes != null) {
           // Use BlobUrlHelper to create a temporary URL instantly from bytes.
           // This avoids the expensive Base64 encoding + Data URI creation which freezes the UI.
-          final blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+          final blobUrl = BlobUrlHelper.createBlobUrl(bytes, mimeType: 'video/mp4');
           _videoPlayerController = VideoPlayerController.networkUrl(
             Uri.parse(blobUrl),
           );

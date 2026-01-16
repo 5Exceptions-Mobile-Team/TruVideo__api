@@ -418,7 +418,7 @@ class GalleryController extends GetxController {
             // Create blob URL from bytes for get_thumbnail_video
             String? blobUrl;
             try {
-              blobUrl = BlobUrlHelper.createBlobUrl(bytes);
+              blobUrl = BlobUrlHelper.createBlobUrl(bytes, mimeType: 'video/mp4');
               
               // Use get_thumbnail_video for web video thumbnails
               final thumbnailBytes = await get_thumbnail.VideoThumbnail.thumbnailData(
@@ -467,21 +467,37 @@ class GalleryController extends GetxController {
         );
       } else if (type == 'AUDIO') {
         return Container(
-          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Pallet.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Pallet.primaryColor.withOpacity(0.8),
+                Pallet.primaryColor.withOpacity(0.6),
+              ],
+            ),
           ),
-          child: Icon(Icons.audiotrack_rounded, size: 30, color: Pallet.primaryColor),
+          child: Center(
+            child: Icon(
+              Icons.music_note_rounded,
+              color: Colors.white,
+              size: 80,
+            ),
+          ),
         );
       } else if (type == 'DOCUMENT') {
+        final isPdf = path.toLowerCase().endsWith('.pdf');
         return Container(
-          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Pallet.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFF6B7280),
           ),
-          child: Icon(Icons.description_rounded, size: 30, color: Pallet.primaryColor),
+          child: Center(
+            child: Icon(
+              isPdf ? Icons.picture_as_pdf_rounded : Icons.description_rounded,
+              color: Colors.white,
+              size: 80,
+            ),
+          ),
         );
       } else {
         return Container(
@@ -521,21 +537,37 @@ class GalleryController extends GetxController {
         }
       } else if (type == 'AUDIO') {
         return Container(
-          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Pallet.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Pallet.primaryColor.withOpacity(0.8),
+                Pallet.primaryColor.withOpacity(0.6),
+              ],
+            ),
           ),
-          child: Icon(Icons.audiotrack_rounded, size: 30, color: Pallet.primaryColor),
+          child: Center(
+            child: Icon(
+              Icons.music_note_rounded,
+              color: Colors.white,
+              size: 80,
+            ),
+          ),
         );
       } else if (type == 'DOCUMENT') {
+        final isPdf = path.toLowerCase().endsWith('.pdf');
         return Container(
-          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Pallet.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFF6B7280),
           ),
-          child: Icon(Icons.description_rounded, size: 30, color: Pallet.primaryColor),
+          child: Center(
+            child: Icon(
+              isPdf ? Icons.picture_as_pdf_rounded : Icons.description_rounded,
+              color: Colors.white,
+              size: 80,
+            ),
+          ),
         );
       } else {
         return Container(

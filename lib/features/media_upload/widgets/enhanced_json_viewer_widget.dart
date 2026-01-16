@@ -71,8 +71,9 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
         color: widget.isDark ? const Color(0xFF1E1E1E) : Colors.white,
         border: Border.all(
           color: widget.isDark ? const Color(0xFF45475A) : Colors.grey[300]!,
+          width: 1,
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: widget.isDark
             ? []
             : [
@@ -154,21 +155,35 @@ class _EnhancedJsonViewerWidgetState extends State<EnhancedJsonViewerWidget> {
           ),
           Container(
             constraints: const BoxConstraints(maxHeight: 400),
-            child: Scrollbar(
-              controller: _horizontalScrollController,
-              thumbVisibility: true,
-              interactive: true,
-              thickness: 12,
-              radius: const Radius.circular(4),
-              child: SingleChildScrollView(
+            child: ScrollbarTheme(
+              data: ScrollbarThemeData(
+                thumbColor: WidgetStateProperty.all(
+                  widget.isDark
+                      ? Colors.white.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.5),
+                ),
+                trackColor: WidgetStateProperty.all(
+                  widget.isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                ),
+                thickness: WidgetStateProperty.all(12),
+                radius: const Radius.circular(4),
+              ),
+              child: Scrollbar(
                 controller: _horizontalScrollController,
-                scrollDirection: Axis.horizontal,
+                thumbVisibility: true,
+                interactive: true,
                 child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: _buildJsonWidget(data, 0, 'root'),
+                  controller: _horizontalScrollController,
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: _buildJsonWidget(data, 0, 'root'),
+                      ),
                     ),
                   ),
                 ),

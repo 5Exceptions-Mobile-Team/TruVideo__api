@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/file_details_container.dart';
+import 'package:media_upload_sample_app/features/media_upload/widgets/media_preview_widget_standalone.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step_descriptions.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step1_start_upload_console.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step2_upload_parts_console.dart';
@@ -23,10 +26,12 @@ class MediaUploadDesktopView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final galleryController = Get.find<GalleryController>();
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left Panel - Step Descriptions
+        // Left Panel - Media Preview (Full Width), Step Descriptions (40%)
         Expanded(
           flex: 2,
           child: SingleChildScrollView(
@@ -34,13 +39,30 @@ class MediaUploadDesktopView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                StepDescriptions.step1().animate().fadeIn(delay: 100.ms).slideX(begin: -0.2),
+                // Media Preview Widget (Full Width)
+                MediaPreviewWidgetStandalone(
+                  controller: controller,
+                ).animate().fadeIn(delay: 50.ms).slideY(begin: -0.1),
                 const SizedBox(height: 32),
-                StepDescriptions.step2().animate().fadeIn(delay: 200.ms).slideX(begin: -0.2),
+                StepDescriptions.step1()
+                    .animate()
+                    .fadeIn(delay: 100.ms)
+                    .slideX(begin: -0.2),
                 const SizedBox(height: 32),
-                StepDescriptions.step3().animate().fadeIn(delay: 300.ms).slideX(begin: -0.2),
+                StepDescriptions.step2()
+                    .animate()
+                    .fadeIn(delay: 200.ms)
+                    .slideX(begin: -0.2),
                 const SizedBox(height: 32),
-                StepDescriptions.step4().animate().fadeIn(delay: 400.ms).slideX(begin: -0.2),
+                StepDescriptions.step3()
+                    .animate()
+                    .fadeIn(delay: 300.ms)
+                    .slideX(begin: -0.2),
+                const SizedBox(height: 32),
+                StepDescriptions.step4()
+                    .animate()
+                    .fadeIn(delay: 400.ms)
+                    .slideX(begin: -0.2),
                 const SizedBox(height: 50),
               ],
             ),
@@ -50,7 +72,7 @@ class MediaUploadDesktopView extends StatelessWidget {
         // Divider
         Container(width: 1, color: Pallet.glassBorder.withOpacity(0.3)),
 
-        // Right Panel - Step Consoles and Request/Response
+        // Right Panel - File Details, Step Consoles and Request/Response (60%)
         Expanded(
           flex: 3,
           child: SingleChildScrollView(
@@ -58,48 +80,48 @@ class MediaUploadDesktopView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // File Details Container
+                FileDetailsContainer(
+                  controller: controller,
+                  galleryController: galleryController,
+                ).animate().fadeIn(delay: 50.ms).slideY(begin: -0.1),
+                const SizedBox(height: 32),
                 // Step 1: Start Upload
                 Step1StartUploadConsole(
                   controller: controller,
                   homeController: homeController,
                 ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.2),
                 // Step 1 Request/Response - Full width
-                Obx(() => StepRequestResponseDisplay(
-                  requestPayload: controller.initializePayload.value,
-                  responseData: controller.initializeResponse.value,
-                  requestMethod: 'POST',
-                  endpoint:
-                      'https://upload-api.truvideo.com/upload/start',
-                  requestHeaders: {
-                    'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
-                    'Content-Type': 'application/json',
-                  },
-                  stepNumber: 1,
-                )),
-                // Divider after Step 1 response
-                Obx(() => controller.initializeResponse.value != null
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Divider(
-                          color: Pallet.glassBorder.withOpacity(0.3),
-                          thickness: 1,
-                        ),
-                      )
-                    : const SizedBox(height: 32)),
+                Obx(() {
+                  final statusCodeValue = controller.initializeStatusCode.value;
+                  final statusCode = statusCodeValue != null
+                      ? statusCodeValue.toString()
+                      : null;
+                  final statusMessage = statusCode != null
+                      ? 'Success - Upload initialized'
+                      : null;
+                  return StepRequestResponseDisplay(
+                    requestPayload: controller.initializePayload.value,
+                    responseData: controller.initializeResponse.value,
+                    requestMethod: 'POST',
+                    endpoint: 'https://upload-api.truvideo.com/upload/start',
+                    requestHeaders: {
+                      'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
+                      'Content-Type': 'application/json',
+                    },
+                    statusCode: statusCode,
+                    statusMessage: statusMessage,
+                    stepNumber: 1,
+                  );
+                }),
+                const SizedBox(height: 32),
 
                 // Step 2: Upload Parts
-                Step2UploadPartsConsole(controller: controller)
-                    .animate()
-                    .fadeIn(delay: 250.ms)
-                    .slideX(begin: 0.2),
+                Step2UploadPartsConsole(
+                  controller: controller,
+                ).animate().fadeIn(delay: 250.ms).slideX(begin: 0.2),
                 // Divider after Step 2 console
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Divider(
-                    color: Pallet.glassBorder.withOpacity(0.3),
-                    thickness: 1,
-                  ),
-                ),
+                const SizedBox(height: 32),
 
                 // Step 3: Complete Upload
                 Step3CompleteUploadConsole(
@@ -127,15 +149,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                   );
                 }),
                 // Divider after Step 3 response
-                Obx(() => controller.finalizeResponse.value != null
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Divider(
-                          color: Pallet.glassBorder.withOpacity(0.3),
-                          thickness: 1,
-                        ),
-                      )
-                    : const SizedBox(height: 32)),
+                const SizedBox(height: 32),
 
                 // Step 4: Check Status
                 Step4CheckStatusConsole(
@@ -151,7 +165,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                   final requestPayload = controller.pollStatusPayload.value;
                   String? statusCode;
                   String? statusMessage;
-                  
+
                   if (response != null) {
                     final status = response['status'] as String? ?? 'UNKNOWN';
                     statusCode = '200';
@@ -169,7 +183,7 @@ class MediaUploadDesktopView extends StatelessWidget {
                         statusMessage = 'Unknown Status';
                     }
                   }
-                  
+
                   // Build request payload for display
                   Map<String, dynamic>? displayRequestPayload;
                   if (requestPayload != null) {
@@ -186,7 +200,6 @@ class MediaUploadDesktopView extends StatelessWidget {
                       'headers': {'Authorization': 'Bearer YOUR-ACCESS-TOKEN'},
                     };
                   }
-                  
                   return StepRequestResponseDisplay(
                     requestPayload: displayRequestPayload,
                     responseData: response,
@@ -209,5 +222,4 @@ class MediaUploadDesktopView extends StatelessWidget {
       ],
     );
   }
-
 }
