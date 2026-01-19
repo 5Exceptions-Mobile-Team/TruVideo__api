@@ -20,19 +20,28 @@ class Pallet {
   static const Color glassWhite = Color(0xE6FFFFFF); // 90% White for cards
   static const Color glassWhiteHigh = Color(0xF5FFFFFF); // 96% White
   static const Color glassBorder = Color(0x1A000000); // 10% Black border
-  static const Color glassWhiteLow = Color(0x80000000); // 50% Black for subtle backgrounds
+  static const Color glassWhiteLow = Color(
+    0x80000000,
+  ); // 50% Black for subtle backgrounds
 
   // Text Colors (High Contrast for Light Mode)
   static const Color textMain = Color(0xFF0F172A); // Slate 900
   static const Color textPrimary = textMain; // Alias for textMain
   static const Color textSecondary = Color(0xFF64748B); // Slate 500
+  static const Color textBlack = Colors.black;
   static const Color whiteColor = Colors.white;
   static const Color greyColor = Color(0xFF94A3B8); // Slate 400
 
   // Card and Surface Colors (with light tints)
-  static const Color cardBackground = Color(0xFFFAFBFC); // Very light blue-gray tint
-  static const Color cardBackgroundSubtle = Color(0xFFF5F7FA); // Light blue-gray
-  static const Color cardBackgroundAlt = Color(0xFFF8F9FB); // Alternative light tint
+  static const Color cardBackground = Color(
+    0xFFFAFBFC,
+  ); // Very light blue-gray tint
+  static const Color cardBackgroundSubtle = Color(
+    0xFFF5F7FA,
+  ); // Light blue-gray
+  static const Color cardBackgroundAlt = Color(
+    0xFFF8F9FB,
+  ); // Alternative light tint
   static const Color surfaceColor = Color(0xFFF1F5F9); // Slate 100
 
   // Functional

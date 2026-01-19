@@ -260,14 +260,14 @@ class _MediaContainerState extends State<MediaContainer> {
                                 children: [
                                   Icon(
                                     _getTypeIcon(),
-                                    size: 12,
+                                    size: type == 'Document' ? 10 : 12,
                                     color: Colors.white,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     type,
                                     style: GoogleFonts.inter(
-                                      fontSize: 11,
+                                      fontSize: type == 'Document' ? 10 : 11,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
                                     ),

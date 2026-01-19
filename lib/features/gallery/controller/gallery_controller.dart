@@ -17,11 +17,11 @@ import 'package:media_upload_sample_app/core/services/web_media_storage_service.
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:get_thumbnail_video/video_thumbnail.dart' as get_thumbnail;
 import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import '../../common/widgets/error_widget.dart';
 import '../../common/widgets/common_dialog.dart';
 import '../widgets/loading_file_widget.dart';
+import '../widgets/ios_file_picker_dialog.dart';
 import '../../media_upload/views/media_upload_screen.dart';
 
 enum CameraModeEnum {
@@ -411,43 +411,27 @@ class GalleryController extends GetxController {
           );
         }
       } else if (type == 'VIDEO') {
-        // For web videos, generate thumbnail using get_thumbnail_video
+        // For web videos, generate thumbnail using BlobUrlHelper
         try {
           final bytes = await _webStorage.getMediaBytes(id);
           if (bytes != null) {
-            // Create blob URL from bytes for get_thumbnail_video
-            String? blobUrl;
-            try {
-              blobUrl = BlobUrlHelper.createBlobUrl(bytes, mimeType: 'video/mp4');
-              
-              // Use get_thumbnail_video for web video thumbnails
-              final thumbnailBytes = await get_thumbnail.VideoThumbnail.thumbnailData(
-                video: blobUrl,
-                maxWidth: 800,
-                quality: 100,
+            final thumbnailBytes = await BlobUrlHelper.generateVideoThumbnail(bytes);
+            
+            if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
+              return Image.memory(
+                thumbnailBytes,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Pallet.secondaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.video_camera_front_rounded, size: 30),
+                  );
+                },
               );
-              
-              if (thumbnailBytes.isNotEmpty) {
-                return Image.memory(
-                  thumbnailBytes,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Pallet.secondaryColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.video_camera_front_rounded, size: 30),
-                    );
-                  },
-                );
-              }
-            } finally {
-              // Clean up blob URL
-              if (blobUrl != null) {
-                BlobUrlHelper.revokeBlobUrl(blobUrl);
-              }
             }
           }
         } catch (e) {
@@ -662,6 +646,18 @@ class GalleryController extends GetxController {
   }
 
   void pickFile() async {
+    // For iOS (but not web), show dialog to choose between photos/video and audio/document
+    if (!kIsWeb && Platform.isIOS) {
+      Get.dialog(
+        IosFilePickerDialog(
+          onPickPhotosVideo: () => _pickPhotosVideo(),
+          onPickAudioDocument: () => _pickAudioDocument(),
+        ),
+      );
+      return;
+    }
+
+    // For other platforms (including web), proceed with normal file picking
     try {
       showLoadingDialog();
 
@@ -681,9 +677,9 @@ class GalleryController extends GetxController {
         ];
         
         result = await FilePicker.platform.pickFiles(
-          type: Platform.isIOS ? FileType.media : FileType.custom,
+          type: FileType.custom,
           withData: kIsWeb, // Need data for web
-          allowedExtensions: Platform.isIOS ? null : allSupportedExtensions,
+          allowedExtensions: allSupportedExtensions,
         );
       }
 
@@ -721,24 +717,6 @@ class GalleryController extends GetxController {
             updateMediaList(displayPath);
           }
           Get.back();
-        } else if (Platform.isIOS) {
-          final dir = await getApplicationDocumentsDirectory();
-          String galleryPath = '${dir.path}/gallery';
-
-          final galleryDir = Directory(galleryPath);
-
-          if (!galleryDir.existsSync()) {
-            await galleryDir.create(recursive: true);
-          }
-
-          File fileObj = File(result.files.single.path!);
-          String newPath = '$galleryPath/$fileName';
-
-          await fileObj.copy(newPath);
-          await File(newPath).setLastModified(DateTime.now());
-
-          updateMediaList(newPath);
-          Get.back();
         } else {
           // Mobile/Desktop: Use file system
           final dir = await getApplicationDocumentsDirectory();
@@ -769,6 +747,95 @@ class GalleryController extends GetxController {
       }
       Get.back();
     }
+  }
+
+  /// iOS-only: Pick photos or videos
+  Future<void> _pickPhotosVideo() async {
+    try {
+      showLoadingDialog();
+
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.media,
+      );
+
+      if (result != null) {
+        await _handlePickedFile(result);
+      } else {
+        Get.back();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error on picking photos/video: $e');
+      }
+      Get.back();
+    }
+  }
+
+  /// iOS-only: Pick audio or documents
+  Future<void> _pickAudioDocument() async {
+    try {
+      showLoadingDialog();
+
+      // Combine audio and document extensions
+      final audioDocumentExtensions = [
+        ...supportedAudioExtensions,
+        ...supportedDocumentExtensions,
+      ];
+
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: audioDocumentExtensions,
+      );
+
+      if (result != null) {
+        await _handlePickedFile(result);
+      } else {
+        Get.back();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error on picking audio/document: $e');
+      }
+      Get.back();
+    }
+  }
+
+  /// Handle the picked file (common logic for both iOS picker types)
+  Future<void> _handlePickedFile(FilePickerResult result) async {
+    final file = result.files.single;
+    final fileName = file.name;
+    final extension = fileName.split('.').last.toLowerCase();
+
+    // Validate file type
+    if (!_isSupportedFileType(extension)) {
+      Get.back(); // Close loading dialog
+      Get.dialog(
+        ErrorDialog(
+          title: 'Unsupported File Type',
+          subTitle:
+              'This file type is not supported. Please choose a video, image, audio, or PDF file.\n\nSupported formats:\n• Videos: MP4, MOV, AVI, MKV, FLV, WMV, 3GPP, WEBM\n• Images: JPG, JPEG, PNG, SVG\n• Audio: MP3, WAV, AAC, FLAC\n• Documents: PDF',
+        ),
+      );
+      return;
+    }
+
+    final dir = await getApplicationDocumentsDirectory();
+    String galleryPath = '${dir.path}/gallery';
+
+    final galleryDir = Directory(galleryPath);
+
+    if (!galleryDir.existsSync()) {
+      await galleryDir.create(recursive: true);
+    }
+
+    File fileObj = File(result.files.single.path!);
+    String newPath = '$galleryPath/$fileName';
+
+    await fileObj.copy(newPath);
+    await File(newPath).setLastModified(DateTime.now());
+
+    updateMediaList(newPath);
+    Get.back();
   }
 
   // Future<void> openCamera(CameraConfiguration config, String path) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:media_upload_sample_app/core/utils/app_text_styles.dart';
 import 'package:media_upload_sample_app/features/auth/views/auth_screen.dart';
 import 'package:media_upload_sample_app/features/common/widgets/authentication_required_dialog.dart';
 import 'package:media_upload_sample_app/features/gallery/views/gallery_screen.dart';
@@ -191,10 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Current authentication status',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: const Color(0xFF6B7280),
-                    ),
+                    style: AppTextStyles.bodyMedium(),
                   ),
                 ],
               ),
@@ -279,11 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 6),
                 Text(
                   'Secure cloud storage, fast uploads (even for large files), automatic file processing, and easy integration with your existing systems. Perfect for businesses that deal with lots of media files.',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: const Color(0xFF6B7280),
-                    height: 1.5,
-                  ),
+                  style: AppTextStyles.bodyMedium(height: 1.5),
                 ),
               ],
             ),
@@ -399,11 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       isAuth
                           ? 'Get your access pass to use the Video Platform API'
                           : 'Browse, pick and upload your photos & videos',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: const Color(0xFF6B7280),
-                        height: 1.4,
-                      ),
+                      style: AppTextStyles.bodyLarge(height: 1.4),
                     ),
                   ],
                 ),
@@ -469,11 +459,7 @@ class _HomeScreenState extends State<HomeScreen> {
             'This app demonstrates how the Video Platform API works for uploading media files to the cloud. '
             'Whether you\'re a business owner, developer, or just curious! '
             'Simply follow the steps below to experience how easy it is to securely upload and manage your media files.',
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              color: const Color(0xFF6B7280),
-              height: 1.6,
-            ),
+            style: AppTextStyles.bodyXLarge(height: 1.6),
           ),
           const SizedBox(height: 28),
 
@@ -587,14 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
-                description,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: const Color(0xFF343537),
-                  height: 1.5,
-                ),
-              ),
+              Text(description, style: AppTextStyles.bodyLarge(height: 1.5)),
             ],
           ),
         ),

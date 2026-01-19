@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/core/utils/app_text_styles.dart';
 
 class ParameterDescriptionCard extends StatelessWidget {
   final bool showOnlyAboutSection;
@@ -88,7 +89,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 32),
-        
+
         // API Description Section
         Container(
           padding: const EdgeInsets.all(20),
@@ -110,13 +111,13 @@ class ParameterDescriptionCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-        Row(
-          children: [
-            Icon(
+              Row(
+                children: [
+                  Icon(
                     Icons.info_outline_rounded,
                     size: 20,
-              color: Pallet.primaryColor,
-            ),
+                    color: Pallet.primaryColor,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'About Login API',
@@ -135,7 +136,7 @@ class ParameterDescriptionCard extends StatelessWidget {
                 'This token is your proof of identity for all future actions. Every time you want to upload a file or check status, you\'ll include this token with your request. For security, tokens expire after 24 hours, so you\'ll need to call this API again to get a fresh token when it expires.',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: Pallet.textPrimary,
+                  color: Pallet.textBlack,
                   height: 1.7,
                 ),
               ),
@@ -161,7 +162,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        
+
         _buildParameter(
           name: 'x-authentication-api-key',
           type: 'string',
@@ -173,7 +174,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           color: Colors.blue,
         ),
         const SizedBox(height: 16),
-        
+
         _buildParameter(
           name: 'x-multitenant-external-id',
           type: 'string',
@@ -185,7 +186,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           color: Colors.orange,
         ),
         const SizedBox(height: 16),
-        
+
         _buildParameter(
           name: 'x-authentication-signature',
           type: 'string',
@@ -197,7 +198,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           color: Colors.purple,
         ),
         const SizedBox(height: 16),
-        
+
         _buildParameter(
           name: 'timestamp',
           type: 'string (ISO 8601)',
@@ -209,7 +210,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           color: Colors.teal,
         ),
         const SizedBox(height: 32),
-        
+
         // How It Works Section
         Row(
           children: [
@@ -303,8 +304,8 @@ class ParameterDescriptionCard extends StatelessWidget {
                 color: Pallet.textPrimary,
               ),
             ),
-              ],
-            ),
+          ],
+        ),
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(20),
@@ -417,10 +418,10 @@ class ParameterDescriptionCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Understanding API Responses',
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Pallet.textPrimary,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Pallet.textPrimary,
                       ),
                     ),
                   ),
@@ -877,16 +878,16 @@ class ParameterDescriptionCard extends StatelessWidget {
                   ),
                 ],
               ),
-                const SizedBox(height: 12),
-                _buildSecurityTip('Never share your Secret Key with anyone'),
-                _buildSecurityTip('Keep your API credentials secure and private'),
+              const SizedBox(height: 12),
+              _buildSecurityTip('Never share your Secret Key with anyone'),
+              _buildSecurityTip('Keep your API credentials secure and private'),
               _buildSecurityTip(
                 'Tokens expire after 24 hours - you\'ll need to generate a new one',
               ),
-                _buildSecurityTip('Always use HTTPS when making API requests'),
-              ],
-            ),
+              _buildSecurityTip('Always use HTTPS when making API requests'),
+            ],
           ),
+        ),
         const SizedBox(height: 32),
         // Status Codes Section
         Row(
@@ -1103,7 +1104,7 @@ class ParameterDescriptionCard extends StatelessWidget {
             description,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Pallet.textPrimary,
+              color: Pallet.textBlack,
               height: 1.6,
             ),
           ),
@@ -1120,11 +1121,7 @@ class ParameterDescriptionCard extends StatelessWidget {
               children: [
                 Text(
                   'Example: ',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Pallet.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTextStyles.bodySmall(fontWeight: FontWeight.w500),
                 ),
                 Expanded(
                   child: Text(
@@ -1184,14 +1181,7 @@ class ParameterDescriptionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
-                description,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Pallet.textSecondary,
-                  height: 1.6,
-                ),
-              ),
+              Text(description, style: AppTextStyles.bodyLarge(height: 1.6)),
             ],
           ),
         ),
@@ -1212,14 +1202,7 @@ class ParameterDescriptionCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              tip,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: Pallet.textSecondary,
-                height: 1.4,
-              ),
-            ),
+            child: Text(tip, style: AppTextStyles.bodySmall(height: 1.4)),
           ),
         ],
       ),
@@ -1279,14 +1262,7 @@ class ParameterDescriptionCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Pallet.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
+                Text(description, style: AppTextStyles.bodySmall(height: 1.4)),
               ],
             ),
           ),

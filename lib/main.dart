@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Media Upload Sample App',
+      title: 'Video Platform Demo',
       theme: AppTheme.darkTheme,
       home: const SplashScreen(),
     );

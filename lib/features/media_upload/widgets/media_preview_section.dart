@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/core/utils/app_text_styles.dart';
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
@@ -441,10 +442,7 @@ class MediaPreviewSection extends StatelessWidget {
       children: [
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            style: GoogleFonts.inter(fontSize: 13, color: Pallet.textSecondary),
-          ),
+          child: Text(label, style: AppTextStyles.bodyMedium()),
         ),
         Expanded(
           child: Text(

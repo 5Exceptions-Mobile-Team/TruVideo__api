@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/core/utils/app_text_styles.dart';
 
 class UploadStepDescriptionCard extends StatelessWidget {
   final int stepNumber;
@@ -222,11 +223,7 @@ class UploadStepDescriptionCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   detail.description,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: Pallet.textSecondary,
-                    height: 1.5,
-                  ),
+                  style: AppTextStyles.bodyMedium(height: 1.5),
                 ),
               ],
             ),

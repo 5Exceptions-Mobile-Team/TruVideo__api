@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/core/utils/app_text_styles.dart';
 import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/auth/models/credentials_model.dart';
 import 'package:media_upload_sample_app/features/auth/views/save_update_credentials.dart';
@@ -376,10 +377,7 @@ class InteractiveApiConsole extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Your unique identifier (like a username)',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: Pallet.textSecondary,
-                ),
+                style: AppTextStyles.bodyExtraSmall(),
               ),
             ],
           ),
@@ -403,10 +401,7 @@ class InteractiveApiConsole extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Your private password (keep it secret)',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: Pallet.textSecondary,
-                ),
+                style: AppTextStyles.bodyExtraSmall(),
               ),
             ],
           ),
@@ -432,10 +427,7 @@ class InteractiveApiConsole extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Your account number (Optional)',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: Pallet.textSecondary,
-                ),
+                style: AppTextStyles.bodyExtraSmall(),
               ),
             ],
           ),
@@ -465,10 +457,7 @@ class InteractiveApiConsole extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'The exact time this request was made',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: Pallet.textSecondary,
-                  ),
+                  style: AppTextStyles.bodyExtraSmall(),
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -515,10 +504,7 @@ class InteractiveApiConsole extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'A digital fingerprint proving the request is from you',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: Pallet.textSecondary,
-                  ),
+                  style: AppTextStyles.bodyExtraSmall(),
                 ),
                 const SizedBox(height: 8),
                 Container(
