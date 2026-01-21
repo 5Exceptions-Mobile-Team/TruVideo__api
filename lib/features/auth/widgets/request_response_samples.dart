@@ -177,24 +177,33 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                               ),
                               if (hasResponse) ...[
                                 const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Pallet.successColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '200',
-                                    style: GoogleFonts.firaCode(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Pallet.successColor,
+                                Obx(() {
+                                  final statusCode = authController.loginStatusCode.value;
+                                  final statusCodeStr = statusCode?.toString() ?? '200';
+                                  final isSuccess = statusCode != null && statusCode >= 200 && statusCode < 300;
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
                                     ),
-                                  ),
-                                ),
+                                    decoration: BoxDecoration(
+                                      color: isSuccess
+                                          ? Pallet.successColor.withOpacity(0.1)
+                                          : Pallet.errorColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      statusCodeStr,
+                                      style: GoogleFonts.firaCode(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSuccess
+                                            ? Pallet.successColor
+                                            : Pallet.errorColor,
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ],
                             ],
                           );

@@ -4,6 +4,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/core/services/api_handler.dart';
 
+/// Wrapper class to hold API response data and status code
+class ApiResponse<T> {
+  final T? data;
+  final int? statusCode;
+  final bool success;
+
+  ApiResponse({this.data, this.statusCode, required this.success});
+}
+
 class ApiService {
   factory ApiService() => _instance;
 
@@ -23,18 +32,18 @@ class ApiService {
       ),
     );
 
-    // Add logging interceptor for debugging
-    newDio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: logBody,
-        responseHeader: true,
-        responseBody: logBody,
-        error: true,
-        // logPrint: (obj) => debugPrint('API LOG: $obj'),
-      ),
-    );
+    // // Add logging interceptor for debugging
+    // newDio.interceptors.add(
+    //   LogInterceptor(
+    //     request: true,
+    //     requestHeader: true,
+    //     requestBody: logBody,
+    //     responseHeader: true,
+    //     responseBody: logBody,
+    //     error: true,
+    //     // logPrint: (obj) => print('API LOG: $obj'),
+    //   ),
+    // );
 
     newDio.interceptors.add(
       InterceptorsWrapper(
@@ -106,6 +115,44 @@ class ApiService {
     } on DioException catch (e) {
       debugPrint(e.toString());
       return null;
+    }
+  }
+
+  /// Post API with status code included in response
+  Future<ApiResponse<T>> postWithStatusCode<T>({
+    required String path,
+    required dynamic data,
+    Options? options,
+    String? token,
+    String? baseUrl,
+  }) async {
+    try {
+      final dioInstance = (baseUrl != null || token != null)
+          ? createDio(baseUrl: baseUrl, token: token)
+          : dio;
+
+      Response res = await dioInstance.post(path, data: data, options: options);
+
+      final success =
+          res.statusCode != null &&
+          res.statusCode! >= 200 &&
+          res.statusCode! < 300;
+
+      return ApiResponse<T>(
+        data: success ? res.data : null,
+        statusCode: res.statusCode,
+        success: success,
+      );
+    } on DioException catch (e) {
+      debugPrint(e.toString());
+      return ApiResponse<T>(
+        data: null,
+        statusCode: e.response?.statusCode,
+        success: false,
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      return ApiResponse<T>(data: null, statusCode: null, success: false);
     }
   }
 

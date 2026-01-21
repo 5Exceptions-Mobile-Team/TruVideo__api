@@ -115,6 +115,15 @@ class MediaUploadMobileView extends StatelessWidget {
               final baseUrl = homeController.selectedEnvironment.value == 'Prod'
                   ? Endpoints.uploadProdBaseUrl
                   : Endpoints.uploadRCBaseUrl;
+              final finalizeStatusCodeValue = controller.finalizeStatusCode.value;
+              final finalizeStatusCode = finalizeStatusCodeValue?.toString() ?? '202';
+              final finalizeStatusMessage = finalizeStatusCodeValue != null
+                  ? (finalizeStatusCodeValue == 202
+                      ? 'Accepted - Processing asynchronously'
+                      : finalizeStatusCodeValue >= 200 && finalizeStatusCodeValue < 300
+                          ? 'Success'
+                          : 'Error')
+                  : 'Accepted - Processing asynchronously';
               return StepRequestResponseDisplay(
                 requestPayload: controller.finalizePayload.value,
                 responseData: controller.finalizeResponse.value,
@@ -124,8 +133,8 @@ class MediaUploadMobileView extends StatelessWidget {
                   'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
                   'Content-Type': 'application/json',
                 },
-                statusCode: '202',
-                statusMessage: 'Accepted - Processing asynchronously',
+                statusCode: finalizeStatusCode,
+                statusMessage: finalizeStatusMessage,
                 stepNumber: 3,
               );
             });
@@ -162,7 +171,8 @@ class MediaUploadMobileView extends StatelessWidget {
 
             if (response != null) {
               final status = response['status'] as String? ?? 'UNKNOWN';
-              statusCode = '200';
+              final pollStatusCodeValue = controller.pollStatusStatusCode.value;
+              statusCode = pollStatusCodeValue?.toString() ?? '200';
               switch (status) {
                 case 'COMPLETED':
                   statusMessage = 'Upload Completed Successfully';
@@ -175,6 +185,14 @@ class MediaUploadMobileView extends StatelessWidget {
                   break;
                 default:
                   statusMessage = 'Unknown Status';
+              }
+            } else {
+              final pollStatusCodeValue = controller.pollStatusStatusCode.value;
+              if (pollStatusCodeValue != null) {
+                statusCode = pollStatusCodeValue.toString();
+                statusMessage = pollStatusCodeValue >= 200 && pollStatusCodeValue < 300
+                    ? 'Success'
+                    : 'Error';
               }
             }
 

@@ -80,6 +80,9 @@ class AuthController extends GetxController {
     null,
   );
 
+  // Store login API status code
+  Rx<int?> loginStatusCode = Rx<int?>(null);
+
   // Store request details for UI display
   Rx<Map<String, dynamic>?> requestBody = Rx<Map<String, dynamic>?>(null);
   Rx<Map<String, String>?> requestHeaders = Rx<Map<String, String>?>(null);
@@ -369,7 +372,7 @@ class AuthController extends GetxController {
         print("jsonBody: $jsonBody");
       }
 
-      final res = await apiService.post(
+      final apiResponse = await apiService.postWithStatusCode<Map<String, dynamic>>(
         path: Endpoints.login,
         data: jsonBody,
         baseUrl: baseUrl,
@@ -382,19 +385,38 @@ class AuthController extends GetxController {
         ),
       );
 
-      if (res != null && res['accessToken'] != null) {
-        String token = res['accessToken'];
+      // Store status code
+      loginStatusCode.value = apiResponse.statusCode;
+
+      if (apiResponse.success && apiResponse.data != null && apiResponse.data!['accessToken'] != null) {
+        String token = apiResponse.data!['accessToken'];
         // Store the full response for JSON display
-        backOfficeAuthResponse.value = res as Map<String, dynamic>?;
+        backOfficeAuthResponse.value = apiResponse.data;
         homeController.setBackOfficeSuccess(token);
         // homeController.checkAuthStatus();
       } else {
         backOfficeAuthResponse.value = null;
       }
       boLoading.value = false;
+    } on DioException catch (e) {
+      boLoading.value = false;
+      // Capture status code from error response
+      loginStatusCode.value = e.response?.statusCode;
+      // Clear response on error
+      backOfficeAuthResponse.value = null;
+      if (kDebugMode) {
+        print('Authentication failed: $e');
+      }
+      Get.dialog(
+        ErrorDialog(
+          title: 'Authentication Failed!',
+          subTitle: 'Make sure your API and Secret key are correct',
+        ),
+      );
     } catch (e) {
       boLoading.value = false;
       // Clear response on error
+      loginStatusCode.value = null;
       backOfficeAuthResponse.value = null;
       if (kDebugMode) {
         print('Authentication failed: $e');
@@ -742,6 +764,7 @@ class AuthController extends GetxController {
     requestBody.value = null;
     requestHeaders.value = null;
     backOfficeAuthResponse.value = null;
+    loginStatusCode.value = null;
     generatedTimestamp.value = '';
     generatedSignature.value = '';
     apiEndpoint.value = '';

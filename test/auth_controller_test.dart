@@ -126,6 +126,18 @@ class TestApiService implements ApiService {
   }) async {
     return null;
   }
+
+  @override
+  Future<ApiResponse<T>> postWithStatusCode<T>({
+    required String path,
+    required data,
+    Options? options,
+    String? token,
+    String? baseUrl,
+  }) {
+    // TODO: implement postWithStatusCode
+    throw UnimplementedError();
+  }
 }
 
 class TestHomeController extends GetxController implements HomeController {

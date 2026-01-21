@@ -12,7 +12,6 @@ import 'package:media_upload_sample_app/core/services/connectivity_service.dart'
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import 'package:media_upload_sample_app/core/utils/utils.dart';
-import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
@@ -96,6 +95,8 @@ class MediaUploadController extends GetxController {
   // API Status codes storage
   Rx<int?> initializeStatusCode = Rx<int?>(null);
   Rx<int?> uploadStatusCode = Rx<int?>(null);
+  Rx<int?> finalizeStatusCode = Rx<int?>(null);
+  Rx<int?> pollStatusStatusCode = Rx<int?>(null);
 
   // Store upload response headers (for multipart uploads)
   List<Map<String, dynamic>> uploadResponseHeaders = [];
@@ -512,6 +513,10 @@ class MediaUploadController extends GetxController {
     uploadPayload.value = null;
     finalizePayload.value = null;
     pollStatusPayload.value = null;
+    initializeStatusCode.value = null;
+    uploadStatusCode.value = null;
+    finalizeStatusCode.value = null;
+    pollStatusStatusCode.value = null;
     uploadId = null;
     uploadParts.clear();
     uploadedParts.clear();
@@ -720,22 +725,25 @@ class MediaUploadController extends GetxController {
       initializePayload.value = payload;
 
       final token = storage.read<String>(_boTokenKey) ?? '';
-      final response = await ApiService().post<Map<String, dynamic>>(
-        path: Endpoints.initializeUpload,
-        data: payload,
-        token: token,
-        baseUrl: _uploadBaseUrl,
-      );
+      final apiResponse = await ApiService()
+          .postWithStatusCode<Map<String, dynamic>>(
+            path: Endpoints.initializeUpload,
+            data: payload,
+            token: token,
+            baseUrl: _uploadBaseUrl,
+          );
 
-      if (response != null) {
-        _processInitializeResponse(response);
-        initializeResponse.value = response;
-        // Store status code (assuming 200 for successful response from ApiService)
-        initializeStatusCode.value = 200;
+      // Store status code from API response
+      initializeStatusCode.value = apiResponse.statusCode;
+
+      if (apiResponse.success && apiResponse.data != null) {
+        _processInitializeResponse(apiResponse.data!);
+        initializeResponse.value = apiResponse.data;
         isInitializeComplete.value = true;
         currentStep.value = 1;
         Utils.showToast('Initialize completed successfully!');
       } else {
+        initializeResponse.value = null;
         Get.dialog(
           ErrorDialog(
             title: 'Initialize Failed',
@@ -743,7 +751,23 @@ class MediaUploadController extends GetxController {
           ),
         );
       }
+    } on DioException catch (e) {
+      // Capture status code from error response
+      initializeStatusCode.value = e.response?.statusCode;
+      initializeResponse.value = null;
+      if (kDebugMode) {
+        print('Error in Initialize: $e');
+      }
+      Get.dialog(
+        ErrorDialog(
+          title: 'Initialize Error',
+          subTitle:
+              'Failed to initialize upload: ${e.response?.data?.toString() ?? e.message ?? 'Unknown error'}',
+        ),
+      );
     } catch (e) {
+      initializeStatusCode.value = null;
+      initializeResponse.value = null;
       if (kDebugMode) {
         print('Error in Initialize: $e');
       }
@@ -1275,6 +1299,9 @@ class MediaUploadController extends GetxController {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
+      // Store status code from response
+      finalizeStatusCode.value = response.statusCode;
+
       // New API returns 202 Accepted for async processing
       if (response.statusCode == 202 ||
           response.statusCode == 200 ||
@@ -1284,6 +1311,7 @@ class MediaUploadController extends GetxController {
         isFinalizeComplete.value = true;
         // Status should be checked manually via Step 4 "Check Status" button
       } else {
+        finalizeResponse.value = null;
         Get.dialog(
           ErrorDialog(
             title: 'Finalize Failed',
@@ -1293,6 +1321,9 @@ class MediaUploadController extends GetxController {
         );
       }
     } on DioException catch (e) {
+      // Capture status code from error response
+      finalizeStatusCode.value = e.response?.statusCode;
+      finalizeResponse.value = null;
       if (kDebugMode) {
         print('DioException in Finalize: ${e.message}');
       }
@@ -1304,6 +1335,8 @@ class MediaUploadController extends GetxController {
         ),
       );
     } catch (e) {
+      finalizeStatusCode.value = null;
+      finalizeResponse.value = null;
       if (kDebugMode) {
         print('Error in Finalize: $e');
       }
@@ -1345,6 +1378,9 @@ class MediaUploadController extends GetxController {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
+      // Store status code from response
+      pollStatusStatusCode.value = response.statusCode;
+
       if (response.statusCode == 200 && response.data is Map) {
         pollStatusResponse.value = Map<String, dynamic>.from(response.data);
         final status = response.data['status'] as String?;
@@ -1362,8 +1398,22 @@ class MediaUploadController extends GetxController {
             ),
           );
         }
+      } else {
+        pollStatusResponse.value = null;
       }
+    } on DioException catch (e) {
+      // Capture status code from error response
+      pollStatusStatusCode.value = e.response?.statusCode;
+      pollStatusResponse.value = null;
+      Get.dialog(
+        ErrorDialog(
+          title: 'Status Check Failed',
+          subTitle: 'Failed to check upload status. Please try again.',
+        ),
+      );
     } catch (e) {
+      pollStatusStatusCode.value = null;
+      pollStatusResponse.value = null;
       Get.dialog(
         ErrorDialog(
           title: 'Status Check Failed',
@@ -1411,6 +1461,9 @@ class MediaUploadController extends GetxController {
           options: Options(headers: {'Authorization': 'Bearer $token'}),
         );
 
+        // Store status code from response
+        pollStatusStatusCode.value = response.statusCode;
+
         if (response.statusCode == 200 && response.data is Map) {
           final status = response.data['status'] as String?;
 
@@ -1431,7 +1484,15 @@ class MediaUploadController extends GetxController {
           }
           // Status is still PENDING_COMPLETE, continue polling
         }
+      } on DioException catch (e) {
+        // Capture status code from error response
+        pollStatusStatusCode.value = e.response?.statusCode;
+        if (kDebugMode) {
+          print('Error polling upload status: $e');
+        }
+        // Continue polling even on error
       } catch (e) {
+        pollStatusStatusCode.value = null;
         if (kDebugMode) {
           print('Error polling upload status: $e');
         }

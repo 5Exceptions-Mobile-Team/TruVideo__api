@@ -250,79 +250,83 @@ class InteractiveApiConsole extends StatelessWidget {
                   // Has credentials - show dropdown with edit/delete
                   Column(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Pallet.cardBackgroundSubtle,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Pallet.glassBorder,
-                            width: 1,
+                      Semantics(
+                        identifier: 'saved_credentials',
+                        label: 'saved_credentials',
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Pallet.cardBackgroundSubtle,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Pallet.glassBorder,
+                              width: 1,
+                            ),
                           ),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<CredentialsModel>(
-                            value: selectedCred,
-                            isExpanded: true,
-                            hint: Text(
-                              'Select credentials',
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<CredentialsModel>(
+                              value: selectedCred,
+                              isExpanded: true,
+                              hint: Text(
+                                'Select credentials',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: Pallet.textSecondary,
+                                ),
+                              ),
+                              items: authController.apiCredentials.map((cred) {
+                                return DropdownMenuItem<CredentialsModel>(
+                                  value: cred,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          cred.title?.isNotEmpty == true
+                                              ? cred.title!
+                                              : cred.apiKey ?? 'No API Key',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Pallet.textPrimary,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          cred.apiKey ?? 'No API Key',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            color: Pallet.textSecondary,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (CredentialsModel? selectedCred) {
+                                if (selectedCred != null) {
+                                  authController.useSavedCredentials(
+                                    selectedCred,
+                                    forBackOffice: true,
+                                    fromDropdown: true,
+                                  );
+                                }
+                              },
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              dropdownColor: Pallet.cardBackground,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
                                 color: Pallet.textSecondary,
                               ),
-                            ),
-                            items: authController.apiCredentials.map((cred) {
-                              return DropdownMenuItem<CredentialsModel>(
-                                value: cred,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        cred.title?.isNotEmpty == true
-                                            ? cred.title!
-                                            : cred.apiKey ?? 'No API Key',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Pallet.textPrimary,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        cred.apiKey ?? 'No API Key',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          color: Pallet.textSecondary,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (CredentialsModel? selectedCred) {
-                              if (selectedCred != null) {
-                                authController.useSavedCredentials(
-                                  selectedCred,
-                                  forBackOffice: true,
-                                  fromDropdown: true,
-                                );
-                              }
-                            },
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            dropdownColor: Pallet.cardBackground,
-                            icon: Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: Pallet.textSecondary,
                             ),
                           ),
                         ),
@@ -332,113 +336,121 @@ class InteractiveApiConsole extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  Get.to(
-                                    () => SaveUpdateCredentials(
-                                      forUpdate: true,
-                                      credentials: selectedCred,
-                                      targetId: selectedCred.id,
-                                      title:
-                                          selectedCred.title ?? 'Back Office',
+                              child: Semantics(
+                                identifier: 'edit_credentials',
+                                label: 'edit_credentials',
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Get.to(
+                                      () => SaveUpdateCredentials(
+                                        forUpdate: true,
+                                        credentials: selectedCred,
+                                        targetId: selectedCred.id,
+                                        title:
+                                            selectedCred.title ?? 'Back Office',
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    Icons.edit_rounded,
+                                    size: 16,
+                                    color: Pallet.primaryColor,
+                                  ),
+                                  label: Text(
+                                    'Edit',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: Pallet.primaryColor,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  );
-                                },
-                                icon: Icon(
-                                  Icons.edit_rounded,
-                                  size: 16,
-                                  color: Pallet.primaryColor,
-                                ),
-                                label: Text(
-                                  'Edit',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: Pallet.primaryColor,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  side: BorderSide(
-                                    color: Pallet.primaryColor,
-                                    width: 1.5,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    side: BorderSide(
+                                      color: Pallet.primaryColor,
+                                      width: 1.5,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  Get.dialog(
-                                    AlertDialog(
-                                      title: Text(
-                                        'Delete Credentials',
-                                        style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      content: Text(
-                                        'Are you sure you want to delete these credentials?',
-                                        style: GoogleFonts.inter(),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Get.back(),
-                                          child: Text(
-                                            'Cancel',
-                                            style: GoogleFonts.inter(
-                                              color: Pallet.textSecondary,
-                                            ),
+                              child: Semantics(
+                                identifier: 'delete_credentials',
+                                label: 'delete_credentials',
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Get.dialog(
+                                      AlertDialog(
+                                        title: Text(
+                                          'Delete Credentials',
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        TextButton(
-                                          onPressed: () {
-                                            authController.deleteCredentials(
-                                              selectedCred.id!,
-                                            );
-                                            Get.back();
-                                          },
-                                          child: Text(
-                                            'Delete',
-                                            style: GoogleFonts.inter(
-                                              color: Pallet.errorColor,
-                                              fontWeight: FontWeight.w600,
+                                        content: Text(
+                                          'Are you sure you want to delete these credentials?',
+                                          style: GoogleFonts.inter(),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Get.back(),
+                                            child: Text(
+                                              'Cancel',
+                                              style: GoogleFonts.inter(
+                                                color: Pallet.textSecondary,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          TextButton(
+                                            onPressed: () {
+                                              authController.deleteCredentials(
+                                                selectedCred.id!,
+                                              );
+                                              Get.back();
+                                            },
+                                            child: Text(
+                                              'Delete',
+                                              style: GoogleFonts.inter(
+                                                color: Pallet.errorColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    Icons.delete_rounded,
+                                    size: 16,
+                                    color: Pallet.errorColor,
+                                  ),
+                                  label: Text(
+                                    'Delete',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: Pallet.errorColor,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  );
-                                },
-                                icon: Icon(
-                                  Icons.delete_rounded,
-                                  size: 16,
-                                  color: Pallet.errorColor,
-                                ),
-                                label: Text(
-                                  'Delete',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: Pallet.errorColor,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  side: BorderSide(
-                                    color: Pallet.errorColor,
-                                    width: 1.5,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    side: BorderSide(
+                                      color: Pallet.errorColor,
+                                      width: 1.5,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -473,9 +485,13 @@ class InteractiveApiConsole extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          CommonTextField(
-            controller: authController.boApiKeyController,
-            hintText: 'Enter your API Key',
+          Semantics(
+            identifier: 'api_key_field',
+            label: 'api_key_field',
+            child: CommonTextField(
+              controller: authController.boApiKeyController,
+              hintText: 'Enter your API Key',
+            ),
           ),
           const SizedBox(height: 20),
           Column(
@@ -497,10 +513,14 @@ class InteractiveApiConsole extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          CommonTextField(
-            controller: authController.boSecretKeyController,
-            hintText: 'Enter your Secret Key',
-            isObscure: true,
+          Semantics(
+            identifier: 'secret_key_field',
+            label: 'secret_key_field',
+            child: CommonTextField(
+              controller: authController.boSecretKeyController,
+              hintText: 'Enter your Secret Key',
+              isObscure: true,
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -523,9 +543,13 @@ class InteractiveApiConsole extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          CommonTextField(
-            controller: authController.boExternalIdController,
-            hintText: 'Enter your External ID',
+          Semantics(
+            identifier: 'external_id_field',
+            label: 'external_id_field',
+            child: CommonTextField(
+              controller: authController.boExternalIdController,
+              hintText: 'Enter your External ID',
+            ),
           ),
           const SizedBox(height: 24),
 
