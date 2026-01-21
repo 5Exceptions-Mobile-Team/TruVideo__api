@@ -12,8 +12,10 @@ import 'package:media_upload_sample_app/core/services/connectivity_service.dart'
 import 'package:media_upload_sample_app/core/services/web_media_storage_service.dart';
 import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
 import 'package:media_upload_sample_app/core/utils/utils.dart';
+import 'package:media_upload_sample_app/features/auth/controller/auth_controller.dart';
 import 'package:media_upload_sample_app/features/common/widgets/error_widget.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
+import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
 
@@ -40,6 +42,19 @@ class MediaUploadController extends GetxController {
 
   late GalleryController galleryController;
   final WebMediaStorageService _webStorage = WebMediaStorageService();
+
+  // Get upload base URL based on selected environment
+  String get _uploadBaseUrl {
+    try {
+      HomeController homeController = Get.find<HomeController>();
+      return homeController.selectedEnvironment.value == 'Prod'
+          ? Endpoints.uploadProdBaseUrl
+          : Endpoints.uploadRCBaseUrl;
+    } catch (e) {
+      // Fallback to RC if HomeController is not available
+      return Endpoints.uploadRCBaseUrl;
+    }
+  }
 
   RxString mediaType = ''.obs;
   RxString fileSize = ''.obs;
@@ -709,7 +724,7 @@ class MediaUploadController extends GetxController {
         path: Endpoints.initializeUpload,
         data: payload,
         token: token,
-        baseUrl: Endpoints.uploadBaseUrl,
+        baseUrl: _uploadBaseUrl,
       );
 
       if (response != null) {
@@ -1253,9 +1268,7 @@ class MediaUploadController extends GetxController {
       final url = Endpoints.finalizeUpload.replaceAll('{uploadId}', uploadId!);
 
       // Use uploadBaseUrl for finalize endpoint
-      final dioInstance = ApiService().createDio(
-        baseUrl: Endpoints.uploadBaseUrl,
-      );
+      final dioInstance = ApiService().createDio(baseUrl: _uploadBaseUrl);
       final response = await dioInstance.post(
         url,
         data: payload,
@@ -1319,9 +1332,7 @@ class MediaUploadController extends GetxController {
       final token = storage.read<String>(_boTokenKey) ?? '';
       final url = Endpoints.getUploadStatus.replaceAll('{uploadId}', uploadId!);
 
-      final dioInstance = ApiService().createDio(
-        baseUrl: Endpoints.uploadBaseUrl,
-      );
+      final dioInstance = ApiService().createDio(baseUrl: _uploadBaseUrl);
 
       pollStatusPayload.value = {
         'method': 'GET',
@@ -1383,9 +1394,7 @@ class MediaUploadController extends GetxController {
         );
 
         // Use uploadBaseUrl for status polling
-        final dioInstance = ApiService().createDio(
-          baseUrl: Endpoints.uploadBaseUrl,
-        );
+        final dioInstance = ApiService().createDio(baseUrl: _uploadBaseUrl);
 
         // Store request details for display
         pollStatusPayload.value = {

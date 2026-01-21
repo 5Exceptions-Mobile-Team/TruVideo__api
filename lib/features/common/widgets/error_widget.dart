@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
-import 'package:media_upload_sample_app/features/common/widgets/glass_container.dart';
-
 import 'app_button.dart';
 
 class ErrorDialog extends StatelessWidget {

@@ -8,6 +8,7 @@ import 'package:media_upload_sample_app/features/auth/models/credentials_model.d
 import 'package:media_upload_sample_app/features/auth/views/save_update_credentials.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_textfield.dart';
+import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 
 class InteractiveApiConsole extends StatelessWidget {
   const InteractiveApiConsole({super.key});
@@ -76,41 +77,108 @@ class InteractiveApiConsole extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    'https://sdk-mobile-api.truvideo.com/api/login',
-                    style: GoogleFonts.firaCode(
-                      fontSize: 12,
-                      color: Pallet.textPrimary,
-                    ),
-                  ),
+                  child: Obx(() {
+                    final homeController = Get.find<HomeController>();
+                    final baseUrl =
+                        homeController.selectedEnvironment.value == 'Prod'
+                        ? 'https://sdk-mobile-api.truvideo.com'
+                        : 'https://sdk-mobile-api-rc.truvideo.com';
+                    return Text(
+                      '$baseUrl/api/login',
+                      style: GoogleFonts.firaCode(
+                        fontSize: 12,
+                        color: Pallet.textPrimary,
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
+          // Environment Selection
+          Text(
+            'Environment',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Pallet.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Obx(() {
+            final homeController = Get.find<HomeController>();
+            return Container(
+              decoration: BoxDecoration(
+                color: Pallet.cardBackgroundSubtle,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Pallet.glassBorder, width: 1),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: homeController.selectedEnvironment.value,
+                  isExpanded: true,
+                  items: ['RC', 'Prod'].map((env) {
+                    return DropdownMenuItem<String>(
+                      value: env,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          env,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Pallet.textPrimary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newEnv) async {
+                    if (newEnv != null) {
+                      await authController.changeEnvironment(newEnv);
+                    }
+                  },
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  dropdownColor: Pallet.cardBackground,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Pallet.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 24),
+
           // Saved Credentials Section
           Obx(() {
-            final hasCredentials = authController.savedCredentials.isNotEmpty;
-            final backOfficeCred = authController.backOfficeCredentials.value;
+            final hasCredentials = authController.apiCredentials.isNotEmpty;
+            final selectedCred = authController.selectedApiCredential.value;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Saved Credentials',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Pallet.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (!hasCredentials)
-                  // No credentials - show Add Credentials button styled like dropdown
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Saved Credentials',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Pallet.textSecondary,
+                        ),
+                      ),
+                    ),
+                    InkWell(
                       onTap: () {
                         Get.to(
                           () => SaveUpdateCredentials(
@@ -121,37 +189,60 @@ class InteractiveApiConsole extends StatelessWidget {
                       },
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        width: double.infinity,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
+                          horizontal: 8,
+                          vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Pallet.cardBackgroundSubtle,
+                          color: Pallet.primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Pallet.glassBorder,
+                            color: Pallet.primaryColor.withOpacity(0.3),
                             width: 1,
                           ),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.add_rounded,
-                              size: 20,
+                              size: 18,
                               color: Pallet.primaryColor,
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 6),
                             Text(
-                              'Add Credentials',
+                              'Add New',
                               style: GoogleFonts.inter(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Pallet.primaryColor,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (!hasCredentials)
+                  // No credentials - show message
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Pallet.cardBackgroundSubtle,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Pallet.glassBorder, width: 1),
+                    ),
+                    child: Text(
+                      'No credentials saved',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: Pallet.textSecondary,
                       ),
                     ),
                   )
@@ -170,16 +261,16 @@ class InteractiveApiConsole extends StatelessWidget {
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<CredentialsModel>(
-                            value: backOfficeCred,
+                            value: selectedCred,
                             isExpanded: true,
                             hint: Text(
                               'Select credentials',
                               style: GoogleFonts.inter(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Pallet.textSecondary,
                               ),
                             ),
-                            items: authController.savedCredentials.map((cred) {
+                            items: authController.apiCredentials.map((cred) {
                               return DropdownMenuItem<CredentialsModel>(
                                 value: cred,
                                 child: Padding(
@@ -192,7 +283,9 @@ class InteractiveApiConsole extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        cred.apiKey ?? 'No API Key',
+                                        cred.title?.isNotEmpty == true
+                                            ? cred.title!
+                                            : cred.apiKey ?? 'No API Key',
                                         style: GoogleFonts.inter(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
@@ -200,16 +293,14 @@ class InteractiveApiConsole extends StatelessWidget {
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      if (cred.externalId != null &&
-                                          cred.externalId!.isNotEmpty)
-                                        Text(
-                                          'External ID: ${cred.externalId}',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 12,
-                                            color: Pallet.textSecondary,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
+                                      Text(
+                                        cred.apiKey ?? 'No API Key',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: Pallet.textSecondary,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -236,7 +327,7 @@ class InteractiveApiConsole extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (backOfficeCred != null) ...[
+                      if (selectedCred != null) ...[
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -246,10 +337,10 @@ class InteractiveApiConsole extends StatelessWidget {
                                   Get.to(
                                     () => SaveUpdateCredentials(
                                       forUpdate: true,
-                                      credentials: backOfficeCred,
-                                      targetId: backOfficeCred.id,
+                                      credentials: selectedCred,
+                                      targetId: selectedCred.id,
                                       title:
-                                          backOfficeCred.title ?? 'Back Office',
+                                          selectedCred.title ?? 'Back Office',
                                     ),
                                   );
                                 },
@@ -309,7 +400,7 @@ class InteractiveApiConsole extends StatelessWidget {
                                         TextButton(
                                           onPressed: () {
                                             authController.deleteCredentials(
-                                              backOfficeCred.id!,
+                                              selectedCred.id!,
                                             );
                                             Get.back();
                                           },

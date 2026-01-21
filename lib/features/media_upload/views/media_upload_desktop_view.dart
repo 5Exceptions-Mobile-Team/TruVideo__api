@@ -10,6 +10,7 @@ import 'package:media_upload_sample_app/features/media_upload/widgets/step1_star
 import 'package:media_upload_sample_app/features/media_upload/widgets/step2_upload_parts_console.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step3_complete_upload_console.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step4_check_status_console.dart';
+import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/step_request_response_display.dart';
 import 'package:get/get.dart';
 
@@ -28,20 +29,18 @@ class MediaUploadDesktopView extends StatelessWidget {
     final galleryController = Get.find<GalleryController>();
 
     return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         // Left Panel - Media Preview (Full Width), Step Descriptions (40%)
-          Expanded(
+        Expanded(
           flex: 2,
-            child: SingleChildScrollView(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 // Media Preview Widget (Full Width)
-                MediaPreviewWidgetStandalone(
-                  controller: controller,
-                        ),
+                MediaPreviewWidgetStandalone(controller: controller),
                 const SizedBox(height: 32),
                 StepDescriptions.step1(),
                 const SizedBox(height: 32),
@@ -50,11 +49,11 @@ class MediaUploadDesktopView extends StatelessWidget {
                 StepDescriptions.step3(),
                 const SizedBox(height: 32),
                 StepDescriptions.step4(),
-                  const SizedBox(height: 50),
-                ],
-              ),
+                const SizedBox(height: 50),
+              ],
             ),
           ),
+        ),
 
         // Divider
         Container(width: 1, color: Pallet.glassBorder.withOpacity(0.3)),
@@ -71,13 +70,13 @@ class MediaUploadDesktopView extends StatelessWidget {
                 FileDetailsContainer(
                   controller: controller,
                   galleryController: galleryController,
-          ),
+                ),
                 const SizedBox(height: 32),
                 // Step 1: Start Upload
                 Step1StartUploadConsole(
                   controller: controller,
                   homeController: homeController,
-                    ),
+                ),
                 // Step 1 Request/Response - Full width
                 Obx(() {
                   final statusCodeValue = controller.initializeStatusCode.value;
@@ -87,26 +86,29 @@ class MediaUploadDesktopView extends StatelessWidget {
                   final statusMessage = statusCode != null
                       ? 'Success - Upload initialized'
                       : null;
-                  return StepRequestResponseDisplay(
-                    requestPayload: controller.initializePayload.value,
-                    responseData: controller.initializeResponse.value,
-                    requestMethod: 'POST',
-                    endpoint: 'https://upload-api.truvideo.com/upload/start',
-                    requestHeaders: {
-                      'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
-                      'Content-Type': 'application/json',
-                    },
-                    statusCode: statusCode,
-                    statusMessage: statusMessage,
-                    stepNumber: 1,
-                  );
+                  return Obx(() {
+                    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+                        ? Endpoints.uploadProdBaseUrl
+                        : Endpoints.uploadRCBaseUrl;
+                    return StepRequestResponseDisplay(
+                      requestPayload: controller.initializePayload.value,
+                      responseData: controller.initializeResponse.value,
+                      requestMethod: 'POST',
+                      endpoint: '$baseUrl/upload/start',
+                      requestHeaders: {
+                        'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
+                        'Content-Type': 'application/json',
+                      },
+                      statusCode: statusCode,
+                      statusMessage: statusMessage,
+                      stepNumber: 1,
+                    );
+                  });
                 }),
                 const SizedBox(height: 32),
 
                 // Step 2: Upload Parts
-                Step2UploadPartsConsole(
-                  controller: controller,
-                ),
+                Step2UploadPartsConsole(controller: controller),
                 // Divider after Step 2 console
                 const SizedBox(height: 32),
 
@@ -114,26 +116,30 @@ class MediaUploadDesktopView extends StatelessWidget {
                 Step3CompleteUploadConsole(
                   controller: controller,
                   homeController: homeController,
-          ),
+                ),
                 // Step 3 Request/Response - Full width
                 Obx(() {
                   final uploadId = controller.isInitializeComplete.value
                       ? (controller.uploadId ?? 'UPLOAD_ID')
                       : 'UPLOAD_ID';
-                  return StepRequestResponseDisplay(
-                    requestPayload: controller.finalizePayload.value,
-                    responseData: controller.finalizeResponse.value,
-                    requestMethod: 'POST',
-                    endpoint:
-                        'https://upload-api.truvideo.com/upload/$uploadId/complete',
-                    requestHeaders: {
-                      'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
-                      'Content-Type': 'application/json',
-                    },
-                    statusCode: '202',
-                    statusMessage: 'Accepted - Processing asynchronously',
-                    stepNumber: 3,
-                  );
+                  return Obx(() {
+                    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+                        ? Endpoints.uploadProdBaseUrl
+                        : Endpoints.uploadRCBaseUrl;
+                    return StepRequestResponseDisplay(
+                      requestPayload: controller.finalizePayload.value,
+                      responseData: controller.finalizeResponse.value,
+                      requestMethod: 'POST',
+                      endpoint: '$baseUrl/upload/$uploadId/complete',
+                      requestHeaders: {
+                        'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
+                        'Content-Type': 'application/json',
+                      },
+                      statusCode: '202',
+                      statusMessage: 'Accepted - Processing asynchronously',
+                      stepNumber: 3,
+                    );
+                  });
                 }),
                 // Divider after Step 3 response
                 const SizedBox(height: 32),
@@ -187,23 +193,27 @@ class MediaUploadDesktopView extends StatelessWidget {
                       'headers': {'Authorization': 'Bearer YOUR-ACCESS-TOKEN'},
                     };
                   }
-                  return StepRequestResponseDisplay(
-                    requestPayload: displayRequestPayload,
-                    responseData: response,
-                    requestMethod: 'GET',
-                    endpoint:
-                        'https://upload-api.truvideo.com/upload/$uploadId',
-                    requestHeaders: {
-                      'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
-                    },
-                    statusCode: statusCode,
-                    statusMessage: statusMessage,
-                    stepNumber: 4,
-                  );
+                  return Obx(() {
+                    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+                        ? Endpoints.uploadProdBaseUrl
+                        : Endpoints.uploadRCBaseUrl;
+                    return StepRequestResponseDisplay(
+                      requestPayload: displayRequestPayload,
+                      responseData: response,
+                      requestMethod: 'GET',
+                      endpoint: '$baseUrl/upload/$uploadId',
+                      requestHeaders: {
+                        'Authorization': 'Bearer YOUR-ACCESS-TOKEN',
+                      },
+                      statusCode: statusCode,
+                      statusMessage: statusMessage,
+                      stepNumber: 4,
+                    );
+                  });
                 }),
                 const SizedBox(height: 50),
               ],
-          ),
+            ),
           ),
         ),
       ],

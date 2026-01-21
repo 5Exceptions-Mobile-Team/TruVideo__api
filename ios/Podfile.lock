@@ -2,6 +2,14 @@ PODS:
   - audioplayers_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
+  - AWSCognitoIdentityProvider (2.41.0):
+    - AWSCognitoIdentityProviderASF (= 2.41.0)
+    - AWSCore (= 2.41.0)
+  - AWSCognitoIdentityProviderASF (2.41.0):
+    - AWSCore (= 2.41.0)
+  - AWSCore (2.41.0)
+  - AWSS3 (2.41.0):
+    - AWSCore (= 2.41.0)
   - connectivity_plus (0.0.1):
     - Flutter
   - device_info_plus (0.0.1):
@@ -70,6 +78,22 @@ PODS:
     - SDWebImage/Core (= 5.21.5)
   - SDWebImage/Core (5.21.5)
   - SwiftyGif (5.4.5)
+  - truvideo-sdk-camera (78.1.2)
+  - truvideo-sdk-core (78.1.1):
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSS3
+  - truvideo-sdk-video (78.1.1)
+  - truvideo_camera_sdk (0.0.1):
+    - Flutter
+    - truvideo-sdk-camera (= 78.1.2)
+  - truvideo_core_sdk (0.0.1):
+    - Flutter
+    - truvideo-sdk-core (= 78.1.1)
+  - truvideo_video_sdk (0.0.1):
+    - Flutter
+    - truvideo-sdk-video (= 78.1.1)
   - url_launcher_ios (0.0.1):
     - Flutter
   - video_compress (0.3.0):
@@ -95,6 +119,9 @@ DEPENDENCIES:
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - truvideo_camera_sdk (from `.symlinks/plugins/truvideo_camera_sdk/ios`)
+  - truvideo_core_sdk (from `.symlinks/plugins/truvideo_core_sdk/ios`)
+  - truvideo_video_sdk (from `.symlinks/plugins/truvideo_video_sdk/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_compress (from `.symlinks/plugins/video_compress/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
@@ -103,11 +130,18 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSS3
     - DKImagePickerController
     - DKPhotoGallery
     - libwebp
     - SDWebImage
     - SwiftyGif
+    - truvideo-sdk-camera
+    - truvideo-sdk-core
+    - truvideo-sdk-video
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -132,6 +166,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  truvideo_camera_sdk:
+    :path: ".symlinks/plugins/truvideo_camera_sdk/ios"
+  truvideo_core_sdk:
+    :path: ".symlinks/plugins/truvideo_core_sdk/ios"
+  truvideo_video_sdk:
+    :path: ".symlinks/plugins/truvideo_video_sdk/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   video_compress:
@@ -145,6 +185,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
+  AWSCognitoIdentityProvider: b7e2471bec75137ce392b9a8c60f3cee465c61bd
+  AWSCognitoIdentityProviderASF: d26fedd80485c2f0f308741e02c4a9093921ad22
+  AWSCore: ee7594bda3132cde8666328bf9a09d8770c1c100
+  AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
@@ -160,6 +204,12 @@ SPEC CHECKSUMS:
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
+  truvideo-sdk-camera: e758c7116bfca46677200bad157ecf0920eb64ec
+  truvideo-sdk-core: 7f82939ec90dbb7d5a11b059e21a0167051965fc
+  truvideo-sdk-video: cf774e10c4f90ef5fad7fb35d1b9aee89b6f18bd
+  truvideo_camera_sdk: d2338e42549913c677aac57451f4e2672ce85cb4
+  truvideo_core_sdk: 5b6dbd3bfcf5e4278120adc36c10ec8b9ad2ca33
+  truvideo_video_sdk: 0095c63ba77a8b1c0fd08a9f8d6b524759d9e9e6
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_compress: f2133a07762889d67f0711ac831faa26f956980e
   video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a

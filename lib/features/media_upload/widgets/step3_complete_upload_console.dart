@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
+import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
@@ -102,13 +103,18 @@ class Step3CompleteUploadConsole extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      'https://upload-api.truvideo.com/upload/$uploadId/complete',
-                      style: GoogleFonts.firaCode(
-                        fontSize: 12,
-                        color: Pallet.textPrimary,
-                      ),
-                    ),
+                    child: Obx(() {
+                      final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+                          ? Endpoints.uploadProdBaseUrl
+                          : Endpoints.uploadRCBaseUrl;
+                      return Text(
+                        '$baseUrl/upload/$uploadId/complete',
+                        style: GoogleFonts.firaCode(
+                          fontSize: 12,
+                          color: Pallet.textPrimary,
+                        ),
+                      );
+                    }),
                   ),
                 ],
               );
@@ -245,7 +251,9 @@ class Step3CompleteUploadConsole extends StatelessWidget {
     final uploadId = controller.isInitializeComplete.value
         ? (controller.uploadId ?? 'UPLOAD_ID')
         : 'UPLOAD_ID';
-    final baseUrl = 'https://upload-api.truvideo.com';
+    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+        ? Endpoints.uploadProdBaseUrl
+        : Endpoints.uploadRCBaseUrl;
     final endpoint = '$baseUrl/upload/$uploadId/complete';
 
     return Column(
@@ -327,7 +335,9 @@ Body:
     final uploadId = controller.isInitializeComplete.value
         ? (controller.uploadId ?? 'UPLOAD_ID')
         : 'UPLOAD_ID';
-    final baseUrl = 'https://upload-api.truvideo.com';
+    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+        ? Endpoints.uploadProdBaseUrl
+        : Endpoints.uploadRCBaseUrl;
     final endpoint = '$baseUrl/upload/$uploadId/complete';
     final payload = controller.finalizePayload.value!;
 

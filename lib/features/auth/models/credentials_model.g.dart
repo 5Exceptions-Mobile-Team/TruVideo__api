@@ -13,22 +13,36 @@ class CredentialsModelAdapter extends TypeAdapter<CredentialsModel> {
   @override
   CredentialsModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
+    final fields = <int, dynamic>{};
+    
+    // Read fields - handle backward compatibility for old data
+    // Old data might have written 6 as numOfFields but only 5 actual fields
+    int fieldsRead = 0;
+    while (fieldsRead < numOfFields) {
+      try {
+        final fieldIndex = reader.readByte();
+        fields[fieldIndex] = reader.read();
+        fieldsRead++;
+      } catch (e) {
+        // Old data format issue - stop reading if we run out of bytes
+        break;
+      }
+    }
+    
     return CredentialsModel(
       id: fields[0] as String?,
       title: fields[1] as String?,
       apiKey: fields[2] as String?,
       secret: fields[3] as String?,
       externalId: fields[4] as String?,
+      credentialType: fields[5] as String?, // Will be null for old data
     );
   }
 
   @override
   void write(BinaryWriter writer, CredentialsModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +52,9 @@ class CredentialsModelAdapter extends TypeAdapter<CredentialsModel> {
       ..writeByte(3)
       ..write(obj.secret)
       ..writeByte(4)
-      ..write(obj.externalId);
+      ..write(obj.externalId)
+      ..writeByte(5)
+      ..write(obj.credentialType);
   }
 
   @override

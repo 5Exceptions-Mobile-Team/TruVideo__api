@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -18,10 +19,20 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:media_upload_sample_app/core/utils/blob_url_helper.dart';
+import 'package:truvideo_camera_sdk/camera_configuration.dart';
+import 'package:truvideo_camera_sdk/camera_mode.dart';
+import 'package:truvideo_camera_sdk/truvideo_camera_sdk.dart';
+import 'package:truvideo_camera_sdk/truvideo_sdk_camera_flash_mode.dart';
+import 'package:truvideo_camera_sdk/truvideo_sdk_camera_lens_facing.dart';
+import 'package:truvideo_camera_sdk/truvideo_sdk_camera_mode_type.dart';
+import 'package:truvideo_camera_sdk/truvideo_sdk_camera_orientation.dart';
+import 'package:truvideo_camera_sdk/truvideo_sdk_camera_media.dart';
 import '../../common/widgets/error_widget.dart';
 import '../../common/widgets/common_dialog.dart';
 import '../widgets/loading_file_widget.dart';
 import '../widgets/ios_file_picker_dialog.dart';
+import '../widgets/add_file_dialog.dart';
+import '../views/camera_configuration_screen.dart';
 import '../../media_upload/views/media_upload_screen.dart';
 
 enum CameraModeEnum {
@@ -61,22 +72,38 @@ class GalleryController extends GetxController {
   int? mediaCount;
   int? videoDuration;
 
+  // Camera Configuration Reactive Variables
+  Rx<TruvideoSdkCameraLensFacing> selectedLensFacing =
+      TruvideoSdkCameraLensFacing.back.obs;
+  Rx<TruvideoSdkCameraFlashMode> selectedFlashMode =
+      TruvideoSdkCameraFlashMode.off.obs;
+  Rx<TruvideoSdkCameraOrientation> selectedOrientation =
+      TruvideoSdkCameraOrientation.portrait.obs;
+
   final WebMediaStorageService _webStorage = WebMediaStorageService();
 
   @override
   void onInit() {
+    // Initialize default camera mode
+    cameraMode ??= CameraModeEnum.videoAndImage;
+
     if (kIsWeb) {
       // Ensure web storage is initialized before loading media
-      _webStorage.init().then((_) {
-        if (kDebugMode) {
-          print('GalleryController: Web storage initialized, loading media paths');
-        }
-        getMediaPath();
-      }).catchError((e) {
-        if (kDebugMode) {
-          print('GalleryController: Error initializing web storage: $e');
-        }
-      });
+      _webStorage
+          .init()
+          .then((_) {
+            if (kDebugMode) {
+              print(
+                'GalleryController: Web storage initialized, loading media paths',
+              );
+            }
+            getMediaPath();
+          })
+          .catchError((e) {
+            if (kDebugMode) {
+              print('GalleryController: Error initializing web storage: $e');
+            }
+          });
     } else {
       getMediaPath();
       requestPermission();
@@ -84,7 +111,7 @@ class GalleryController extends GetxController {
     super.onInit();
   }
 
-  void requestPermission() async {
+  Future<void> requestPermission() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
     if (Platform.isAndroid) {
@@ -97,19 +124,22 @@ class GalleryController extends GetxController {
           Permission.photos,
           Permission.videos,
           Permission.audio,
-          // Permission.camera,
+          Permission.camera,
+          Permission.microphone,
         ].request();
       } else {
         /// Android 12 and below (API < 33)
         await [
           Permission.storage,
-          // Permission.camera
+          Permission.camera,
+          Permission.microphone,
         ].request();
       }
     } else if (Platform.isIOS) {
       await [
         Permission.photos,
-        // Permission.camera
+        Permission.camera,
+        Permission.microphone,
       ].request();
     }
   }
@@ -127,6 +157,11 @@ class GalleryController extends GetxController {
   }
 
   void updateCameraModeLimits() {
+    if (tempCameraMode == null) {
+      Utils.showToast('Please select a camera mode');
+      return;
+    }
+
     if (tempVideoDuration != null &&
         int.parse(tempVideoDuration.toString()) < 1000) {
       Get.dialog(
@@ -150,6 +185,10 @@ class GalleryController extends GetxController {
     tempImageCount = null;
     tempMediaCount = null;
     tempVideoDuration = null;
+
+    buildCameraMode();
+    // Update both camera_mode and any listeners in configuration screen
+    update(['camera_mode']);
     Get.back();
   }
 
@@ -196,9 +235,7 @@ class GalleryController extends GetxController {
     'aac',
     'flac',
   ];
-  static const List<String> supportedDocumentExtensions = [
-    'pdf',
-  ];
+  static const List<String> supportedDocumentExtensions = ['pdf'];
 
   bool _isSupportedFileType(String extension) {
     final ext = extension.toLowerCase();
@@ -275,14 +312,16 @@ class GalleryController extends GetxController {
 
         if (await galleryDir.exists()) {
           galleryDir.listSync().forEach((file) {
-            if (file is File && !file.path.contains('thumbnail') && !file.path.contains('edited')) {
+            if (file is File &&
+                !file.path.contains('thumbnail') &&
+                !file.path.contains('edited')) {
               final extension = file.path.split('.').last.toLowerCase();
               final mediaType = _getMediaTypeFromExtension(extension);
-              
+
               if (mediaType == 'IMAGE') {
-              imagePaths.add(file.path);
+                imagePaths.add(file.path);
               } else if (mediaType == 'VIDEO') {
-              videoPaths.add(file.path);
+                videoPaths.add(file.path);
               } else if (mediaType == 'AUDIO') {
                 audioPaths.add(file.path);
               } else if (mediaType == 'DOCUMENT') {
@@ -415,8 +454,10 @@ class GalleryController extends GetxController {
         try {
           final bytes = await _webStorage.getMediaBytes(id);
           if (bytes != null) {
-            final thumbnailBytes = await BlobUrlHelper.generateVideoThumbnail(bytes);
-            
+            final thumbnailBytes = await BlobUrlHelper.generateVideoThumbnail(
+              bytes,
+            );
+
             if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
               return Image.memory(
                 thumbnailBytes,
@@ -439,7 +480,7 @@ class GalleryController extends GetxController {
             print('Error generating web video thumbnail: $e');
           }
         }
-        
+
         // Fallback to icon if thumbnail generation fails
         return Container(
           alignment: Alignment.center,
@@ -472,9 +513,7 @@ class GalleryController extends GetxController {
       } else if (type == 'DOCUMENT') {
         final isPdf = path.toLowerCase().endsWith('.pdf');
         return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF6B7280),
-          ),
+          decoration: BoxDecoration(color: const Color(0xFF6B7280)),
           child: Center(
             child: Icon(
               isPdf ? Icons.picture_as_pdf_rounded : Icons.description_rounded,
@@ -505,10 +544,7 @@ class GalleryController extends GetxController {
         );
 
         if (thumbnailBytes != null) {
-          return Image.memory(
-            thumbnailBytes,
-            fit: BoxFit.cover,
-          );
+          return Image.memory(thumbnailBytes, fit: BoxFit.cover);
         } else {
           return Container(
             alignment: Alignment.center,
@@ -542,9 +578,7 @@ class GalleryController extends GetxController {
       } else if (type == 'DOCUMENT') {
         final isPdf = path.toLowerCase().endsWith('.pdf');
         return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF6B7280),
-          ),
+          decoration: BoxDecoration(color: const Color(0xFF6B7280)),
           child: Center(
             child: Icon(
               isPdf ? Icons.picture_as_pdf_rounded : Icons.description_rounded,
@@ -646,18 +680,40 @@ class GalleryController extends GetxController {
   }
 
   void pickFile() async {
-    // For iOS (but not web), show dialog to choose between photos/video and audio/document
-    if (!kIsWeb && Platform.isIOS) {
+    // For mobile (Android/iOS), show dialog to choose between SDK Camera and Pick File
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       Get.dialog(
-        IosFilePickerDialog(
-          onPickPhotosVideo: () => _pickPhotosVideo(),
-          onPickAudioDocument: () => _pickAudioDocument(),
+        AddFileDialog(
+          onSdkCamera: () {
+            Get.to(() => const CameraConfigurationScreen());
+          },
+          onPickFile: () {
+            // For iOS, show the existing iOS file picker dialog
+            if (Platform.isIOS) {
+              // Close AddFileDialog first, then show iOS picker dialog
+              // Get.back();
+              Get.dialog(
+                IosFilePickerDialog(
+                  onPickPhotosVideo: () => _pickPhotosVideo(),
+                  onPickAudioDocument: () => _pickAudioDocument(),
+                ),
+              );
+            } else {
+              // For Android, proceed with normal file picking
+              _pickFileDirectly();
+            }
+          },
         ),
       );
       return;
     }
 
-    // For other platforms (including web), proceed with normal file picking
+    // For web, proceed with normal file picking
+    _pickFileDirectly();
+  }
+
+  /// Direct file picking (used for web and Android)
+  Future<void> _pickFileDirectly() async {
     try {
       showLoadingDialog();
 
@@ -675,7 +731,7 @@ class GalleryController extends GetxController {
           ...supportedAudioExtensions,
           ...supportedDocumentExtensions,
         ];
-        
+
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           withData: kIsWeb, // Need data for web
@@ -687,7 +743,7 @@ class GalleryController extends GetxController {
         final file = result.files.single;
         final fileName = file.name;
         final extension = fileName.split('.').last.toLowerCase();
-        
+
         // Validate file type
         if (!_isSupportedFileType(extension)) {
           Get.back(); // Close loading dialog
@@ -700,7 +756,7 @@ class GalleryController extends GetxController {
           );
           return;
         }
-        
+
         if (kIsWeb) {
           // Web: Store file bytes in Hive
           if (file.bytes != null) {
@@ -754,9 +810,7 @@ class GalleryController extends GetxController {
     try {
       showLoadingDialog();
 
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.media,
-      );
+      final result = await FilePicker.platform.pickFiles(type: FileType.media);
 
       if (result != null) {
         await _handlePickedFile(result);
@@ -838,79 +892,158 @@ class GalleryController extends GetxController {
     Get.back();
   }
 
-  // Future<void> openCamera(CameraConfiguration config, String path) async {
-  //   try {
-  //     List<TruvideoSdkCameraMedia> result = await TruvideoCameraSdk.openCamera(
-  //       configuration: config,
-  //     );
-  //     Get.back();
-  //
-  //     if (result.isNotEmpty) {
-  //       cameraMode = null;
-  //     }
-  //
-  //     for (var e in result) {
-  //       if (Platform.isAndroid || e.filePath.split('.').last == 'mp4') {
-  //         String filePath = e.filePath;
-  //         final File originalFile = File(filePath);
-  //         final String fileName = mPath.basename(filePath);
-  //         final String targetPath = mPath.join(path, fileName);
-  //         try {
-  //           await originalFile.rename(targetPath);
-  //         } catch (e) {
-  //           await originalFile.copy(targetPath);
-  //           originalFile.delete();
-  //         }
-  //
-  //         updateMediaList(targetPath);
-  //       } else {
-  //         updateMediaList(e.filePath);
-  //       }
-  //     }
-  //   } on PlatformException catch (e) {
-  //     if (kDebugMode) {
-  //       print('Camera opening failed: $e');
-  //     }
-  //     Get.dialog(ErrorDialog(title: 'Error', subTitle: e.message));
-  //   }
-  // }
+  Future<void> openSdkCamera() async {
+    await requestPermission();
+    // if (!await Permission.camera.isGranted &&
+    //     !await Permission.microphone.isGranted) {
+    //   Utils.showToast('Please grant Camera and Microphone permission');
+    //   return;
+    // }
+    try {
+      // Get gallery path
+      final dir = await getApplicationDocumentsDirectory();
+      String galleryPath = '${dir.path}/gallery';
 
-  // void changeCameraMode(CameraModeEnum selectedMode) {
-  //   tempCameraMode = selectedMode;
-  //   videoCount = null;
-  //   imageCount = null;
-  //   mediaCount = null;
-  //   videoDuration = null;
-  //   update(['camera_mode']);
-  // }
+      final galleryDir = Directory(galleryPath);
+      if (!galleryDir.existsSync()) {
+        await galleryDir.create(recursive: true);
+      }
 
-  // CameraMode getCameraMode() {
-  //   if (cameraMode == CameraModeEnum.video) {
-  //     return CameraMode.video(
-  //       videoMaxCount: videoCount,
-  //       durationLimit: videoDuration,
-  //     );
-  //   } else if (cameraMode == CameraModeEnum.image) {
-  //     return CameraMode.image(imageMaxCount: imageCount);
-  //   } else if (cameraMode == CameraModeEnum.singleVideo) {
-  //     return CameraMode.singleVideo(durationLimit: videoDuration);
-  //   } else if (cameraMode == CameraModeEnum.singleImage) {
-  //     return CameraMode.singleImage();
-  //   } else if (cameraMode == CameraModeEnum.singleMedia) {
-  //     return CameraMode.singleMedia(
-  //       mediaCount: mediaCount,
-  //       durationLimit: videoDuration,
-  //     );
-  //   } else if (cameraMode == CameraModeEnum.singleVideoAndImage) {
-  //     return CameraMode.singleVideoOrImage(durationLimit: videoDuration);
-  //   } else {
-  //     return CameraMode.videoAndImage(
-  //       videoMaxCount: videoCount,
-  //       imageMaxCount: imageCount,
-  //       durationLimit: videoDuration,
-  //     );
-  //   }
-  // }
+      // Build CameraConfiguration
+      final config = CameraConfiguration(
+        lensFacing: selectedLensFacing.value,
+        flashMode: selectedFlashMode.value,
+        orientation: selectedOrientation.value,
+        outputPath: galleryPath,
+        mode: getCameraMode(),
+      );
+
+      // Open camera
+      List<TruvideoSdkCameraMedia> result = await TruvideoCameraSdk.openCamera(
+        configuration: config,
+      );
+
+      // Close camera configuration screen if still open
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      // Navigate back from camera configuration screen
+      Get.back();
+
+      // Handle results
+      await handleCameraResults(result, galleryPath);
+
+      // Refresh media list
+      getMediaPath();
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Camera opening failed: $e');
+      }
+      Get.dialog(
+        ErrorDialog(
+          title: 'Camera Error',
+          subTitle: e.message ?? 'Failed to open camera',
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Camera opening failed: $e');
+      }
+      Get.dialog(
+        ErrorDialog(
+          title: 'Camera Error',
+          subTitle: 'Failed to open camera. Please try again.',
+        ),
+      );
+    }
+  }
+
+  Future<void> handleCameraResults(
+    List<TruvideoSdkCameraMedia> results,
+    String galleryPath,
+  ) async {
+    if (results.isEmpty) {
+      return;
+    }
+
+    // Reset camera mode after successful capture
+    cameraMode = null;
+    videoCount = null;
+    imageCount = null;
+    mediaCount = null;
+    videoDuration = null;
+
+    for (var media in results) {
+      String filePath = media.filePath;
+
+      // For Android or MP4 files, copy/move to gallery directory
+      if (Platform.isAndroid ||
+          filePath.split('.').last.toLowerCase() == 'mp4') {
+        final File originalFile = File(filePath);
+        final String fileName = filePath.split('/').last;
+        final String targetPath = '$galleryPath/$fileName';
+
+        try {
+          // Try to move file first
+          await originalFile.rename(targetPath);
+        } catch (e) {
+          // If move fails, copy and delete original
+          await originalFile.copy(targetPath);
+          try {
+            await originalFile.delete();
+          } catch (_) {
+            // Ignore delete errors
+          }
+        }
+
+        updateMediaList(targetPath);
+      } else {
+        // For iOS, file is already in the correct location
+        updateMediaList(filePath);
+      }
+    }
+
+    // Refresh gallery
+    update(['update_media_list']);
+  }
+
+  void changeCameraMode(CameraModeEnum selectedMode) {
+    tempCameraMode = selectedMode;
+    tempVideoCount = null;
+    tempImageCount = null;
+    tempMediaCount = null;
+    tempVideoDuration = null;
+    update(['camera_mode']);
+  }
+
+  CameraMode getCameraMode() {
+    if (cameraMode == CameraModeEnum.video) {
+      return CameraMode.video(
+        videoMaxCount: videoCount,
+        durationLimit: videoDuration,
+      );
+    } else if (cameraMode == CameraModeEnum.image) {
+      return CameraMode.image(imageMaxCount: imageCount);
+    } else if (cameraMode == CameraModeEnum.singleVideo) {
+      return CameraMode.singleVideo(durationLimit: videoDuration);
+    } else if (cameraMode == CameraModeEnum.singleImage) {
+      return CameraMode.singleImage();
+    } else if (cameraMode == CameraModeEnum.singleMedia) {
+      return CameraMode.singleMedia(
+        mediaCount: mediaCount,
+        durationLimit: videoDuration,
+      );
+    } else if (cameraMode == CameraModeEnum.singleVideoAndImage) {
+      return CameraMode.singleVideoOrImage(durationLimit: videoDuration);
+    } else {
+      // Default: videoAndImage
+      return CameraMode.videoAndImage(
+        videoMaxCount: videoCount,
+        imageMaxCount: imageCount,
+        durationLimit: videoDuration,
+      );
+    }
+  }
 
   Future<(String metadata, String creationDate)?> getMediaMetadata(
     String path,

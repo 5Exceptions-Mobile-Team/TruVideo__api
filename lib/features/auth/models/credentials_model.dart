@@ -13,6 +13,8 @@ class CredentialsModel {
   String? secret;
   @HiveField(4)
   String? externalId;
+  @HiveField(5)
+  String? credentialType;
 
   CredentialsModel({
     this.id,
@@ -20,6 +22,7 @@ class CredentialsModel {
     this.apiKey,
     this.secret,
     this.externalId,
+    this.credentialType,
   });
 
   CredentialsModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,7 @@ class CredentialsModel {
     apiKey = json['api_key'];
     secret = json['secret_key'];
     externalId = json['external_id'];
+    credentialType = json['credential_type'];
   }
 
   Map<String, dynamic> toJson() {
@@ -37,6 +41,7 @@ class CredentialsModel {
     data['api_key'] = apiKey;
     data['secret_key'] = secret;
     data['external_id'] = externalId;
+    data['credential_type'] = credentialType;
     return data;
   }
 }

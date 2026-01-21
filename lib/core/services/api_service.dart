@@ -8,7 +8,7 @@ class ApiService {
   factory ApiService() => _instance;
 
   ApiService._internal() {
-    dio = createDio(baseUrl: Endpoints.loginBaseUrl);
+    dio = createDio(baseUrl: Endpoints.loginRCBaseUrl);
   }
 
   static final ApiService _instance = ApiService._internal();
@@ -18,7 +18,7 @@ class ApiService {
   Dio createDio({String? baseUrl, String? token, bool logBody = true}) {
     final newDio = Dio(
       BaseOptions(
-        baseUrl: baseUrl ?? Endpoints.loginBaseUrl,
+        baseUrl: baseUrl ?? Endpoints.loginRCBaseUrl,
         headers: token != null ? {'Authorization': 'Bearer $token'} : null,
       ),
     );

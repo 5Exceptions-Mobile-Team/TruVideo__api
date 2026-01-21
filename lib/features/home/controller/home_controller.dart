@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:media_upload_sample_app/features/gallery/controller/gallery_controller.dart';
+import 'package:truvideo_core_sdk/truvideo_core_sdk.dart';
 
 class HomeController extends GetxController {
   RxBool isFullyAuthenticated = false.obs; // BO and Mobile
@@ -11,34 +13,66 @@ class HomeController extends GetxController {
 
   static const String BO_TOKEN_KEY = 'bo_token';
   static const String BO_TOKEN_TIMESTAMP_KEY = 'bo_token_timestamp';
+  static const String SELECTED_ENVIRONMENT_KEY = 'selected_environment';
 
   bool enableTruVideoSdk = false;
 
   GetStorage storage = GetStorage();
+  
+  // Environment selection
+  RxString selectedEnvironment = 'RC'.obs;
 
   @override
   void onInit() {
-    // checkAuthStatus();
+    // Load saved environment or default to RC - ensure it persists
+    final savedEnv = storage.read<String>(SELECTED_ENVIRONMENT_KEY);
+    if (savedEnv != null && (savedEnv == 'RC' || savedEnv == 'Prod')) {
+      selectedEnvironment.value = savedEnv;
+    } else {
+      selectedEnvironment.value = 'RC';
+      storage.write(SELECTED_ENVIRONMENT_KEY, 'RC');
+    }
+    checkAuthStatus();
     checkBackOfficeValidity();
     Get.put(GalleryController());
     super.onInit();
   }
+  
+  Future<void> setSelectedEnvironment(String environment) async {
+    if (environment == 'RC' || environment == 'Prod') {
+      selectedEnvironment.value = environment;
+      await storage.write(SELECTED_ENVIRONMENT_KEY, environment);
+    }
+  }
 
-  // void checkAuthStatus({bool skipMobile = false}) async {
-  //   mobileAuthenticated.value = await TruvideoCoreSdk.isAuthenticated();
-  //   isAuthExpired.value = await TruvideoCoreSdk.isAuthenticationExpired();
-  //
-  //   if (!skipMobile && mobileAuthenticated.value && !isAuthExpired.value) {
-  //     await TruvideoCoreSdk.initAuthentication();
-  //   }
-  //
-  //   checkBackOfficeValidity();
-  //
-  //   isFullyAuthenticated.value =
-  //       mobileAuthenticated.value &&
-  //       !isAuthExpired.value &&
-  //       boAuthenticated.value;
-  // }
+  Future<void> checkAuthStatus({bool skipMobile = false}) async {
+    // Only check SDK authentication on mobile platforms
+    if (!kIsWeb) {
+      mobileAuthenticated.value = await TruvideoCoreSdk.isAuthenticated();
+      isAuthExpired.value = await TruvideoCoreSdk.isAuthenticationExpired();
+
+      if (!skipMobile && mobileAuthenticated.value && !isAuthExpired.value) {
+        await TruvideoCoreSdk.initAuthentication();
+      }
+    } else {
+      // On web, SDK is not available, so mobile auth is not applicable
+      mobileAuthenticated.value = false;
+      isAuthExpired.value = false;
+    }
+
+    checkBackOfficeValidity();
+
+    // For mobile: both API and SDK auth required
+    // For web: only API auth required
+    if (kIsWeb) {
+      isFullyAuthenticated.value = boAuthenticated.value;
+    } else {
+      isFullyAuthenticated.value =
+          mobileAuthenticated.value &&
+          !isAuthExpired.value &&
+          boAuthenticated.value;
+    }
+  }
 
   void checkBackOfficeValidity() {
     String? token = storage.read(BO_TOKEN_KEY);
@@ -50,7 +84,6 @@ class HomeController extends GetxController {
 
       if (difference.inHours < 23) {
         boAuthenticated.value = true;
-        isFullyAuthenticated.value = true;
         boExpired.value = false;
       } else {
         boExpired.value = true;
@@ -58,7 +91,16 @@ class HomeController extends GetxController {
       }
     } else {
       boAuthenticated.value = false;
-      isFullyAuthenticated.value = false;
+    }
+    
+    // Update fully authenticated status based on platform
+    if (kIsWeb) {
+      isFullyAuthenticated.value = boAuthenticated.value;
+    } else {
+      isFullyAuthenticated.value =
+          mobileAuthenticated.value &&
+          !isAuthExpired.value &&
+          boAuthenticated.value;
     }
   }
 
@@ -69,15 +111,13 @@ class HomeController extends GetxController {
       DateTime.now().toIso8601String(),
     );
     boAuthenticated.value = true;
-    isFullyAuthenticated.value = true;
     isAuthExpired.value = false;
-    // checkAuthStatus(skipMobile: true);
+    checkAuthStatus(skipMobile: true);
   }
 
   void clearBackOfficeAuth() async {
     await storage.remove(BO_TOKEN_KEY);
     await storage.remove(BO_TOKEN_TIMESTAMP_KEY);
-    isFullyAuthenticated.value = false;
     boAuthenticated.value = false;
     // Clear the auth response when clearing auth
     // try {
@@ -86,11 +126,15 @@ class HomeController extends GetxController {
     // } catch (e) {
     //   // AuthController might not be initialized, ignore
     // }
-    // checkAuthStatus(skipMobile: true);
+    checkAuthStatus(skipMobile: true);
   }
 
-  void clearMobileAuth() async {
-    // await TruvideoCoreSdk.clearAuthentication();
-    // checkAuthStatus(skipMobile: true);
+  Future<void> clearMobileAuth() async {
+    if (!kIsWeb) {
+      await TruvideoCoreSdk.clearAuthentication();
+    }
+    mobileAuthenticated.value = false;
+    isAuthExpired.value = false;
+    checkAuthStatus(skipMobile: true);
   }
 }

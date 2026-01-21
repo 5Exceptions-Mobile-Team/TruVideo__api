@@ -162,7 +162,25 @@ class TestHomeController extends GetxController implements HomeController {
   void clearBackOfficeAuth() {}
 
   @override
-  void clearMobileAuth() {}
+  Future<void> checkAuthStatus({bool skipMobile = false}) {
+    // TODO: implement checkAuthStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> clearMobileAuth() {
+    // TODO: implement clearMobileAuth
+    throw UnimplementedError();
+  }
+
+  @override
+  late RxString selectedEnvironment;
+
+  @override
+  Future<void> setSelectedEnvironment(String environment) {
+    // TODO: implement setSelectedEnvironment
+    throw UnimplementedError();
+  }
 }
 
 void main() {

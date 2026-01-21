@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:media_upload_sample_app/core/resourses/pallet.dart';
 import 'package:media_upload_sample_app/features/common/widgets/app_button.dart';
 import 'package:media_upload_sample_app/features/common/widgets/common_textfield.dart';
+import 'package:media_upload_sample_app/core/resourses/endpoints.dart';
 import 'package:media_upload_sample_app/features/media_upload/controller/media_upload_controller.dart';
 import 'package:media_upload_sample_app/features/home/controller/home_controller.dart';
 import 'package:media_upload_sample_app/features/media_upload/widgets/checkboxes_row_widget.dart';
@@ -102,13 +103,18 @@ class Step1StartUploadConsole extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    'https://upload-api.truvideo.com/upload/start',
-                    style: GoogleFonts.firaCode(
-                      fontSize: 12,
-                      color: Pallet.textPrimary,
-                    ),
-                  ),
+                  child: Obx(() {
+                    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+                        ? Endpoints.uploadProdBaseUrl
+                        : Endpoints.uploadRCBaseUrl;
+                    return Text(
+                      '$baseUrl/upload/start',
+                      style: GoogleFonts.firaCode(
+                        fontSize: 12,
+                        color: Pallet.textPrimary,
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -199,7 +205,9 @@ class Step1StartUploadConsole extends StatelessWidget {
   }
 
   Widget _buildSampleRequest(BuildContext context) {
-    final baseUrl = 'https://upload-api.truvideo.com';
+    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+        ? Endpoints.uploadProdBaseUrl
+        : Endpoints.uploadRCBaseUrl;
     final endpoint = '$baseUrl/upload/start';
 
     return Column(
@@ -285,7 +293,9 @@ Body:
   }
 
   Widget _buildActualRequest(BuildContext context) {
-    final baseUrl = 'https://upload-api.truvideo.com';
+    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+        ? Endpoints.uploadProdBaseUrl
+        : Endpoints.uploadRCBaseUrl;
     final endpoint = '$baseUrl/upload/start';
     final payload = controller.initializePayload.value!;
 

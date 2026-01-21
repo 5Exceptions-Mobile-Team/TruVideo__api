@@ -66,15 +66,16 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Obx(() {
-                          final hasRequest = authController.requestBody.value != null;
+                          final hasRequest =
+                              authController.requestBody.value != null;
                           return Text(
                             hasRequest ? 'REQUEST' : 'REQUEST SAMPLE',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Pallet.textPrimary,
-                            letterSpacing: 1.0,
-                          ),
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Pallet.textPrimary,
+                              letterSpacing: 1.0,
+                            ),
                           );
                         }),
                       ),
@@ -117,7 +118,7 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Response Sample Section
         Container(
           decoration: BoxDecoration(
@@ -160,18 +161,20 @@ class _RequestResponseSamplesState extends State<RequestResponseSamples> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Obx(() {
-                          final hasResponse = authController.backOfficeAuthResponse.value != null;
+                          final hasResponse =
+                              authController.backOfficeAuthResponse.value !=
+                              null;
                           return Row(
                             children: [
                               Text(
                                 hasResponse ? 'RESPONSE' : 'RESPONSE SAMPLE',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Pallet.textPrimary,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Pallet.textPrimary,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
                               if (hasResponse) ...[
                                 const SizedBox(width: 12),
                                 Container(
@@ -388,17 +391,17 @@ Body:
       children: [
         _buildSectionTitle('API Call Example'),
         const SizedBox(height: 12),
-          Container(
+        Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+          decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Pallet.glassBorder, width: 1),
-            ),
+          ),
           child: SelectableText(
             codeExample,
-                          style: GoogleFonts.firaCode(
+            style: GoogleFonts.firaCode(
               fontSize: 13,
               color: const Color(0xFFD4D4D4),
               height: 1.6,
@@ -444,7 +447,7 @@ Body:
 
   Widget _buildResponseDisplay(AuthController authController) {
     final response = authController.backOfficeAuthResponse.value;
-    
+
     if (response == null) {
       return _buildEmptyState('No response data available.');
     }
@@ -468,12 +471,16 @@ Body:
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  'Authentication Successful!',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green[700],
+                child: Semantics(
+                  identifier: 'authentication_successful',
+                  label: 'authentication_successful',
+                  child: Text(
+                    'Authentication Successful!',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
                   ),
                 ),
               ),
