@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 class CameraModeField extends StatelessWidget {
   final String hintText;
   final ValueChanged<String> onChanged;
+  final Key? valueKey;
   const CameraModeField({
     super.key,
     required this.hintText,
     required this.onChanged,
+    this.valueKey,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      key: valueKey,
       style: TextStyle(fontSize: 12),
       onTapOutside: (_) => FocusScope.of(context).unfocus(),
       onChanged: onChanged,

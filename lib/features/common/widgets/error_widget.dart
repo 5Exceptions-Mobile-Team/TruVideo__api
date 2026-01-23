@@ -27,10 +27,14 @@ class ErrorDialog extends StatelessWidget {
             Text(
               subTitle ?? 'Please authenticate first to use other features.',
             ),
-            AppButton(
-              onTap: () => Get.back(),
-              text: 'Back',
-              backgroundColor: Pallet.primaryDarkColor,
+            Semantics(
+              identifier: 'back_button',
+              label: 'back_button',
+              child: AppButton(
+                onTap: () => Get.back(),
+                text: 'Back',
+                backgroundColor: Pallet.primaryDarkColor,
+              ),
             ),
           ],
         ),

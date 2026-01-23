@@ -137,9 +137,8 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
                   Semantics(
                     identifier: 'title_field',
                     label: 'title_field',
-                    container: true,
-                    textField: true,
                     child: CommonTextField(
+                      valueKey: Key('title_field'),
                       controller: titleController,
                       hintText: 'Title or Environment',
                     ),
@@ -153,8 +152,8 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
                   Semantics(
                     identifier: 'api_key_field',
                     label: 'api_key_field',
-                    container: true,
                     child: CommonTextField(
+                      valueKey: Key('api_key_field'),
                       controller: apiKeyController,
                       hintText: 'Api Key',
                     ),
@@ -168,8 +167,8 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
                   Semantics(
                     identifier: 'secret_key_field',
                     label: 'secret_key_field',
-                    textField: true,
                     child: CommonTextField(
+                      valueKey: Key('secret_key_field'),
                       controller: secretKeyController,
                       hintText: 'Secret Key',
                     ),
@@ -184,6 +183,7 @@ class _SaveUpdateCredentialsState extends State<SaveUpdateCredentials> {
                     identifier: 'external_id_field',
                     label: 'external_id_field',
                     child: CommonTextField(
+                      valueKey: Key('external_id_field'),
                       controller: externalIdController,
                       hintText: 'External Id',
                     ),

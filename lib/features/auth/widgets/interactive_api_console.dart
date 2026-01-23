@@ -489,6 +489,7 @@ class InteractiveApiConsole extends StatelessWidget {
             identifier: 'api_key_field',
             label: 'api_key_field',
             child: CommonTextField(
+              valueKey: Key('api_key_field'),
               controller: authController.boApiKeyController,
               hintText: 'Enter your API Key',
             ),
@@ -514,9 +515,10 @@ class InteractiveApiConsole extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Semantics(
-            identifier: 'secret_key_field',
             label: 'secret_key_field',
+            identifier: 'secret_key_field',
             child: CommonTextField(
+              valueKey: Key('api_key_field'),
               controller: authController.boSecretKeyController,
               hintText: 'Enter your Secret Key',
               isObscure: true,
@@ -544,9 +546,10 @@ class InteractiveApiConsole extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Semantics(
-            identifier: 'external_id_field',
             label: 'external_id_field',
+            identifier: 'external_id_field',
             child: CommonTextField(
+              valueKey: Key('external_id_field'),
               controller: authController.boExternalIdController,
               hintText: 'Enter your External ID',
             ),

@@ -52,17 +52,28 @@ class MetadataSectionWidget extends StatelessWidget {
               return Row(
                 children: [
                   Expanded(
-                    child: CommonTextField(
-                      controller: controller.metadataControllers[index]['key']!,
-                      hintText: 'Key',
+                    child: Semantics(
+                      identifier: 'metadata_key',
+                      label: 'metadata_key',
+                      child: CommonTextField(
+                        valueKey: Key('metadata_key'),
+                        controller:
+                            controller.metadataControllers[index]['key']!,
+                        hintText: 'Key',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: CommonTextField(
-                      controller:
-                          controller.metadataControllers[index]['value']!,
-                      hintText: 'Value',
+                    child: Semantics(
+                      identifier: 'metadata_value',
+                      label: 'metadata_value',
+                      child: CommonTextField(
+                        valueKey: Key('metadata_value'),
+                        controller:
+                            controller.metadataControllers[index]['value']!,
+                        hintText: 'Value',
+                      ),
                     ),
                   ),
                 ],

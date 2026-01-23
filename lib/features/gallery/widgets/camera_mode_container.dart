@@ -35,6 +35,7 @@ class CameraModeContainer extends StatelessWidget {
               identifier: 'video_count',
               label: 'Max video count field',
               child: CameraModeField(
+                valueKey: Key('video_count'),
                 hintText: videoCountHint!,
                 onChanged: (value) =>
                     galleryController.tempVideoCount = int.parse(value),
@@ -45,6 +46,7 @@ class CameraModeContainer extends StatelessWidget {
               identifier: 'image_count',
               label: 'Max image count',
               child: CameraModeField(
+                valueKey: Key('image_count'),
                 hintText: imageCountHint!,
                 onChanged: (value) =>
                     galleryController.tempImageCount = int.parse(value),
@@ -55,6 +57,7 @@ class CameraModeContainer extends StatelessWidget {
               identifier: 'media_count',
               label: 'Max media count',
               child: CameraModeField(
+                valueKey: Key('media_count'),
                 hintText: mediaCountHint!,
                 onChanged: (value) =>
                     galleryController.tempMediaCount = int.parse(value),
@@ -65,6 +68,7 @@ class CameraModeContainer extends StatelessWidget {
               identifier: 'video_duration',
               label: 'Max video duration',
               child: CameraModeField(
+                valueKey: Key('video_duration'),
                 hintText: videoDurationHint!,
                 onChanged: (value) =>
                     galleryController.tempVideoDuration = int.parse(value),

@@ -79,6 +79,7 @@ class TagsSectionWidget extends StatelessWidget {
                           identifier: 'tag_key',
                           label: 'tag_key',
                           child: CommonTextField(
+                            valueKey: Key('tag_key'),
                             controller: controller.tagControllers[i]['key']!,
                             hintText: 'Key',
                           ),
@@ -89,6 +90,7 @@ class TagsSectionWidget extends StatelessWidget {
                           identifier: 'tag_value',
                           label: 'tag_value',
                           child: CommonTextField(
+                            valueKey: Key('tag_value'),
                             controller: controller.tagControllers[i]['value']!,
                             hintText: 'Value',
                           ),

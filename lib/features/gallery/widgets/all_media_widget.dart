@@ -49,7 +49,6 @@ class AllMediaWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     GalleryController galleryController = Get.find();
     final mediaList = galleryController.getMediaList(mediaType);
-    
     if (mediaList.isEmpty) {
       return Center(
         child: Column(
@@ -67,7 +66,7 @@ class AllMediaWidget extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
                 color: Pallet.textSecondary,
-            ),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -96,37 +95,40 @@ class AllMediaWidget extends StatelessWidget {
         childAspectRatio: aspectRatio,
       ),
       itemCount: mediaList.length,
-            itemBuilder: (context, index) {
-              return Semantics(
-                identifier: 'media_container',
-                label: 'Media Container to display image, video etc',
-                child: GestureDetector(
-                  onTap: forMedia
-                      ? () {
-                          if (forVideo && !singleVideo) {
-                            if (galleryController.selectedMedia.contains(
+      itemBuilder: (context, index) {
+        final type = galleryController.getMediaType(mediaList[index]);
+        return Semantics(
+          identifier: type,
+          label: type,
+          child: GestureDetector(
+            onTap: forMedia
+                ? () {
+                    if (forVideo && !singleVideo) {
+                      if (galleryController.selectedMedia.contains(
                         mediaList[index],
-                            )) {
-                        galleryController.selectedMedia.remove(mediaList[index]);
-                            } else {
+                      )) {
+                        galleryController.selectedMedia.remove(
+                          mediaList[index],
+                        );
+                      } else {
                         galleryController.selectedMedia.add(mediaList[index]);
-                            }
-                          } else {
-                            Get.back();
+                      }
+                    } else {
+                      Get.back();
                       onSelect([mediaList[index]]);
-                          }
-                        }
-                      : null,
-                  child: MediaContainer(
+                    }
+                  }
+                : null,
+            child: MediaContainer(
               key: ValueKey(mediaList[index]),
               path: mediaList[index],
-                    forMedia: forMedia,
-                    forVideo: forVideo,
-                    singleVideo: singleVideo,
-                  ),
-                ),
-              );
-            },
-          );
+              forMedia: forMedia,
+              forVideo: forVideo,
+              singleVideo: singleVideo,
+            ),
+          ),
+        );
+      },
+    );
   }
 }

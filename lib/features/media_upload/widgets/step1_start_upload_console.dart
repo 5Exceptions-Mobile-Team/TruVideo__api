@@ -34,7 +34,7 @@ class Step1StartUploadConsole extends StatelessWidget {
         border: Border.all(color: Pallet.glassBorder, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -104,7 +104,8 @@ class Step1StartUploadConsole extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Obx(() {
-                    final baseUrl = homeController.selectedEnvironment.value == 'Prod'
+                    final baseUrl =
+                        homeController.selectedEnvironment.value == 'Prod'
                         ? Endpoints.uploadProdBaseUrl
                         : Endpoints.uploadRCBaseUrl;
                     return Text(
@@ -135,16 +136,26 @@ class Step1StartUploadConsole extends StatelessWidget {
           const SizedBox(height: 12),
 
           _buildLabel('Title', isRequired: true),
-          CommonTextField(
-            controller: controller.titleController,
-            hintText: 'Enter title',
+          Semantics(
+            identifier: 'title',
+            label: 'title',
+            child: CommonTextField(
+              valueKey: Key('title'),
+              controller: controller.titleController,
+              hintText: 'Enter title',
+            ),
           ),
           const SizedBox(height: 16),
 
           _buildLabel('Creator Name', isRequired: true),
-          CommonTextField(
-            controller: controller.creatorController,
-            hintText: 'Enter creator name',
+          Semantics(
+            identifier: 'creator_name',
+            label: 'creator_name',
+            child: CommonTextField(
+              valueKey: Key('creator_name'),
+              controller: controller.creatorController,
+              hintText: 'Enter creator name',
+            ),
           ),
           const SizedBox(height: 20),
 

@@ -406,10 +406,10 @@ class _CameraConfigurationScreenState extends State<CameraConfigurationScreen> {
               groupValue: value ? true : null,
               onChanged: onChanged,
               activeColor: Pallet.primaryColor,
-              fillColor: MaterialStateProperty.resolveWith<Color>((
-                Set<MaterialState> states,
+              fillColor: WidgetStateProperty.resolveWith<Color>((
+                Set<WidgetState> states,
               ) {
-                if (states.contains(MaterialState.selected)) {
+                if (states.contains(WidgetState.selected)) {
                   return Pallet.primaryColor;
                 }
                 return Pallet.textSecondary;
