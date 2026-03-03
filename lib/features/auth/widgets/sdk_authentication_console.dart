@@ -258,7 +258,7 @@ class _SdkAuthenticationConsoleState extends State<SdkAuthenticationConsole> {
                       border: Border.all(color: Pallet.glassBorder, width: 1),
                     ),
                     child: DropdownButtonHideUnderline(
-                        child: DropdownButton<CredentialsModel>(
+                      child: DropdownButton<CredentialsModel>(
                         value: selectedCred,
                         isExpanded: true,
                         hint: Padding(
@@ -900,16 +900,23 @@ class _SdkAuthenticationConsoleState extends State<SdkAuthenticationConsole> {
           hintText: 'Enter External ID',
         ),
         const SizedBox(height: 24),
-        AppButton(
-          text: 'Authenticate',
-          onTap: () => authController.sdkAuthenticate(),
-          backgroundColor: Pallet.primaryColor,
-          buttonIcon: const Icon(
-            Icons.verified_user_rounded,
-            color: Colors.white,
-            size: 20,
+        Semantics(
+          identifier: 'sdk_authenticate',
+          label: 'sdk_authenticate',
+          container: true,
+          child: ExcludeSemantics(
+            child: AppButton(
+              text: 'Authenticate',
+              onTap: () => authController.sdkAuthenticate(),
+              backgroundColor: Pallet.primaryColor,
+              buttonIcon: const Icon(
+                Icons.verified_user_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              showLoading: authController.sdkLoading.value,
+            ),
           ),
-          showLoading: authController.sdkLoading.value,
         ),
       ],
     );

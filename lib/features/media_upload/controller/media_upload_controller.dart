@@ -1266,7 +1266,7 @@ class MediaUploadController extends GetxController {
       };
     }
     // Don't mark as complete yet - need to poll for status
-    Utils.showToast('Upload completed, Checking status now');
+    Utils.showToast('Upload completed successfully');
   }
 
   // Step 3: Finalize Upload
@@ -1467,10 +1467,9 @@ class MediaUploadController extends GetxController {
         if (response.statusCode == 200 && response.data is Map) {
           final status = response.data['status'] as String?;
 
-          if (status == 'COMPLETED') {
+          if (status != 'FAILED') {
             isFinalizeComplete.value = true;
             pollStatusResponse.value = Map<String, dynamic>.from(response.data);
-            Utils.showToast('Upload completed successfully!');
             return;
           } else if (status == 'FAILED') {
             pollStatusResponse.value = Map<String, dynamic>.from(response.data);

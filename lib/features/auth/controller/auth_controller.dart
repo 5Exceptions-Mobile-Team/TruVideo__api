@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,7 +70,7 @@ class AuthController extends GetxController {
   Rx<CredentialsModel?> mobileCredentials = Rx<CredentialsModel?>(null);
   Rx<CredentialsModel?> selectedSdkCredential = Rx<CredentialsModel?>(null);
   Rx<CredentialsModel?> selectedApiCredential = Rx<CredentialsModel?>(null);
-  
+
   // Environment selection
   RxString selectedEnvironment = 'RC'.obs;
 
@@ -172,7 +171,8 @@ class AuthController extends GetxController {
               (c.credentialType == null &&
                   (c.id == BACK_OFFICE_ID ||
                       (c.title?.toLowerCase().contains('api') ?? false) ||
-                      (c.title?.toLowerCase().contains('back office') ?? false))),
+                      (c.title?.toLowerCase().contains('back office') ??
+                          false))),
         ),
       );
 
@@ -271,7 +271,7 @@ class AuthController extends GetxController {
 
     // Check if user is authenticated - always check this first
     final isAuthenticated = homeController.boAuthenticated.value;
-    
+
     if (isAuthenticated) {
       // Show confirmation dialog - use Get.dialog with barrierDismissible: false
       final confirmed = await Get.dialog<bool>(
@@ -372,30 +372,43 @@ class AuthController extends GetxController {
         print("jsonBody: $jsonBody");
       }
 
-      final apiResponse = await apiService.postWithStatusCode<Map<String, dynamic>>(
-        path: Endpoints.login,
-        data: jsonBody,
-        baseUrl: baseUrl,
-        options: Options(
-          headers: {
-            'x-authentication-api-key': boApiKeyController.text,
-            'x-multitenant-external-id': boExternalIdController.text,
-            'x-authentication-signature': signature,
-          },
-        ),
-      );
+      final apiResponse = await apiService
+          .postWithStatusCode<Map<String, dynamic>>(
+            path: Endpoints.login,
+            data: jsonBody,
+            baseUrl: baseUrl,
+            showErrorDialog: false,
+            options: Options(
+              headers: {
+                'x-authentication-api-key': boApiKeyController.text,
+                'x-multitenant-external-id': boExternalIdController.text,
+                'x-authentication-signature': signature,
+              },
+            ),
+          );
 
       // Store status code
       loginStatusCode.value = apiResponse.statusCode;
 
-      if (apiResponse.success && apiResponse.data != null && apiResponse.data!['accessToken'] != null) {
+      if (apiResponse.success &&
+          apiResponse.data != null &&
+          apiResponse.data!['accessToken'] != null) {
         String token = apiResponse.data!['accessToken'];
         // Store the full response for JSON display
         backOfficeAuthResponse.value = apiResponse.data;
         homeController.setBackOfficeSuccess(token);
+        Utils.showToast('API login successful');
         // homeController.checkAuthStatus();
       } else {
         backOfficeAuthResponse.value = null;
+        Get.dialog(
+          ErrorDialog(
+            title: 'Authentication Failed!',
+            subTitle: _resolveAuthErrorMessage(
+              apiErrorMessage: apiResponse.errorMessage,
+            ),
+          ),
+        );
       }
       boLoading.value = false;
     } on DioException catch (e) {
@@ -410,7 +423,7 @@ class AuthController extends GetxController {
       Get.dialog(
         ErrorDialog(
           title: 'Authentication Failed!',
-          subTitle: 'Make sure your API and Secret key are correct',
+          subTitle: _resolveAuthErrorMessage(errorData: e.response?.data),
         ),
       );
     } catch (e) {
@@ -424,7 +437,7 @@ class AuthController extends GetxController {
       Get.dialog(
         ErrorDialog(
           title: 'Authentication Failed!',
-          subTitle: 'Make sure your API and Secret key are correct',
+          subTitle: _resolveAuthErrorMessage(),
         ),
       );
     }
@@ -768,5 +781,23 @@ class AuthController extends GetxController {
     generatedTimestamp.value = '';
     generatedSignature.value = '';
     apiEndpoint.value = '';
+  }
+
+  String _resolveAuthErrorMessage({
+    String? apiErrorMessage,
+    dynamic errorData,
+  }) {
+    if (apiErrorMessage != null && apiErrorMessage.trim().isNotEmpty) {
+      return apiErrorMessage.trim();
+    }
+
+    if (errorData is Map) {
+      final detail = errorData['detail'];
+      if (detail is String && detail.trim().isNotEmpty) {
+        return detail.trim();
+      }
+    }
+
+    return 'Make sure your API and Secret key are correct';
   }
 }

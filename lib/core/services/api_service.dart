@@ -9,8 +9,14 @@ class ApiResponse<T> {
   final T? data;
   final int? statusCode;
   final bool success;
+  final String? errorMessage;
 
-  ApiResponse({this.data, this.statusCode, required this.success});
+  ApiResponse({
+    this.data,
+    this.statusCode,
+    required this.success,
+    this.errorMessage,
+  });
 }
 
 class ApiService {
@@ -24,7 +30,12 @@ class ApiService {
   late Dio dio;
 
   /// Helper to create a Dio instance with logging and standard interceptors
-  Dio createDio({String? baseUrl, String? token, bool logBody = true}) {
+  Dio createDio({
+    String? baseUrl,
+    String? token,
+    bool logBody = true,
+    bool showErrorDialog = true,
+  }) {
     final newDio = Dio(
       BaseOptions(
         baseUrl: baseUrl ?? Endpoints.loginRCBaseUrl,
@@ -48,8 +59,10 @@ class ApiService {
     newDio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException exception, handler) {
-          final err = ApiHandler().getExceptionMessage(exception);
-          ApiHandler().errorSnackBar(err);
+          if (showErrorDialog) {
+            final err = ApiHandler().getExceptionMessage(exception);
+            ApiHandler().errorSnackBar(err);
+          }
           handler.next(exception);
         },
       ),
@@ -125,10 +138,15 @@ class ApiService {
     Options? options,
     String? token,
     String? baseUrl,
+    bool showErrorDialog = true,
   }) async {
     try {
-      final dioInstance = (baseUrl != null || token != null)
-          ? createDio(baseUrl: baseUrl, token: token)
+      final dioInstance = (baseUrl != null || token != null || !showErrorDialog)
+          ? createDio(
+              baseUrl: baseUrl,
+              token: token,
+              showErrorDialog: showErrorDialog,
+            )
           : dio;
 
       Response res = await dioInstance.post(path, data: data, options: options);
@@ -149,10 +167,16 @@ class ApiService {
         data: null,
         statusCode: e.response?.statusCode,
         success: false,
+        errorMessage: ApiHandler().getExceptionMessage(e),
       );
     } catch (e) {
       debugPrint(e.toString());
-      return ApiResponse<T>(data: null, statusCode: null, success: false);
+      return ApiResponse<T>(
+        data: null,
+        statusCode: null,
+        success: false,
+        errorMessage: 'Something went wrong, Try again later.',
+      );
     }
   }
 
